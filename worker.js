@@ -23,33 +23,43 @@ async function sha256(text) {
     .join('');
 }
 
+// base64url helpers — no +/=/ chars so tokens are always safe in HTTP headers
+function b64url(u8) {
+  return btoa(String.fromCharCode(...u8))
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+}
+function b64dec(s) {
+  const t = s.replace(/-/g, '+').replace(/_/g, '/');
+  return atob(t + '='.repeat((4 - t.length % 4) % 4));
+}
+
 async function hmacSign(secret, msg) {
   const key = await crypto.subtle.importKey(
     'raw', new TextEncoder().encode(secret),
     { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
   );
   const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(msg));
-  return btoa(String.fromCharCode(...new Uint8Array(sig)))
-    .replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+  return b64url(new Uint8Array(sig));
 }
 
 async function makeToken(secret) {
-  const h = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).replace(/=/g, '');
-  const p = btoa(JSON.stringify({
+  const enc = s => b64url(new TextEncoder().encode(s));
+  const h = enc(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+  const p = enc(JSON.stringify({
     iat: Math.floor(Date.now() / 1000),
-    exp: Math.floor(Date.now() / 1000) + 86400, // 24 h
-  })).replace(/=/g, '');
-  const sig = await hmacSign(secret, `${h}.${p}`);
-  return `${h}.${p}.${sig}`;
+    exp: Math.floor(Date.now() / 1000) + 86400,
+  }));
+  return `${h}.${p}.${await hmacSign(secret, `${h}.${p}`)}`;
 }
 
 async function verifyToken(token, secret) {
   if (!token) return false;
-  const [h, p, sig] = token.split('.');
-  if (!h || !p || !sig) return false;
+  const parts = token.split('.');
+  if (parts.length !== 3) return false;
+  const [h, p, sig] = parts;
   if (sig !== await hmacSign(secret, `${h}.${p}`)) return false;
   try {
-    const payload = JSON.parse(atob(p + '=='));
+    const payload = JSON.parse(b64dec(p));
     return payload.exp > Math.floor(Date.now() / 1000);
   } catch { return false; }
 }
