@@ -181,60 +181,75 @@ input,textarea,select{font-family:'Jost'}
 
 <div class="toast" id="toast"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js"></script>
 <script src="config.js"></script>
 <script src="content-defaults.js"></script>
 <script>
 /* ============================================================
-   SETUP / SUPABASE
+   KAMAL JEWELLERS ADMIN — Cloudflare Worker backend
+   API is at /api/* (Worker on same origin)
    ============================================================ */
-const CFG = window.KAMAL_CONFIG || {};
 const DEFAULTS = window.KAMAL_DEFAULTS || {};
-const configured = CFG.SUPABASE_URL && CFG.SUPABASE_ANON_KEY &&
-                   CFG.SUPABASE_URL.indexOf('YOUR_')===-1;
-let sb = null;
-if(configured){ sb = window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY); }
+const API = (window.KAMAL_CONFIG || {}).API_BASE || '/api';
 
 const $ = s => document.querySelector(s);
 const el = (t,c,h)=>{ const n=document.createElement(t); if(c)n.className=c; if(h!=null)n.innerHTML=h; return n; };
 const esc = s => (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-function toast(m){ const t=$('#toast'); t.textContent=m; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),2600); }
+function toast(m){ const t=$('#toast'); t.textContent=m; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),2800); }
 function deepMerge(base, over){
   if(Array.isArray(over)) return over;
   if(over && typeof over==='object'){ const o=Object.assign({},base); for(const k in over) o[k]=deepMerge(base?base[k]:undefined, over[k]); return o; }
   return over===undefined?base:over;
 }
 
-let C = JSON.parse(JSON.stringify(DEFAULTS));   // working copy
+let C = JSON.parse(JSON.stringify(DEFAULTS));
 let dirty = false;
 function markDirty(){ dirty=true; $('#saveState').textContent='Unsaved changes'; }
 
-/* ============================================================
-   AUTH
-   ============================================================ */
-if(!configured){
-  $('#setupWarn').innerHTML='<div class="setup-warn">Supabase isn\'t configured yet. Fill in <b>config.js</b> and run <b>supabase-schema.sql</b> first — see <b>SETUP.md</b>.</div>';
-  $('#loginBtn').disabled=true; $('#pw').disabled=true;
+/* ── API helper ─────────────────────────────────────────────── */
+let TOKEN = sessionStorage.getItem('kj_token');
+
+async function api(path, opts = {}){
+  const headers = { ...(opts.headers || {}) };
+  if(TOKEN) headers['Authorization'] = 'Bearer ' + TOKEN;
+  const isForm = opts.body instanceof FormData;
+  if(!isForm && opts.body && typeof opts.body !== 'string'){
+    opts = { ...opts, body: JSON.stringify(opts.body) };
+    headers['Content-Type'] = 'application/json';
+  }
+  const res = await fetch(API + path, { ...opts, headers });
+  const data = await res.json().catch(()=>({}));
+  if(!res.ok) throw new Error(data.error || res.statusText);
+  return data;
 }
 
+/* ── Auth ───────────────────────────────────────────────────── */
 async function checkSession(){
-  if(!sb) return;
-  const { data } = await sb.auth.getSession();
-  if(data.session){ enterAdmin(); }
+  if(!TOKEN) return;
+  // Quick validation: try to load content; if 401, clear token
+  try{ await api('/content'); enterAdmin(); }
+  catch(e){ if(e.message.includes('401') || e.message.toLowerCase().includes('unauthorized')){ TOKEN=null; sessionStorage.removeItem('kj_token'); } }
 }
+
 $('#loginForm').addEventListener('submit', async e=>{
   e.preventDefault();
   const pw=$('#pw').value, btn=$('#loginBtn'), msg=$('#loginMsg');
   if(!pw) return;
   btn.disabled=true; msg.textContent='Checking…';
-  const { error } = await sb.auth.signInWithPassword({ email:CFG.ADMIN_EMAIL, password:pw });
-  if(error){ msg.textContent='Wrong password. Try again.'; btn.disabled=false; return; }
-  enterAdmin();
+  try{
+    const { token } = await api('/auth', { method:'POST', body:{ password:pw } });
+    TOKEN = token;
+    sessionStorage.setItem('kj_token', token);
+    enterAdmin();
+  }catch(err){
+    msg.textContent = err.message.includes('401') ? 'Wrong password. Try again.' : 'Error: ' + err.message;
+    btn.disabled=false;
+  }
 });
-$('#logoutBtn').addEventListener('click', async ()=>{
+
+$('#logoutBtn').addEventListener('click', ()=>{
   if(dirty && !confirm('You have unsaved changes. Log out anyway?')) return;
-  await sb.auth.signOut(); location.reload();
+  TOKEN=null; sessionStorage.removeItem('kj_token'); location.reload();
 });
 
 async function enterAdmin(){
@@ -248,15 +263,12 @@ async function enterAdmin(){
 
 async function loadContent(){
   try{
-    const { data, error } = await sb.from('site_content').select('data').eq('id',1).maybeSingle();
-    if(error) throw error;
-    C = deepMerge(DEFAULTS, (data && data.data) || {});
+    const { data } = await api('/content');
+    C = deepMerge(DEFAULTS, data || {});
   }catch(e){ console.warn(e); toast('Could not load saved content — showing defaults.'); }
 }
 
-/* ============================================================
-   TABS
-   ============================================================ */
+/* ── Tabs ───────────────────────────────────────────────────── */
 document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
   document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
   document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
@@ -265,23 +277,18 @@ document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
   if(t.dataset.tab==='enquiries') loadEnquiries();
 }));
 
-/* ============================================================
-   SAVE
-   ============================================================ */
+/* ── Save ───────────────────────────────────────────────────── */
 $('#saveBtn').addEventListener('click', saveContent);
 async function saveContent(){
   const btn=$('#saveBtn'); btn.disabled=true; $('#saveState').textContent='Saving…';
   try{
-    const { error } = await sb.from('site_content').upsert({ id:1, data:C, updated_at:new Date().toISOString() });
-    if(error) throw error;
+    await api('/content', { method:'POST', body:{ data: C } });
     dirty=false; $('#saveState').textContent='Saved ✓'; toast('Saved. Refresh the site to see changes.');
-  }catch(e){ console.warn(e); $('#saveState').textContent='Save failed'; toast('Save failed: '+(e.message||e)); }
+  }catch(e){ console.warn(e); $('#saveState').textContent='Save failed'; toast('Save failed: '+e.message); }
   btn.disabled=false;
 }
 
-/* ============================================================
-   CONTENT EDITOR
-   ============================================================ */
+/* ── Content editor ─────────────────────────────────────────── */
 function field(label, obj, key, type, hint){
   const f=el('div','fld');
   f.appendChild(el('label',null,esc(label)));
@@ -350,7 +357,7 @@ function renderContent(){
   // Collections (text)
   g=group('Collections — names & descriptions');
   C.collections.forEach((c,i)=>{
-    const sub=group((i+1)+'. '+ (c.name||c.id));
+    const sub=group((i+1)+'. '+(c.name||c.id));
     sub.d.style.margin='0 0 .8rem'; sub.d.style.border='1px solid var(--line)';
     sub.b.appendChild(field('Name', c,'name'));
     sub.b.appendChild(field('Tag (eyebrow inside collection)', c,'tag'));
@@ -359,17 +366,34 @@ function renderContent(){
     g.b.appendChild(sub.d);
   });
   root.appendChild(g.d);
+
+  // Change password
+  g=group('Change admin password');
+  const pwRow=el('div','row2');
+  const newPwFld=el('div','fld'); newPwFld.appendChild(el('label',null,'New password'));
+  const newPwIn=el('input'); newPwIn.type='password'; newPwIn.placeholder='At least 6 characters'; newPwFld.appendChild(newPwIn);
+  const savePwBtn=el('button','mini','Save password');
+  savePwBtn.style.marginTop='.5rem';
+  savePwBtn.onclick=async()=>{
+    const v=newPwIn.value.trim();
+    if(v.length<6){ toast('Password must be at least 6 characters'); return; }
+    savePwBtn.disabled=true;
+    try{ await api('/password',{method:'POST',body:{newPassword:v}}); toast('Password changed ✓'); newPwIn.value=''; }
+    catch(e){ toast('Failed: '+e.message); }
+    savePwBtn.disabled=false;
+  };
+  pwRow.appendChild(newPwFld);
+  const btnWrap=el('div','fld'); btnWrap.appendChild(el('label',null,'&nbsp;')); btnWrap.appendChild(savePwBtn); pwRow.appendChild(btnWrap);
+  g.b.appendChild(pwRow);
+  root.appendChild(g.d);
 }
 
-/* ============================================================
-   PHOTOS
-   ============================================================ */
-function publicUrl(path){ return sb.storage.from('photos').getPublicUrl(path).data.publicUrl; }
-function pathFromUrl(u){ const m=(u||'').split('/photos/'); return m.length>1 ? m[1].split('?')[0] : null; }
+/* ── Photos ─────────────────────────────────────────────────── */
+function keyFromUrl(u){ const m=(u||'').match(/\/photos\/(.+)$/); return m?m[1]:null; }
 
 function renderPhotos(){
   const root=$('#page-photos'); root.innerHTML='';
-  root.appendChild(el('p','eyebrow','Upload your professional shoot images per collection. The first photo becomes the collection cover.'));
+  root.appendChild(el('p','eyebrow','Upload professional shoot images per collection. First photo = collection cover.'));
   root.appendChild(el('div',null,'<div style="height:1rem"></div>'));
   C.collections.forEach((c,ci)=>{
     const box=el('div','coll-photos');
@@ -377,8 +401,7 @@ function renderPhotos(){
     const thumbs=el('div','thumbs');
     (c.images||[]).forEach((url,ii)=>{
       const t=el('div','thumb');
-      t.appendChild(el('img'));
-      t.querySelector('img').src=url;
+      const img=el('img'); img.src=url; t.appendChild(img);
       if(ii===0) t.appendChild(el('div','cover','Cover'));
       const ctrls=el('div','ctrls');
       const left=el('button',null,'‹'); left.title='Move left'; left.onclick=()=>{ if(ii>0){ const a=c.images; [a[ii-1],a[ii]]=[a[ii],a[ii-1]]; markDirty(); renderPhotos(); } };
@@ -399,14 +422,14 @@ function renderPhotos(){
 async function removePhoto(ci,ii){
   if(!confirm('Remove this photo?')) return;
   const url=C.collections[ci].images[ii];
+  const key=keyFromUrl(url);
   C.collections[ci].images.splice(ii,1);
   markDirty(); renderPhotos();
-  const p=pathFromUrl(url);
-  if(p){ try{ await sb.storage.from('photos').remove([p]); }catch(e){ console.warn(e); } }
+  if(key){ try{ await api('/photos/'+encodeURIComponent(key),{method:'DELETE'}); }catch(e){ console.warn(e); } }
   await saveContent();
 }
 
-/* ---- crop + upload ---- */
+/* ── Crop + upload ──────────────────────────────────────────── */
 let cropper=null, cropTargetColl=null;
 function pickPhoto(ci){
   cropTargetColl=ci;
@@ -435,30 +458,27 @@ $('#cropUpload').addEventListener('click',()=>{
   canvas.toBlob(async blob=>{
     try{
       const c=C.collections[cropTargetColl];
-      const path=`${c.id}/${Date.now()}-${Math.random().toString(36).slice(2,7)}.jpg`;
-      const { error }=await sb.storage.from('photos').upload(path, blob, { contentType:'image/jpeg', upsert:true });
-      if(error) throw error;
-      c.images=c.images||[]; c.images.push(publicUrl(path));
+      const form=new FormData();
+      form.append('file', blob, 'photo.jpg');
+      form.append('collection', c.id);
+      const { url } = await api('/photos', { method:'POST', body:form });
+      c.images=c.images||[]; c.images.push(url);
       markDirty(); closeCropper(); renderPhotos();
       await saveContent();
-    }catch(e){ console.warn(e); toast('Upload failed: '+(e.message||e)); }
+    }catch(e){ console.warn(e); toast('Upload failed: '+e.message+' (Enable R2 in Cloudflare dashboard to unlock photo upload)'); }
     $('#cropUpload').disabled=false;
   },'image/jpeg',0.9);
 });
 
-/* ============================================================
-   ENQUIRIES
-   ============================================================ */
+/* ── Enquiries ──────────────────────────────────────────────── */
 $('#enqRefresh').addEventListener('click',loadEnquiries);
 async function loadEnquiries(){
-  if(!sb) return;
   const list=$('#enqList'); list.innerHTML='<div class="empty">Loading…</div>';
   try{
-    const { data, error }=await sb.from('enquiries').select('*').order('created_at',{ascending:false});
-    if(error) throw error;
+    const { data } = await api('/enquiries');
     const unread=(data||[]).filter(e=>e.status!=='read').length;
     const badge=$('#enqBadge'); badge.textContent=unread; badge.style.display=unread?'inline-block':'none';
-    if(!data || !data.length){ list.innerHTML='<div class="empty">No enquiries yet.</div>'; return; }
+    if(!data||!data.length){ list.innerHTML='<div class="empty">No enquiries yet.</div>'; return; }
     list.innerHTML='';
     data.forEach(e=>list.appendChild(enqCard(e)));
   }catch(err){ console.warn(err); list.innerHTML='<div class="empty">Could not load enquiries.</div>'; }
@@ -479,9 +499,17 @@ function enqCard(e){
     <div class="acts"></div>`;
   const acts=card.querySelector('.acts');
   const toggle=el('button','mini', e.status!=='read'?'Mark read':'Mark unread');
-  toggle.onclick=async()=>{ const ns=e.status==='read'?'new':'read'; await sb.from('enquiries').update({status:ns}).eq('id',e.id); loadEnquiries(); };
+  toggle.onclick=async()=>{
+    const ns=e.status==='read'?'new':'read';
+    await api('/enquiries/'+e.id,{method:'PATCH',body:{status:ns}});
+    loadEnquiries();
+  };
   const del=el('button','mini danger','✕ Delete');
-  del.onclick=async()=>{ if(!confirm('Delete this enquiry?'))return; await sb.from('enquiries').delete().eq('id',e.id); loadEnquiries(); };
+  del.onclick=async()=>{
+    if(!confirm('Delete this enquiry?'))return;
+    await api('/enquiries/'+e.id,{method:'DELETE'});
+    loadEnquiries();
+  };
   acts.appendChild(toggle); acts.appendChild(del);
   return card;
 }

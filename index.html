@@ -392,7 +392,6 @@ footer{position:relative;z-index:2;background:linear-gradient(180deg,var(--black
 <!-- ===== Libraries ===== -->
 <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
 <script src="content-defaults.js"></script>
 
@@ -400,23 +399,16 @@ footer{position:relative;z-index:2;background:linear-gradient(180deg,var(--black
 /* ============================================================
    CONTENT MODEL
    Defaults live in content-defaults.js (shared with admin.html).
-   The admin panel saves overrides to Supabase; on load we merge
-   the saved content over these defaults.
+   Admin saves overrides via the Cloudflare Worker (/api/content).
+   On load we fetch and deep-merge over defaults.
    ============================================================ */
 const DEFAULTS = window.KAMAL_DEFAULTS || {};
 let CONTENT = JSON.parse(JSON.stringify(DEFAULTS));
 
-/* ----- Supabase client (optional; site works without it) ----- */
-const CFG = window.KAMAL_CONFIG || {};
-let sb = null;
-if(CFG.SUPABASE_URL && CFG.SUPABASE_ANON_KEY &&
-   CFG.SUPABASE_URL.indexOf('YOUR_')===-1 && window.supabase){
-  try{ sb = window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY); }
-  catch(e){ console.warn('Supabase init failed', e); }
-}
+const API = ((window.KAMAL_CONFIG || {}).API_BASE) || '/api';
 
 function deepMerge(base, over){
-  if(Array.isArray(over)) return over;               // arrays replace wholesale
+  if(Array.isArray(over)) return over;
   if(over && typeof over==='object'){
     const out = Object.assign({}, base);
     for(const k in over){ out[k] = deepMerge(base ? base[k] : undefined, over[k]); }
@@ -426,11 +418,11 @@ function deepMerge(base, over){
 }
 
 async function loadContent(){
-  if(!sb) return;
   try{
-    const { data, error } = await sb.from('site_content').select('data').eq('id',1).maybeSingle();
-    if(error){ console.warn('content load error', error); return; }
-    if(data && data.data){ CONTENT = deepMerge(DEFAULTS, data.data); }
+    const res = await fetch(API + '/content');
+    if(!res.ok) return;
+    const { data } = await res.json();
+    if(data) CONTENT = deepMerge(DEFAULTS, data);
   }catch(e){ console.warn('content fetch failed', e); }
 }
 
@@ -571,8 +563,12 @@ document.getElementById('enqForm').addEventListener('submit',async e=>{
   if(!payload.name||!payload.phone||!payload.message){ note.textContent='Please add your name, phone and a message.'; return; }
   btn.disabled=true; note.textContent='Sending…';
   try{
-    if(sb){ const {error}=await sb.from('enquiries').insert(payload); if(error) throw error; }
-    else { await new Promise(r=>setTimeout(r,450)); } // demo mode (no backend configured yet)
+    const res = await fetch(API + '/enquiries', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if(!res.ok){ const d=await res.json().catch(()=>({})); throw new Error(d.error||res.statusText); }
     document.getElementById('enqFormWrap').style.display='none';
     document.getElementById('enqDone').style.display='block';
   }catch(err){
