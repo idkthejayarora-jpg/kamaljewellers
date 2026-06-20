@@ -202,11 +202,6 @@ footer{position:relative;z-index:2;background:linear-gradient(180deg,var(--black
 /* magnetic helper */
 .mag{display:inline-block;will-change:transform}
 
-/* ---------- Ripple transition overlay ---------- */
-.ripple-fx{position:fixed;inset:0;z-index:300;pointer-events:none;opacity:0;background:radial-gradient(circle at var(--rx,50%) var(--ry,50%),var(--gold-bright),var(--gold-deep) 30%,var(--black) 65%);filter:url(#liquid)}
-.ripple-fx.go{animation:rippleSweep 1.05s var(--ease) forwards}
-@keyframes rippleSweep{0%{opacity:0;clip-path:circle(0% at var(--rx,50%) var(--ry,50%))}25%{opacity:1}55%{opacity:1;clip-path:circle(150% at var(--rx,50%) var(--ry,50%))}100%{opacity:0;clip-path:circle(150% at var(--rx,50%) var(--ry,50%))}}
-
 .hidden-defs{position:absolute;width:0;height:0;overflow:hidden}
 
 /* ---------- Real photos in masonry ---------- */
@@ -257,12 +252,6 @@ footer{position:relative;z-index:2;background:linear-gradient(180deg,var(--black
       </feTurbulence>
       <feDisplacementMap in="SourceGraphic" in2="noise" scale="14" xChannelSelector="R" yChannelSelector="G"/>
     </filter>
-    <filter id="liquid">
-      <feTurbulence type="fractalNoise" baseFrequency="0.012 0.018" numOctaves="2" seed="3" result="n">
-        <animate attributeName="baseFrequency" dur="3s" values="0.012 0.018;0.03 0.04;0.012 0.018" repeatCount="indefinite"/>
-      </feTurbulence>
-      <feDisplacementMap in="SourceGraphic" in2="n" scale="60" xChannelSelector="R" yChannelSelector="G"/>
-    </filter>
   </defs>
 </svg>
 
@@ -279,9 +268,6 @@ footer{position:relative;z-index:2;background:linear-gradient(180deg,var(--black
 
 <!-- ===== WebGL hero water ===== -->
 <canvas id="gl"></canvas>
-
-<!-- ===== Ripple transition ===== -->
-<div class="ripple-fx" id="ripple"></div>
 
 <!-- ===== Nav ===== -->
 <nav id="nav">
@@ -676,20 +662,24 @@ lenis.on('scroll',({velocity})=>{ vel=velocity; });
   const uV=gl.getUniformLocation(prog,'V');
 
   function size(){
-    const dpr=Math.min(devicePixelRatio||1,1.75);
+    const dpr=Math.min(devicePixelRatio||1,1.0); // cap at 1× — hero looks fine, saves GPU
     cv.width=innerWidth*dpr; cv.height=innerHeight*dpr;
     gl.viewport(0,0,cv.width,cv.height);
   }
   size(); addEventListener('resize',size);
 
-  let smoothV=0;
+  let smoothV=0, glPaused=false;
   const start=performance.now();
+  new IntersectionObserver(([e])=>{ glPaused=!e.isIntersecting; },{threshold:0})
+    .observe(cv);
   (function loop(now){
-    smoothV+=((Math.abs(vel)*40)-smoothV)*0.05;
-    gl.uniform2f(uR,cv.width,cv.height);
-    gl.uniform1f(uT,(now-start)/1000);
-    gl.uniform1f(uV,smoothV);
-    gl.drawArrays(gl.TRIANGLES,0,3);
+    if(!glPaused){
+      smoothV+=((Math.abs(vel)*40)-smoothV)*0.05;
+      gl.uniform2f(uR,cv.width,cv.height);
+      gl.uniform1f(uT,(now-start)/1000);
+      gl.uniform1f(uV,smoothV);
+      gl.drawArrays(gl.TRIANGLES,0,3);
+    }
     requestAnimationFrame(loop);
   })(start);
 })();
@@ -736,19 +726,6 @@ const io=new IntersectionObserver(es=>{
 },{threshold:0.15});
 function watchReveals(scope=document){ scope.querySelectorAll('.reveal').forEach(el=>io.observe(el)); }
 
-/* parallax-ish water warp on review/shot cards via scroll velocity */
-function applyWarp(){
-  const v=Math.max(-1,Math.min(1,vel*0.6));
-  document.querySelectorAll('.gcard').forEach((c,i)=>{
-    c.style.transform=`translateY(${v*(8+i*4)}px) skewY(${v*0.5}deg)`;
-  });
-  document.querySelectorAll('.collection.active .shot').forEach((s,i)=>{
-    s.style.transform=`skewY(${v*0.4}deg) translateY(${v*(4+(i%3)*3)}px)`;
-  });
-  requestAnimationFrame(applyWarp);
-}
-applyWarp();
-
 /* ============================================================
    MENU
    ============================================================ */
@@ -761,25 +738,14 @@ function toggleMenu(open){
 navToggle.addEventListener('click',()=>toggleMenu(!document.body.classList.contains('menu-open')));
 
 /* ============================================================
-   RIPPLE TRANSITION + ROUTING
+   ROUTING (instant, no transition overlay)
    ============================================================ */
-const ripple=document.getElementById('ripple');
 const nav=document.getElementById('nav');
 let lastScroll=0;
 
-function rippleAt(x,y){
-  return new Promise(res=>{
-    ripple.style.setProperty('--rx',(x/innerWidth*100)+'%');
-    ripple.style.setProperty('--ry',(y/innerHeight*100)+'%');
-    ripple.classList.remove('go'); void ripple.offsetWidth; ripple.classList.add('go');
-    setTimeout(res,480); // swap content mid-sweep
-  });
-}
-
-async function openCollection(id,x,y){
+function openCollection(id){
   if(document.body.classList.contains('menu-open')) toggleMenu(false);
   lastScroll=lenis.scroll;
-  await rippleAt(x??innerWidth/2,y??innerHeight/2);
   document.querySelectorAll('.collection').forEach(s=>s.classList.remove('active'));
   const sec=document.getElementById('c-'+id);
   sec.classList.add('active');
@@ -791,8 +757,7 @@ async function openCollection(id,x,y){
   setTimeout(()=>sec.querySelectorAll('.reveal').forEach(el=>el.classList.add('in')),50);
 }
 
-async function closeCollection(x,y){
-  await rippleAt(x??innerWidth/2,y??0);
+function closeCollection(){
   document.querySelectorAll('.collection').forEach(s=>s.classList.remove('active'));
   document.body.classList.remove('viewing');
   lenis.resize();
@@ -803,10 +768,10 @@ document.addEventListener('click',e=>{
   const openEl=e.target.closest('[data-open]');
   const backEl=e.target.closest('[data-back]');
   const linkEl=e.target.closest('[data-link]');
-  if(openEl){ e.preventDefault(); openCollection(openEl.dataset.open,e.clientX,e.clientY); }
-  else if(backEl){ e.preventDefault(); closeCollection(e.clientX,e.clientY); }
+  if(openEl){ e.preventDefault(); openCollection(openEl.dataset.open); }
+  else if(backEl){ e.preventDefault(); closeCollection(); }
   else if(linkEl){ e.preventDefault();
-    if(document.querySelector('.collection.active')){ closeCollection(e.clientX,e.clientY).then(()=>lenis.scrollTo(0)); }
+    if(document.querySelector('.collection.active')){ closeCollection(); lenis.scrollTo(0); }
     else lenis.scrollTo(0);
   }
 });
