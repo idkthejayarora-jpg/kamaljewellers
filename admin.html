@@ -300,6 +300,16 @@ function field(label, obj, key, type, hint){
   if(hint) f.appendChild(el('div','hint',esc(hint)));
   return f;
 }
+function checkbox(label, obj, key, hint){
+  const f=el('div','fld');
+  const wrap=el('label'); wrap.style.cssText='display:flex;align-items:center;gap:.6rem;text-transform:none;letter-spacing:0;font-size:.95rem;color:var(--cream)';
+  const cb=el('input'); cb.type='checkbox'; cb.checked=!!obj[key]; cb.style.width='18px'; cb.style.height='18px'; cb.style.accentColor='#d8b25e';
+  cb.addEventListener('change',()=>{ obj[key]=cb.checked; markDirty(); });
+  wrap.appendChild(cb); wrap.appendChild(document.createTextNode(label));
+  f.appendChild(wrap);
+  if(hint) f.appendChild(el('div','hint',esc(hint)));
+  return f;
+}
 function group(title, open){
   const d=el('details','group'); if(open) d.open=true;
   const s=el('summary',null,esc(title)+'<span class="chev">›</span>');
@@ -311,8 +321,16 @@ function group(title, open){
 function renderContent(){
   const root=$('#page-content'); root.innerHTML='';
 
+  // Announcement bar
+  if(!C.announcement) C.announcement={enabled:false,text:'',link:''};
+  let g=group('Announcement bar (top strip)');
+  g.b.appendChild(checkbox('Show the announcement bar on the site', C.announcement,'enabled'));
+  g.b.appendChild(field('Announcement text', C.announcement,'text','',"e.g. festive offers, new collection, or a launch message."));
+  g.b.appendChild(field('Link when clicked (optional)', C.announcement,'link','',"Make the bar clickable — e.g. your Instagram or a wa.me WhatsApp link. Leave blank for plain text."));
+  root.appendChild(g.d);
+
   // Hero
-  let g=group('Hero (top of page)', true);
+  g=group('Hero (top of page)', true);
   g.b.appendChild(field('Eyebrow (small line above title)', C.hero,'eyebrow'));
   const r=el('div','row2'); r.appendChild(field('Title — first line', C.hero,'title')); r.appendChild(field('Title — gold italic line', C.hero,'titleEm')); g.b.appendChild(r);
   g.b.appendChild(field('Sub-text', C.hero,'sub','textarea'));
@@ -327,6 +345,10 @@ function renderContent(){
   // Contact
   g=group('Contact & footer');
   const r2=el('div','row2'); r2.appendChild(field('Phone 1', C.contact,'phone1')); r2.appendChild(field('Phone 2', C.contact,'phone2')); g.b.appendChild(r2);
+  const r2b=el('div','row2');
+  r2b.appendChild(field('WhatsApp number', C.contact,'whatsapp','',"Powers the floating WhatsApp button. Include country code, e.g. +91 99999 25670. Leave blank to hide it."));
+  r2b.appendChild(field('Opening hours', C.contact,'hours','',"Shown in the Visit section, e.g. Mon – Sat · 11 AM – 8 PM. Leave blank to hide."));
+  g.b.appendChild(r2b);
   g.b.appendChild(field('Address (use <br/> for line breaks)', C.contact,'addressHtml','textarea'));
   g.b.appendChild(field('Instagram / Linktree link', C,'instagram'));
   g.b.appendChild(field('Instagram label (Visit section)', C.contact,'instaLabel'));
@@ -365,6 +387,13 @@ function renderContent(){
     sub.b.appendChild(field('Lede (the evocative paragraph)', c,'lede','textarea'));
     g.b.appendChild(sub.d);
   });
+  root.appendChild(g.d);
+
+  // SEO
+  if(!C.seo) C.seo={title:'',description:''};
+  g=group('SEO — Google & social sharing');
+  g.b.appendChild(field('Page title', C.seo,'title','',"Shown in the browser tab and as the headline in Google results."));
+  g.b.appendChild(field('Meta description', C.seo,'description','textarea',"The 1–2 line summary under your Google result and on WhatsApp/social shares."));
   root.appendChild(g.d);
 
   // Change password

@@ -2,9 +2,24 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#0a0807" />
 <title>Kamal Jewellers — Worn Like Water, Treasured Like Time</title>
-<meta name="description" content="Kamal Jewellers — Sadar Bazar, Delhi. Bridal, Kundan, Polki, Western & viral jewellery crafted to bring out your inner radiance." />
+<meta name="description" id="metaDesc" content="Kamal Jewellers — Sadar Bazar, Delhi. Bridal, Kundan, Polki, Western & viral jewellery crafted to bring out your inner radiance." />
+
+<!-- Favicon (inline gold monogram — no extra file) -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230a0807'/%3E%3Ctext x='32' y='44' font-family='Georgia,serif' font-size='38' fill='%23f4d784' text-anchor='middle'%3EK%3C/text%3E%3C/svg%3E" />
+
+<!-- Social share (Open Graph / Twitter) -->
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Kamal Jewellers" />
+<meta property="og:title" id="ogTitle" content="Kamal Jewellers — Worn Like Water, Treasured Like Time" />
+<meta property="og:description" id="ogDesc" content="Handcrafted bridal, kundan & polki and viral jewellery in Sadar Bazar, Delhi." />
+<meta property="og:url" content="https://kamaljewellers.shop" />
+<meta name="twitter:card" content="summary_large_image" />
+
+<!-- Structured data for Google (filled from content on load) -->
+<script type="application/ld+json" id="ldJson"></script>
 
 <!-- Fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -66,7 +81,7 @@ a{color:inherit;text-decoration:none}
 .loader .pct{font-size:.7rem;letter-spacing:.4em;color:var(--gold);opacity:.7}
 
 /* ---------- WebGL hero canvas ---------- */
-#gl{position:fixed;inset:0;width:100vw;height:100vh;z-index:0;display:block}
+#gl{position:fixed;inset:0;width:100vw;height:100vh;height:100svh;z-index:0;display:block}
 
 /* ---------- Navigation ---------- */
 nav{position:fixed;top:0;left:0;width:100%;z-index:200;display:flex;align-items:center;justify-content:space-between;padding:1.5rem clamp(1.2rem,4vw,3.5rem);transition:background .5s var(--ease),padding .5s var(--ease),backdrop-filter .5s}
@@ -80,6 +95,15 @@ nav.scrolled{background:rgba(10,8,7,.55);backdrop-filter:blur(18px) saturate(140
 .nav-toggle .lines i:last-child{bottom:0}
 body.menu-open .nav-toggle .lines i:first-child{transform:translateY(4.5px) rotate(45deg)}
 body.menu-open .nav-toggle .lines i:last-child{transform:translateY(-4.5px) rotate(-45deg)}
+
+/* ---------- Announcement bar ---------- */
+.anno{position:fixed;top:0;left:0;width:100%;z-index:210;display:none;align-items:center;justify-content:center;gap:.8rem;padding:.5rem 2.6rem;text-align:center;background:linear-gradient(90deg,var(--gold-deep),var(--gold),var(--gold-deep));color:#1a1206;font-size:.62rem;letter-spacing:.22em;text-transform:uppercase;line-height:1.4}
+.anno.show{display:flex}
+.anno a{color:#1a1206;text-decoration:underline;text-underline-offset:2px}
+.anno .x{position:absolute;right:.9rem;top:50%;transform:translateY(-50%);font-size:1rem;line-height:1;color:#1a1206;opacity:.65;cursor:pointer;padding:.2rem}
+.anno .x:hover{opacity:1}
+body.has-anno nav{top:var(--anno-h,34px)}
+@media(max-width:560px){.anno{font-size:.56rem;letter-spacing:.14em;padding:.45rem 2.2rem}}
 
 /* ---------- Full menu overlay ---------- */
 .menu{position:fixed;inset:0;z-index:190;background:linear-gradient(160deg,#0a0807,#161009 60%,#0a0807);display:flex;flex-direction:column;justify-content:center;padding:6rem clamp(1.2rem,6vw,7rem);clip-path:circle(0% at 92% 4%);transition:clip-path .9s var(--ease);overflow-y:auto}
@@ -99,7 +123,7 @@ section{position:relative}
 .eyebrow{font-size:.62rem;letter-spacing:.5em;text-transform:uppercase;color:var(--gold)}
 
 /* ---------- Hero ---------- */
-.hero{height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;position:relative;z-index:2}
+.hero{height:100vh;height:100svh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;position:relative;z-index:2}
 .hero .eyebrow{margin-bottom:1.6rem;opacity:.85}
 .hero h1{font-family:'Cormorant Garamond';font-weight:400;line-height:.98;font-size:clamp(2.8rem,9vw,8.5rem);letter-spacing:.01em}
 .hero h1 em{font-style:italic;color:var(--gold-bright);display:block}
@@ -160,7 +184,8 @@ body.viewing .reviews,body.viewing .visit,body.viewing footer{display:none}
 .show-slide:hover img,.show-slide:hover .show-ph{transform:scale(1.04)}
 
 /* Caption — centred pill with dark glass behind text */
-.show-caption{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.75);backdrop-filter:blur(14px) saturate(160%);border:1px solid rgba(216,178,94,.22);border-radius:18px;padding:1.1rem 1.9rem;text-align:center;pointer-events:none;box-shadow:0 8px 40px rgba(0,0,0,.6);white-space:nowrap}
+.show-caption{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);max-width:min(82%,420px);background:rgba(0,0,0,.75);backdrop-filter:blur(14px) saturate(160%);border:1px solid rgba(216,178,94,.22);border-radius:18px;padding:1.1rem 1.9rem;text-align:center;pointer-events:none;box-shadow:0 8px 40px rgba(0,0,0,.6)}
+@media(max-width:560px){.show-caption{padding:.85rem 1.2rem}}
 .show-caption b{display:block;font-family:'Cormorant Garamond';font-size:clamp(1.1rem,2.5vw,1.65rem);font-weight:400;color:var(--gold-bright);letter-spacing:.04em}
 .show-caption span{display:block;font-size:.55rem;letter-spacing:.32em;text-transform:uppercase;color:rgba(243,234,215,.62);margin-top:.35rem}
 
@@ -171,7 +196,9 @@ body.viewing .reviews,body.viewing .visit,body.viewing footer{display:none}
 .show-next{right:.8rem}
 
 /* Numbered tabs */
-.show-tabs{display:flex;justify-content:center;flex-wrap:wrap;gap:.4rem;margin-top:1rem}
+.show-tabs{display:flex;justify-content:center;flex-wrap:wrap;gap:.4rem;margin-top:1rem;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:.2rem}
+.show-tabs::-webkit-scrollbar{height:0}
+.show-tab{flex:0 0 auto}
 .show-tab{width:34px;height:34px;border-radius:50%;border:1px solid rgba(216,178,94,.22);background:transparent;color:rgba(243,234,215,.45);font-family:'Jost';font-size:.55rem;letter-spacing:.1em;cursor:pointer;transition:all .35s var(--ease)}
 .show-tab.active{background:linear-gradient(150deg,rgba(244,215,132,.2),rgba(216,178,94,.07));border-color:var(--gold-bright);color:var(--gold-bright);box-shadow:0 0 14px rgba(244,215,132,.22)}
 .show-tab:hover:not(.active){border-color:var(--gold);color:var(--gold)}
@@ -219,8 +246,29 @@ footer{position:relative;z-index:2;background:linear-gradient(180deg,var(--black
 .hidden-defs{position:absolute;width:0;height:0;overflow:hidden}
 
 
+/* ---------- Mobile / accessibility tuning ---------- */
+/* Touch devices have no hover — reveal card detail + the "Enter" cue by default */
+@media(hover:none){
+  .tile p{max-height:80px;opacity:1;margin-top:.7rem}
+  .tile .enter{opacity:1;transform:none}
+}
+/* Respect reduced-motion (also kinder on phone batteries) */
+@media(prefers-reduced-motion:reduce){
+  .scroll-cue .line::after{animation:none}
+  .enq-btn .dotpulse{animation:none}
+  .reveal{transition:opacity .4s ease}
+}
+
+/* ---------- Floating action buttons (stacked) ---------- */
+.fab-stack{position:fixed;bottom:1.6rem;right:1.6rem;z-index:260;display:flex;flex-direction:column;gap:.7rem;align-items:flex-end}
+.wa-btn{display:none;align-items:center;gap:.55rem;padding:.85rem 1.3rem;border-radius:40px;border:1px solid rgba(37,211,102,.5);background:linear-gradient(150deg,rgba(37,211,102,.24),rgba(18,110,60,.14));backdrop-filter:blur(14px) saturate(150%);color:#eafff1;font-size:.62rem;letter-spacing:.28em;text-transform:uppercase;box-shadow:0 16px 40px -16px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.12);transition:transform .4s var(--ease),background .4s}
+.wa-btn.show{display:flex}
+.wa-btn:hover{background:linear-gradient(150deg,rgba(37,211,102,.36),rgba(18,110,60,.2))}
+.wa-btn svg{width:17px;height:17px;fill:#46e07f;flex:0 0 auto}
+@media(max-width:560px){.wa-btn span.lbl{display:none}.wa-btn{padding:.8rem}}
+
 /* ---------- Enquiry floating widget ---------- */
-.enq-btn{position:fixed;bottom:1.6rem;right:1.6rem;z-index:260;display:flex;align-items:center;gap:.7rem;padding:.95rem 1.5rem;border-radius:40px;border:1px solid var(--glass-brd);background:linear-gradient(150deg,rgba(244,215,132,.16),rgba(243,234,215,.04));backdrop-filter:blur(14px) saturate(150%);color:var(--gold-bright);font-size:.62rem;letter-spacing:.32em;text-transform:uppercase;box-shadow:0 16px 40px -16px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.1);transition:transform .5s var(--ease),background .5s}
+.enq-btn{display:flex;align-items:center;gap:.7rem;padding:.95rem 1.5rem;border-radius:40px;border:1px solid var(--glass-brd);background:linear-gradient(150deg,rgba(244,215,132,.16),rgba(243,234,215,.04));backdrop-filter:blur(14px) saturate(150%);color:var(--gold-bright);font-size:.62rem;letter-spacing:.32em;text-transform:uppercase;box-shadow:0 16px 40px -16px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.1);transition:transform .5s var(--ease),background .5s}
 .enq-btn .dotpulse{width:7px;height:7px;border-radius:50%;background:var(--gold-bright);box-shadow:0 0 0 0 rgba(244,215,132,.6);animation:pulse 2.4s infinite}
 @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(244,215,132,.5)}70%{box-shadow:0 0 0 12px rgba(244,215,132,0)}100%{box-shadow:0 0 0 0 rgba(244,215,132,0)}}
 .enq-btn:hover{background:linear-gradient(150deg,rgba(244,215,132,.28),rgba(243,234,215,.06))}
@@ -251,6 +299,12 @@ footer{position:relative;z-index:2;background:linear-gradient(180deg,var(--black
 </style>
 </head>
 <body>
+
+<!-- ===== Announcement bar (admin-controlled) ===== -->
+<div class="anno" id="anno">
+  <span id="annoText"></span>
+  <span class="x" id="annoClose" title="Dismiss">✕</span>
+</div>
 
 <!-- ===== SVG filters: water displacement + liquid ripple ===== -->
 <svg class="hidden-defs" aria-hidden="true">
@@ -336,14 +390,15 @@ footer{position:relative;z-index:2;background:linear-gradient(180deg,var(--black
         <div class="eyebrow">Come see them shimmer</div>
         <h3>Visit our <em>atelier</em></h3>
         <div class="info-row"><div class="k">Address</div><div class="v" id="visitAddress">132, Main Road, Sadar Bazar,<br/>Delhi — 110006</div></div>
+        <div class="info-row" id="hoursRow"><div class="k">Hours</div><div class="v" id="visitHours">Mon – Sat · 11 AM – 8 PM</div></div>
         <div class="info-row"><div class="k">Call</div><div class="v" id="visitPhones"><a href="tel:+919999925670" data-hover>+91 99999 25670</a><br/><a href="tel:+919811907365" data-hover>+91 98119 07365</a></div></div>
         <div class="info-row"><div class="k">Follow</div><div class="v"><a id="visitInsta" href="https://linktr.ee/kamaljewellers_instagram" target="_blank" rel="noopener" data-hover>@kamaljewellers · Instagram ↗</a></div></div>
       </div>
       <div class="map-card reveal" id="mapCard">
-        <iframe
+        <iframe id="mapFrame"
           src="https://maps.google.com/maps?q=132+Main+Road+Sadar+Bazar+Delhi+110006&z=16&output=embed"
           loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Kamal Jewellers location"></iframe>
-        <a class="map-open" href="https://www.google.com/maps/search/Kamal+Jewellers+132+Main+Road+Sadar+Bazar+Delhi" target="_blank" rel="noopener">Open in Google Maps ↗</a>
+        <a class="map-open" id="mapOpen" href="https://www.google.com/maps/search/Kamal+Jewellers+132+Main+Road+Sadar+Bazar+Delhi" target="_blank" rel="noopener">Open in Google Maps ↗</a>
       </div>
     </section>
 
@@ -374,8 +429,11 @@ footer{position:relative;z-index:2;background:linear-gradient(180deg,var(--black
   </div><!-- /solid -->
 </div><!-- /wrap -->
 
-<!-- ===== Enquiry widget ===== -->
-<button class="enq-btn mag" id="enqBtn"><span class="dotpulse"></span><span class="lbl">Enquire</span></button>
+<!-- ===== Floating actions (WhatsApp + Enquire) ===== -->
+<div class="fab-stack">
+  <a class="wa-btn mag" id="waBtn" target="_blank" rel="noopener" href="#"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3C9.4 3 4 8.3 4 14.9c0 2.3.6 4.4 1.8 6.3L4 29l8-2.1c1.8 1 3.8 1.5 6 1.5 6.6 0 12-5.3 12-11.9S22.6 3 16 3zm0 21.7c-1.9 0-3.7-.5-5.3-1.5l-.4-.2-4.7 1.2 1.3-4.6-.3-.4a9.6 9.6 0 0 1-1.5-5.2c0-5.4 4.5-9.8 10-9.8s10 4.4 10 9.8-4.5 9.9-10 9.9zm5.5-7.4c-.3-.2-1.8-.9-2-1-.3-.1-.5-.2-.7.1-.2.3-.8 1-.9 1.1-.2.2-.3.2-.6.1-.3-.2-1.3-.5-2.4-1.5-.9-.8-1.5-1.8-1.7-2.1-.2-.3 0-.5.1-.6l.5-.5c.2-.2.2-.3.3-.5.1-.2 0-.4 0-.5l-.9-2.2c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.2.2 2.1 3.3 5.1 4.6.7.3 1.3.5 1.7.6.7.2 1.4.2 1.9.1.6-.1 1.8-.7 2-1.4.3-.7.3-1.3.2-1.4-.1-.2-.3-.2-.6-.4z"/></svg><span class="lbl">WhatsApp</span></a>
+  <button class="enq-btn mag" id="enqBtn"><span class="dotpulse"></span><span class="lbl">Enquire</span></button>
+</div>
 <div class="enq-overlay" id="enqOverlay">
   <div class="enq-modal">
     <div class="x mag" id="enqClose">✕</div>
@@ -454,6 +512,8 @@ const brToComma = h => (h||'').replace(/<br\s*\/?>/gi,', ');
 function setText(id,v){ const el=document.getElementById(id); if(el && v!=null) el.textContent=v; }
 function nameWithEm(name){ const e=esc(name); const i=e.indexOf(' '); return i===-1 ? e : e.slice(0,i)+'<em> '+e.slice(i+1)+'</em>'; }
 
+const waDigits = n => (n||'').replace(/[^0-9]/g,'');
+
 function applyContent(C){
   setText('heroEyebrow',C.hero.eyebrow);
   setText('heroTitle',C.hero.title);
@@ -464,17 +524,84 @@ function applyContent(C){
   if(it){ const t=C.intro.text||'', h=C.intro.highlight;
     it.innerHTML = (h && t.indexOf(h)>-1) ? esc(t).replace(esc(h),`<span>${esc(h)}</span>`) : esc(t); }
 
+  const addr=brToComma(C.contact.addressHtml);
   const va=document.getElementById('visitAddress'); if(va) va.innerHTML=C.contact.addressHtml;
   const phoneLinks = sep => `<a href="tel:${telDigits(C.contact.phone1)}" data-hover>${esc(C.contact.phone1)}</a>`+
     (C.contact.phone2 ? `${sep}<a href="tel:${telDigits(C.contact.phone2)}" data-hover>${esc(C.contact.phone2)}</a>` : '');
   const vp=document.getElementById('visitPhones'); if(vp) vp.innerHTML=phoneLinks('<br/>');
   const vi=document.getElementById('visitInsta'); if(vi){ vi.href=C.instagram; vi.textContent=C.contact.instaLabel; }
-  const mc=document.getElementById('mapCard'); if(mc) mc.href=C.contact.mapUrl;
+
+  // Hours
+  const hours=(C.contact.hours||'').trim();
+  const hRow=document.getElementById('hoursRow');
+  if(hRow){ if(hours){ setText('visitHours',hours); hRow.style.display=''; } else hRow.style.display='none'; }
+
+  // Map — embed follows the address, button uses the admin's chosen link
+  const mf=document.getElementById('mapFrame');
+  if(mf && addr) mf.src=`https://maps.google.com/maps?q=${encodeURIComponent(addr)}&z=16&output=embed`;
+  const mo=document.getElementById('mapOpen'); if(mo && C.contact.mapUrl) mo.href=C.contact.mapUrl;
+
   setText('footBrandText',C.contact.footerBrand);
   const fp=document.getElementById('footPhones'); if(fp) fp.innerHTML=phoneLinks('');
-  const fad=document.getElementById('footAddress'); if(fad) fad.textContent=brToComma(C.contact.addressHtml);
+  const fad=document.getElementById('footAddress'); if(fad) fad.textContent=addr;
   const fi=document.getElementById('footInsta'); if(fi) fi.href=C.instagram;
   setText('enqDonePhone',C.contact.phone1);
+
+  // WhatsApp floating button
+  const wa=waDigits(C.contact.whatsapp);
+  const waBtn=document.getElementById('waBtn');
+  if(waBtn){
+    if(wa){ waBtn.href=`https://wa.me/${wa}?text=${encodeURIComponent('Hi Kamal Jewellers, I have an enquiry.')}`; waBtn.classList.add('show'); }
+    else waBtn.classList.remove('show');
+  }
+
+  applySEO(C, addr);
+}
+
+function applySEO(C, addr){
+  const seo=C.seo||{};
+  if(seo.title){ document.title=seo.title; const o=document.getElementById('ogTitle'); if(o) o.content=seo.title; }
+  if(seo.description){
+    const m=document.getElementById('metaDesc'); if(m) m.content=seo.description;
+    const o=document.getElementById('ogDesc'); if(o) o.content=seo.description;
+  }
+  const ld=document.getElementById('ldJson');
+  if(ld){
+    const data={
+      "@context":"https://schema.org","@type":"JewelryStore",
+      name:"Kamal Jewellers",
+      description:seo.description||'',
+      url:"https://kamaljewellers.shop",
+      telephone:C.contact.phone1||'',
+      address:{"@type":"PostalAddress",streetAddress:addr,addressLocality:"Delhi",postalCode:"110006",addressCountry:"IN"},
+      sameAs:[C.instagram].filter(Boolean)
+    };
+    if((C.contact.hours||'').trim()) data.openingHours=C.contact.hours;
+    ld.textContent=JSON.stringify(data);
+  }
+}
+
+/* Announcement bar — admin toggles it; visitor can dismiss until text changes */
+function initAnnouncement(C){
+  const a=C.announcement||{};
+  const bar=document.getElementById('anno');
+  if(!bar) return;
+  const txt=(a.text||'').trim();
+  const key='kj_anno_'+(txt.length+'_'+txt.slice(0,24));
+  if(!a.enabled || !txt || localStorage.getItem(key)==='1'){
+    bar.classList.remove('show'); document.body.classList.remove('has-anno'); return;
+  }
+  const span=document.getElementById('annoText');
+  span.innerHTML = a.link
+    ? `<a href="${esc(a.link)}" target="_blank" rel="noopener">${esc(txt)}</a>`
+    : esc(txt);
+  bar.classList.add('show'); document.body.classList.add('has-anno');
+  document.documentElement.style.setProperty('--anno-h', bar.offsetHeight+'px');
+  document.getElementById('annoClose').onclick=()=>{
+    bar.classList.remove('show'); document.body.classList.remove('has-anno');
+    try{ localStorage.setItem(key,'1'); }catch(e){}
+    if(window.lenis) lenis.resize();
+  };
 }
 
 function buildCollections(C){
@@ -547,6 +674,7 @@ function buildReviews(C){
 }
 
 function setupReviewFloat(){
+  if(matchMedia('(prefers-reduced-motion:reduce)').matches) return;
   document.querySelectorAll('.gcard').forEach((c,i)=>{
     c.animate([
       {transform:'translateY(0)'},{transform:'translateY(-14px)'},{transform:'translateY(0)'}
@@ -683,6 +811,7 @@ lenis.on('scroll',({velocity})=>{ vel=velocity; });
   size(); addEventListener('resize',size);
 
   let smoothV=0, glPaused=false;
+  const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
   const start=performance.now();
   new IntersectionObserver(([e])=>{ glPaused=!e.isIntersecting; },{threshold:0})
     .observe(cv);
@@ -694,7 +823,7 @@ lenis.on('scroll',({velocity})=>{ vel=velocity; });
       gl.uniform1f(uV,smoothV);
       gl.drawArrays(gl.TRIANGLES,0,3);
     }
-    requestAnimationFrame(loop);
+    if(!reduce) requestAnimationFrame(loop); // reduced-motion: render one static frame
   })(start);
 })();
 
@@ -837,11 +966,12 @@ window.addEventListener('load',()=>{
 });
 
 /* ============================================================
-   BOOT — resolve content (defaults ⊕ Supabase), then build
+   BOOT — resolve content (defaults ⊕ saved overrides), then build
    ============================================================ */
 async function boot(){
-  await loadContent();          // no-op if Supabase isn't configured
+  await loadContent();          // merges saved content from the Worker over defaults
   applyContent(CONTENT);
+  initAnnouncement(CONTENT);
   buildCollections(CONTENT);
   buildReviews(CONTENT);
   setupEnquiry(CONTENT);

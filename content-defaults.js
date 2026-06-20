@@ -6,6 +6,17 @@
    admin panel — not this file.
    ============================================================ */
 window.KAMAL_DEFAULTS = {
+  // SEO — what Google & social shares show
+  seo:{
+    title:"Kamal Jewellers — Bridal, Kundan & Polki Jewellery · Sadar Bazar, Delhi",
+    description:"Kamal Jewellers, Sadar Bazar, Delhi. Handcrafted bridal, kundan & polki, statement earrings and the viral pieces breaking the internet — made to bring out your inner radiance."
+  },
+  // Top announcement strip — flip on for launches, festivals, offers
+  announcement:{
+    enabled:false,
+    text:"✦ Now open in Sadar Bazar — visit us for the new bridal season",
+    link:""
+  },
   hero:{
     eyebrow:"Est. in the heart of Old Delhi",
     title:"Worn like water,",
@@ -21,6 +32,8 @@ window.KAMAL_DEFAULTS = {
     addressHtml:"132, Main Road, Sadar Bazar,<br/>Delhi — 110006",
     phone1:"+91 99999 25670",
     phone2:"+91 98119 07365",
+    whatsapp:"+91 99999 25670",
+    hours:"Mon – Sat · 11 AM – 8 PM",
     instaLabel:"@kamaljewellers · Instagram ↗",
     mapUrl:"https://www.google.com/maps/search/Kamal+Jewellers+Sadar+Bazar+Delhi",
     footerBrand:"Where heritage craftsmanship meets the pieces everyone's saving on their feeds. Crafted from fine materials to bring out your inner radiance."
