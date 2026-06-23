@@ -164,7 +164,7 @@ body.theme-emerald .solid{background:radial-gradient(ellipse 90% 50% at 50% 18%,
 /* 3-second progress fill — the "loading" cue */
 .tp-load{width:100%;height:2px;margin-top:1.6rem;background:rgba(255,255,255,.12);border-radius:2px;overflow:hidden}
 .tp-load span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--gold-deep),var(--gold-bright))}
-.tile-preview.show .tp-load span{animation:tpfill 3s linear forwards}
+.tile-preview.show .tp-load span{animation:tpfill 1.5s linear forwards}
 @keyframes tpfill{from{width:0}to{width:100%}}
 body.theme-ruby    .tp-inner{border-color:rgba(180,50,70,.45)}
 body.theme-emerald .tp-inner{border-color:rgba(50,160,100,.45)}
@@ -1012,7 +1012,7 @@ function closeCollection(){
 
 /* Single-tap intro: tile → themed loading card (3s) → blends into the collection */
 let introId=null, loadTimer=null;
-const INTRO_MS=3000;
+const INTRO_MS=1500;
 function clearLoadTimer(){ if(loadTimer){ clearTimeout(loadTimer); loadTimer=null; } }
 
 function startIntro(tile){
