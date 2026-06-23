@@ -511,13 +511,15 @@ let cropper=null, cropTargetColl=null;
 function pickPhoto(ci){
   cropTargetColl=ci;
   const inp=el('input'); inp.type='file'; inp.accept='image/*';
-  inp.onchange=()=>{ const file=inp.files[0]; if(!file) return; openCropper(URL.createObjectURL(file)); };
+  inp.style.position='fixed'; inp.style.left='-9999px';
+  document.body.appendChild(inp); // Safari is more reliable with the input in the DOM
+  inp.onchange=()=>{ const file=inp.files[0]; inp.remove(); if(!file) return; openCropper(URL.createObjectURL(file)); };
   inp.click();
 }
 function openCropper(src){
+  if(cropper){ cropper.destroy(); cropper=null; } // tear down any previous instance first
   $('#cropOv').classList.add('open');
   const img=$('#cropImg'); img.src=src;
-  if(cropper) cropper.destroy();
   cropper=new Cropper(img,{ viewMode:1, aspectRatio:0.8, autoCropArea:1, background:false, dragMode:'move' });
   document.querySelectorAll('.ratio').forEach(b=>b.classList.toggle('active', b.dataset.r==='0.8'));
 }
@@ -528,23 +530,30 @@ document.querySelectorAll('.ratio').forEach(b=>b.addEventListener('click',()=>{
 $('#cropCancel').addEventListener('click',closeCropper);
 function closeCropper(){ $('#cropOv').classList.remove('open'); if(cropper){cropper.destroy();cropper=null;} }
 
-$('#cropUpload').addEventListener('click',()=>{
-  if(!cropper) return;
-  const canvas=cropper.getCroppedCanvas({ maxWidth:1600, maxHeight:2000, imageSmoothingQuality:'high' });
-  $('#cropUpload').disabled=true; toast('Uploading…');
-  canvas.toBlob(async blob=>{
-    try{
-      const c=C.collections[cropTargetColl];
-      const form=new FormData();
-      form.append('file', blob, 'photo.jpg');
-      form.append('collection', c.id);
-      const { url } = await api('/photos', { method:'POST', body:form });
-      c.images=c.images||[]; c.images.push({url,title:'',text:'',side:''});
-      markDirty(); closeCropper(); renderPhotos();
-      await saveContent();
-    }catch(e){ console.warn(e); toast('Upload failed: '+e.message+' (Enable R2 in Cloudflare dashboard to unlock photo upload)'); }
-    $('#cropUpload').disabled=false;
-  },'image/jpeg',0.9);
+$('#cropUpload').addEventListener('click',async ()=>{
+  if(!cropper){ toast('Pick a photo first.'); return; }
+  const btn=$('#cropUpload'); btn.disabled=true;
+  try{
+    const canvas=cropper.getCroppedCanvas({ maxWidth:1600, maxHeight:2000, imageSmoothingQuality:'high' });
+    if(!canvas){ toast('Image still loading — give it a second and try again.'); return; }
+    toast('Uploading…');
+    const blob=await new Promise((res,rej)=>canvas.toBlob(b=> b?res(b):rej(new Error('Could not process this image')),'image/jpeg',0.9));
+    const c=C.collections[cropTargetColl];
+    const form=new FormData();
+    form.append('file', blob, 'photo.jpg');
+    form.append('collection', c.id);
+    const { url } = await api('/photos', { method:'POST', body:form });
+    c.images=c.images||[]; c.images.push({url,title:'',text:'',side:''});
+    markDirty(); closeCropper(); renderPhotos();
+    await saveContent();
+    toast('Photo added ✓');
+  }catch(e){
+    console.warn(e);
+    const msg=/unauth|401/i.test(e.message||'') ? 'Session expired — log out and back in, then try again.'
+      : /503|not yet enabled/i.test(e.message||'') ? 'Photo storage is off — enable R2 in Cloudflare.'
+      : (e.message||'Something went wrong');
+    toast('Upload failed: '+msg);
+  }finally{ btn.disabled=false; }
 });
 
 /* ── Enquiries ──────────────────────────────────────────────── */
