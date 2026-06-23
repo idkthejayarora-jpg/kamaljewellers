@@ -76,14 +76,10 @@ a{color:inherit;text-decoration:none}
 @media (hover:none){.cursor,.cursor-dot{display:none}body{cursor:auto}}
 
 /* ---------- Loader ---------- */
-.loader{position:fixed;inset:0;z-index:10000;background:var(--black);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1.4rem;transition:opacity .9s var(--ease),visibility .9s}
+.loader{position:fixed;inset:0;z-index:10000;background:transparent;display:flex;align-items:center;justify-content:center;transition:opacity 1.1s var(--ease),visibility 1.1s}
 .loader.done{opacity:0;visibility:hidden}
-.loader .logoMark{width:clamp(96px,18vw,128px);height:auto;margin-bottom:.3rem;border-radius:50%;animation:logoIn 1.3s var(--ease) both;box-shadow:0 0 0 1px rgba(215,175,80,.18),0 0 22px rgba(215,175,80,.72),0 0 56px rgba(215,175,80,.42),0 0 120px rgba(215,175,80,.2),0 0 240px rgba(215,175,80,.09)}
-@keyframes logoIn{0%{opacity:0;transform:scale(.82) translateY(8px)}100%{opacity:1;transform:none}}
-.loader .mark{font-family:'Cormorant Garamond';font-size:clamp(2rem,6vw,3.4rem);letter-spacing:.18em;color:var(--gold-bright)}
-.loader .bar{width:min(40vw,260px);height:1px;background:rgba(216,178,94,.2);overflow:hidden}
-.loader .bar span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--gold-deep),var(--gold-bright));transition:width .2s linear}
-.loader .pct{font-size:.7rem;letter-spacing:.4em;color:var(--gold);opacity:.7}
+.loader .logoMark{width:clamp(96px,18vw,128px);height:auto;border-radius:50%;animation:logoIn 1.4s var(--ease) both;box-shadow:0 0 0 1px rgba(215,175,80,.18),0 0 22px rgba(215,175,80,.72),0 0 56px rgba(215,175,80,.42),0 0 120px rgba(215,175,80,.2),0 0 240px rgba(215,175,80,.09)}
+@keyframes logoIn{0%{opacity:0;transform:scale(.72)}60%{opacity:1;transform:scale(1.04)}100%{opacity:1;transform:scale(1)}}
 
 /* ---------- WebGL hero canvas ---------- */
 #gl{position:fixed;inset:0;width:100vw;height:100vh;height:100svh;z-index:0;display:block}
@@ -368,9 +364,6 @@ footer{position:relative;z-index:2;background:linear-gradient(180deg,var(--black
 <!-- ===== Loader ===== -->
 <div class="loader" id="loader">
   <img class="logoMark" src="logo.png" alt="Kamal Jewellers" />
-  <div class="mark">KAMAL&nbsp;JEWELLERS</div>
-  <div class="bar"><span id="loadbar"></span></div>
-  <div class="pct"><span id="loadpct">0</span>%</div>
 </div>
 
 <!-- ===== Cursor ===== -->
@@ -1067,25 +1060,12 @@ lenis.on('scroll',({scroll})=>{ nav.classList.toggle('scrolled',scroll>40); runP
 /* ============================================================
    LOADER
    ============================================================ */
-window.addEventListener('load',()=>{
-  const bar=document.getElementById('loadbar');
-  const pct=document.getElementById('loadpct');
-  let p=0;
-  const t=setInterval(()=>{
-    p+=Math.random()*18; if(p>=100){p=100;clearInterval(t);
-      setTimeout(()=>{ document.getElementById('loader').classList.add('done');
-        document.querySelectorAll('.hero .reveal').forEach((el,i)=>setTimeout(()=>el.classList.add('in'),i*180));
-      },350);
-    }
-    bar.style.width=p+'%'; pct.textContent=Math.round(p);
-  },110);
-});
-
 /* ============================================================
    BOOT — resolve content (defaults ⊕ saved overrides), then build
    ============================================================ */
 async function boot(){
-  await loadContent();          // merges saved content from the Worker over defaults
+  const t0=Date.now();
+  await loadContent();
   applyContent(CONTENT);
   initAnnouncement(CONTENT);
   buildCollections(CONTENT);
@@ -1095,6 +1075,11 @@ async function boot(){
   bindMagnets();
   setupReviewFloat();
   if(window.lenis) window.lenis.resize();
+  const wait=Math.max(0,1600-(Date.now()-t0));
+  setTimeout(()=>{
+    document.getElementById('loader').classList.add('done');
+    document.querySelectorAll('.hero .reveal').forEach((el,i)=>setTimeout(()=>el.classList.add('in'),i*180));
+  },wait);
 }
 boot();
 </script>
