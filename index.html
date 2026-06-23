@@ -236,7 +236,7 @@ body.viewing .reviews,body.viewing .visit,body.viewing footer{display:none}
 .info-row .v a:hover{color:var(--gold-bright)}
 .visit-right{display:flex;flex-direction:column;gap:1.4rem}
 .store-card{position:relative;border-radius:20px;overflow:hidden;border:1px solid var(--glass-brd)}
-.store-card img{display:block;width:100%;height:300px;object-fit:cover;object-position:center 28%}
+.store-card img{display:block;width:100%;aspect-ratio:3/4;object-fit:cover;object-position:center 22%}
 .store-card .cap{position:absolute;left:0;bottom:0;width:100%;padding:1.2rem 1.3rem .9rem;background:linear-gradient(0deg,rgba(8,6,4,.9),transparent);font-size:.58rem;letter-spacing:.3em;text-transform:uppercase;color:var(--gold-bright)}
 .map-card{position:relative;border-radius:20px;overflow:hidden;border:1px solid var(--glass-brd)}
 .map-card iframe{display:block;width:100%;height:380px;border:0;filter:invert(92%) hue-rotate(180deg) saturate(0.9) brightness(0.88)}
@@ -418,9 +418,9 @@ footer{position:relative;z-index:2;background:linear-gradient(180deg,var(--black
         </div>
         <div class="map-card" id="mapCard">
           <iframe id="mapFrame"
-            src="https://maps.google.com/maps?q=132+Main+Road+Sadar+Bazar+Delhi+110006&z=16&output=embed"
+            src="https://maps.google.com/maps?q=28.6531,77.2095&z=17&output=embed"
             loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Kamal Jewellers location"></iframe>
-          <a class="map-open" id="mapOpen" href="https://www.google.com/maps/search/Kamal+Jewellers+132+Main+Road+Sadar+Bazar+Delhi" target="_blank" rel="noopener">Open in Google Maps ↗</a>
+          <a class="map-open" id="mapOpen" href="https://www.google.com/maps/search/Kamal+Jewellers/@28.6531,77.2095,17z" target="_blank" rel="noopener">Open in Google Maps ↗</a>
         </div>
       </div>
     </section>
@@ -560,9 +560,7 @@ function applyContent(C){
   const hRow=document.getElementById('hoursRow');
   if(hRow){ if(hours){ setText('visitHours',hours); hRow.style.display=''; } else hRow.style.display='none'; }
 
-  // Map — embed follows the address, button uses the admin's chosen link
-  const mf=document.getElementById('mapFrame');
-  if(mf && addr) mf.src=`https://maps.google.com/maps?q=${encodeURIComponent(addr)}&z=16&output=embed`;
+  // Map — iframe stays pinned to Sadar Bazar coordinates; button uses admin's chosen link
   const mo=document.getElementById('mapOpen'); if(mo && C.contact.mapUrl) mo.href=C.contact.mapUrl;
 
   setText('footBrandText',C.contact.footerBrand);

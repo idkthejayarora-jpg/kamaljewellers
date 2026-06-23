@@ -35,7 +35,7 @@ window.KAMAL_DEFAULTS = {
     whatsapp:"+91 99999 25670",
     hours:"Mon – Sat · 11 AM – 8 PM",
     instaLabel:"@kamaljewellers · Instagram ↗",
-    mapUrl:"https://www.google.com/maps/search/Kamal+Jewellers+Sadar+Bazar+Delhi",
+    mapUrl:"https://www.google.com/maps/search/Kamal+Jewellers/@28.6531,77.2095,17z",
     footerBrand:"Where heritage craftsmanship meets the pieces everyone's saving on their feeds. Crafted from fine materials to bring out your inner radiance."
   },
   reviews:[
