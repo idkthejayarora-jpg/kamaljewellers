@@ -125,6 +125,16 @@ input,textarea,select{font-family:'Jost'}
 .toast{position:fixed;bottom:1.2rem;left:50%;transform:translateX(-50%) translateY(20px);opacity:0;transition:.4s var(--ease);background:#1c150d;border:1px solid var(--gold-deep);color:var(--gold-bright);padding:.8rem 1.4rem;border-radius:30px;font-size:.8rem;z-index:80}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .setup-warn{margin:1rem 0;padding:1rem 1.2rem;border:1px solid rgba(224,138,138,.4);border-radius:12px;background:rgba(224,138,138,.07);color:#e9b3b3;font-size:.86rem;line-height:1.6}
+.pos-section{margin-top:.8rem}
+.pos-section>label{display:block;font-size:.56rem;letter-spacing:.26em;text-transform:uppercase;color:var(--gold);margin-bottom:.45rem}
+.pos-previews{display:flex;gap:1rem;align-items:flex-start;margin-top:.5rem}
+.pos-preview{position:relative;overflow:hidden;border-radius:10px;border:1px solid var(--line);background:#0d0b08;flex-shrink:0}
+.pos-preview.desk{flex:1;max-width:220px;aspect-ratio:4/3}
+.pos-preview.mob{width:80px;aspect-ratio:9/16}
+.pos-preview img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none;user-select:none}
+.pos-handle{position:absolute;transform:translate(-50%,-50%);background:rgba(255,255,255,.18);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.32);border-radius:8px;padding:3px 8px;font-size:.52rem;color:#fff;cursor:grab;user-select:none;white-space:nowrap;max-width:90px;overflow:hidden;text-overflow:ellipsis;text-align:center;touch-action:none}
+.pos-handle:active{cursor:grabbing}
+.pos-label{font-size:.52rem;color:#666;text-align:center;margin-top:.25rem}
 </style>
 </head>
 <body>
@@ -282,8 +292,8 @@ const imgUrl = x => (x==null ? null : (typeof x==='string' ? x : x.url||null));
 function normalizePhotos(){
   (C.collections||[]).forEach(c=>{
     c.images=(c.images||[]).map(e=> typeof e==='string'
-      ? {url:e,title:'',text:'',side:'',link:''}
-      : {url:e.url,title:e.title||'',text:e.text||'',side:e.side||'',link:e.link||''});
+      ? {url:e,title:'',text:'',side:'',link:'',pos:{x:50,y:80},posMobile:{x:50,y:80}}
+      : {url:e.url,title:e.title||'',text:e.text||'',side:e.side||'',link:e.link||'',pos:e.pos||{x:50,y:80},posMobile:e.posMobile||{x:50,y:80}});
   });
 }
 
@@ -447,6 +457,21 @@ function renderContent(){
 /* ── Photos ─────────────────────────────────────────────────── */
 function keyFromUrl(u){ const m=(u||'').match(/\/photos\/(.+)$/); return m?m[1]:null; }
 
+function makeDraggable(handle, preview, entry, key){
+  let dragging=false;
+  handle.addEventListener('pointerdown',e=>{dragging=true;handle.setPointerCapture(e.pointerId);e.preventDefault()});
+  handle.addEventListener('pointermove',e=>{
+    if(!dragging) return;
+    const r=preview.getBoundingClientRect();
+    const x=Math.round(Math.max(5,Math.min(95,((e.clientX-r.left)/r.width)*100)));
+    const y=Math.round(Math.max(5,Math.min(95,((e.clientY-r.top)/r.height)*100)));
+    entry[key]={x,y};
+    handle.style.left=x+'%'; handle.style.top=y+'%';
+    markDirty();
+  });
+  handle.addEventListener('pointerup',()=>{dragging=false});
+}
+
 function sideSelect(entry){
   const f=el('div','fld');
   f.appendChild(el('label',null,'Layout'));
@@ -486,6 +511,29 @@ function renderPhotos(){
       fields.appendChild(field('Heading', entry,'title',null,'Shown large beside the photo. Leave blank to use the collection name.'));
       fields.appendChild(field('Description', entry,'text','textarea','A short blurb shown under the heading.'));
       fields.appendChild(field('Link URL', entry,'link',null,'Tapping this photo on the site opens this URL (e.g. WhatsApp catalogue, Instagram post). Leave blank for no link.'));
+      const posSection=el('div','pos-section');
+      posSection.appendChild(el('label',null,'Text card position'));
+      const previews=el('div','pos-previews');
+      ['desk','mob'].forEach(view=>{
+        const wrap=el('div');
+        const isDesk=view==='desk';
+        const key=isDesk?'pos':'posMobile';
+        const pos=entry[key]||{x:50,y:80};
+        const preview=el('div','pos-preview '+view);
+        const img=el('img'); img.src=imgUrl(entry); img.draggable=false;
+        preview.appendChild(img);
+        const handle=el('div','pos-handle');
+        handle.textContent=entry.title||'Text card';
+        handle.style.left=pos.x+'%';
+        handle.style.top=pos.y+'%';
+        preview.appendChild(handle);
+        makeDraggable(handle,preview,entry,key);
+        wrap.appendChild(preview);
+        wrap.appendChild(el('div','pos-label',isDesk?'Desktop':'Mobile'));
+        previews.appendChild(wrap);
+      });
+      posSection.appendChild(previews);
+      fields.appendChild(posSection);
       row.appendChild(fields);
       box.appendChild(row);
     });
@@ -544,7 +592,7 @@ $('#cropUpload').addEventListener('click',async ()=>{
     form.append('file', blob, 'photo.jpg');
     form.append('collection', c.id);
     const { url } = await api('/photos', { method:'POST', body:form });
-    c.images=c.images||[]; c.images.push({url,title:'',text:'',side:'',link:''});
+    c.images=c.images||[]; c.images.push({url,title:'',text:'',side:'',link:'',pos:{x:50,y:80},posMobile:{x:50,y:80}});
     markDirty(); closeCropper(); renderPhotos();
     await saveContent();
     toast('Photo added ✓');
