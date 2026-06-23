@@ -504,6 +504,17 @@ footer{position:relative;z-index:2;background:linear-gradient(180deg,var(--black
   </div>
 </div>
 
+<!-- ===== Collection preview card ===== -->
+<div class="tile-preview" id="tilePreview" aria-hidden="true">
+  <div class="tp-inner">
+    <button class="tp-close mag" id="tpClose" aria-label="Close">✕</button>
+    <div class="eyebrow" id="tpTag"></div>
+    <h3 id="tpName"></h3>
+    <p id="tpLede"></p>
+    <button class="catalogue-pill tp-cta" id="tpEnter">Enter Collection →</button>
+  </div>
+</div>
+
 <!-- ===== Libraries ===== -->
 <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
@@ -1063,15 +1074,24 @@ lenis.on('scroll',({scroll})=>{ nav.classList.toggle('scrolled',scroll>40); runP
 /* ============================================================
    BOOT — resolve content (defaults ⊕ saved overrides), then build
    ============================================================ */
-async function boot(){
+function buildAll(C){
+  try{
+    applyContent(C);
+    initAnnouncement(C);
+    buildCollections(C);
+    buildReviews(C);
+    setupEnquiry(C);
+    if(window.lenis) window.lenis.resize();
+  }catch(e){ console.warn('build failed', e); }
+}
+
+function boot(){
   const t0=Date.now();
-  await loadContent();
-  applyContent(CONTENT);
-  initAnnouncement(CONTENT);
-  buildCollections(CONTENT);
-  buildReviews(CONTENT);
-  setupEnquiry(CONTENT);
-  if(window.lenis) window.lenis.resize();
+  // Paint immediately with defaults — the page never waits on the network.
+  buildAll(CONTENT);
+  // Re-paint if the Worker has saved overrides (resolves under the loader; falls back silently).
+  loadContent().then(()=>buildAll(CONTENT)).catch(e=>console.warn(e));
+  // Loader dismissal is on a guaranteed timer, never tied to the fetch.
   const wait=Math.max(0,1100-(Date.now()-t0));
   setTimeout(()=>{
     document.getElementById('loader').classList.add('done');
@@ -1085,16 +1105,6 @@ async function boot(){
 }
 boot();
 </script>
-  <!-- COLLECTION PREVIEW CARD -->
-  <div class="tile-preview" id="tilePreview" aria-hidden="true">
-    <div class="tp-inner">
-      <button class="tp-close mag" id="tpClose" aria-label="Close">✕</button>
-      <div class="eyebrow" id="tpTag"></div>
-      <h3 id="tpName"></h3>
-      <p id="tpLede"></p>
-      <button class="catalogue-pill tp-cta" id="tpEnter">Enter Collection →</button>
-    </div>
-  </div>
 
 </body>
 </html>
