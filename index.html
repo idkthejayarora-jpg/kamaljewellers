@@ -156,11 +156,16 @@ body.theme-emerald .solid{background:radial-gradient(ellipse 90% 50% at 50% 18%,
 .tile.selected[data-theme="ruby"]   {box-shadow:inset 0 0 0 2px rgba(180,50,70,.65),0 0 48px rgba(180,50,70,.22)}
 .tile.selected[data-theme="emerald"]{box-shadow:inset 0 0 0 2px rgba(50,160,100,.65),0 0 48px rgba(50,160,100,.22)}
 
-/* ---------- Collection preview card ---------- */
-.tile-preview{position:fixed;inset:0;z-index:240;display:flex;align-items:flex-end;justify-content:center;padding:0 1rem 2.5rem;pointer-events:none;opacity:0;transition:opacity .5s var(--ease)}
+/* ---------- Collection intro / loading screen ---------- */
+.tile-preview{position:fixed;inset:0;z-index:240;display:flex;align-items:center;justify-content:center;padding:1.5rem;pointer-events:none;opacity:0;transition:opacity .6s var(--ease);background:rgba(8,5,2,.5);backdrop-filter:blur(9px) saturate(120%);-webkit-backdrop-filter:blur(9px) saturate(120%)}
 .tile-preview.show{opacity:1;pointer-events:auto}
-.tp-inner{width:min(540px,96vw);padding:2rem clamp(1.4rem,3vw,2.4rem) 2rem;border-radius:28px;background:linear-gradient(155deg,rgba(255,255,255,.11) 0%,rgba(255,255,255,.04) 100%);border:1px solid rgba(216,178,94,.3);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.18),0 32px 80px -20px rgba(0,0,0,.85);transform:translateY(24px);transition:transform .55s var(--ease);text-align:center;position:relative}
-.tile-preview.show .tp-inner{transform:translateY(0)}
+.tp-inner{width:min(540px,96vw);padding:2.4rem clamp(1.4rem,3vw,2.4rem);border-radius:28px;background:linear-gradient(155deg,rgba(255,255,255,.11) 0%,rgba(255,255,255,.04) 100%);border:1px solid rgba(216,178,94,.3);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.18),0 32px 80px -20px rgba(0,0,0,.85);transform:translateY(24px) scale(.97);transition:transform .6s var(--ease);text-align:center;position:relative}
+.tile-preview.show .tp-inner{transform:translateY(0) scale(1)}
+/* 3-second progress fill — the "loading" cue */
+.tp-load{width:100%;height:2px;margin-top:1.6rem;background:rgba(255,255,255,.12);border-radius:2px;overflow:hidden}
+.tp-load span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--gold-deep),var(--gold-bright))}
+.tile-preview.show .tp-load span{animation:tpfill 3s linear forwards}
+@keyframes tpfill{from{width:0}to{width:100%}}
 body.theme-ruby    .tp-inner{border-color:rgba(180,50,70,.45)}
 body.theme-emerald .tp-inner{border-color:rgba(50,160,100,.45)}
 #tpName{font-family:'Cormorant Garamond';font-weight:300;font-size:clamp(2rem,5vw,3.2rem);line-height:1.04;margin:.6rem 0 .9rem;color:var(--cream)}
@@ -511,7 +516,8 @@ footer{position:relative;z-index:2;background:linear-gradient(180deg,var(--black
     <div class="eyebrow" id="tpTag"></div>
     <h3 id="tpName"></h3>
     <p id="tpLede"></p>
-    <button class="catalogue-pill tp-cta" id="tpEnter">Enter Collection →</button>
+    <button class="catalogue-pill tp-cta" id="tpEnter">Enter now →</button>
+    <div class="tp-load" aria-hidden="true"><span></span></div>
   </div>
 </div>
 
@@ -1004,15 +1010,20 @@ function closeCollection(){
   lenis.scrollTo(lastScroll,{immediate:true});
 }
 
-let pendingOpen=null;
+/* Single-tap intro: tile → themed loading card (3s) → blends into the collection */
+let introId=null, loadTimer=null;
+const INTRO_MS=3000;
+function clearLoadTimer(){ if(loadTimer){ clearTimeout(loadTimer); loadTimer=null; } }
 
-function applyTileTheme(tile){
+function startIntro(tile){
+  clearLoadTimer();
   document.querySelectorAll('.tile.selected').forEach(t=>t.classList.remove('selected'));
   tile.classList.add('selected');
   const th=tile.dataset.theme||'gold';
   document.body.classList.remove('theme-gold','theme-ruby','theme-emerald');
   document.body.classList.add('theme-'+th);
-  const c=collectionMap[tile.dataset.open];
+  introId=tile.dataset.open;
+  const c=collectionMap[introId];
   if(c){
     document.getElementById('tpTag').textContent=c.tag;
     document.getElementById('tpName').innerHTML=nameWithEm(c.name);
@@ -1021,9 +1032,29 @@ function applyTileTheme(tile){
     document.getElementById('tpLede').textContent=parts.slice(0,2).join('. ')+(parts.length>2?'.':'');
   }
   const p=document.getElementById('tilePreview');
+  // restart the 3s progress fill from zero
+  const fill=p.querySelector('.tp-load span');
+  if(fill){ fill.style.animation='none'; void fill.offsetWidth; fill.style.animation=''; }
   p.classList.add('show'); p.removeAttribute('aria-hidden');
+  loadTimer=setTimeout(enterIntro,INTRO_MS);
 }
+
+function enterIntro(){
+  clearLoadTimer();
+  if(!introId) return;
+  const id=introId; introId=null;
+  openCollection(id);                       // collection rendered underneath
+  const p=document.getElementById('tilePreview');
+  p.classList.remove('show');               // dissolve the loading card → blend reveal
+  setTimeout(()=>{
+    p.setAttribute('aria-hidden','true');
+    document.querySelectorAll('.tile.selected').forEach(t=>t.classList.remove('selected'));
+    document.body.classList.remove('theme-gold','theme-ruby','theme-emerald');
+  },650);
+}
+
 function clearTileTheme(){
+  clearLoadTimer(); introId=null;
   document.querySelectorAll('.tile.selected').forEach(t=>t.classList.remove('selected'));
   document.body.classList.remove('theme-gold','theme-ruby','theme-emerald');
   const p=document.getElementById('tilePreview');
@@ -1038,9 +1069,7 @@ document.addEventListener('click',e=>{
     e.preventDefault();
     // Only tiles on the grid have data-theme (not menu/footer links)
     if(openEl.dataset.theme!==undefined){
-      const id=openEl.dataset.open;
-      if(pendingOpen===id){ pendingOpen=null; clearTileTheme(); openCollection(id); }
-      else { pendingOpen=id; applyTileTheme(openEl); }
+      startIntro(openEl);              // tap → themed loading card → auto-blends in
     } else {
       openCollection(openEl.dataset.open);
     }
@@ -1052,18 +1081,14 @@ document.addEventListener('click',e=>{
     else lenis.scrollTo(0);
     return;
   }
-  // Tap outside any tile → deselect
-  if(pendingOpen && !e.target.closest('.tile') && !e.target.closest('.tile-preview')){
-    pendingOpen=null; clearTileTheme();
+  // Tap outside the card during the intro → cancel
+  if(introId && !e.target.closest('.tile') && !e.target.closest('.tp-inner')){
+    clearTileTheme();
   }
 });
 
-document.getElementById('tpEnter').addEventListener('click',()=>{
-  if(pendingOpen){ const id=pendingOpen; pendingOpen=null; clearTileTheme(); openCollection(id); }
-});
-document.getElementById('tpClose').addEventListener('click',()=>{
-  pendingOpen=null; clearTileTheme();
-});
+document.getElementById('tpEnter').addEventListener('click',enterIntro);   // skip the wait
+document.getElementById('tpClose').addEventListener('click',clearTileTheme);
 
 /* nav bg on scroll + feature parallax */
 lenis.on('scroll',({scroll})=>{ nav.classList.toggle('scrolled',scroll>40); runParallax(); });
