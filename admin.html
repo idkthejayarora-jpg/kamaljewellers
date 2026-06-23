@@ -282,8 +282,8 @@ const imgUrl = x => (x==null ? null : (typeof x==='string' ? x : x.url||null));
 function normalizePhotos(){
   (C.collections||[]).forEach(c=>{
     c.images=(c.images||[]).map(e=> typeof e==='string'
-      ? {url:e,title:'',text:'',side:''}
-      : {url:e.url,title:e.title||'',text:e.text||'',side:e.side||''});
+      ? {url:e,title:'',text:'',side:'',link:''}
+      : {url:e.url,title:e.title||'',text:e.text||'',side:e.side||'',link:e.link||''});
   });
 }
 
@@ -485,6 +485,7 @@ function renderPhotos(){
       fields.appendChild(sideSelect(entry));
       fields.appendChild(field('Heading', entry,'title',null,'Shown large beside the photo. Leave blank to use the collection name.'));
       fields.appendChild(field('Description', entry,'text','textarea','A short blurb shown under the heading.'));
+      fields.appendChild(field('Link URL', entry,'link',null,'Tapping this photo on the site opens this URL (e.g. WhatsApp catalogue, Instagram post). Leave blank for no link.'));
       row.appendChild(fields);
       box.appendChild(row);
     });
@@ -543,7 +544,7 @@ $('#cropUpload').addEventListener('click',async ()=>{
     form.append('file', blob, 'photo.jpg');
     form.append('collection', c.id);
     const { url } = await api('/photos', { method:'POST', body:form });
-    c.images=c.images||[]; c.images.push({url,title:'',text:'',side:''});
+    c.images=c.images||[]; c.images.push({url,title:'',text:'',side:'',link:''});
     markDirty(); closeCropper(); renderPhotos();
     await saveContent();
     toast('Photo added ✓');

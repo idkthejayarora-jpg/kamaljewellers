@@ -198,6 +198,11 @@ body.viewing .reviews,body.viewing .visit,body.viewing footer{display:none}
   radial-gradient(160% 140% at 74% 52%,transparent 18%,rgba(8,5,2,.68) 58%,rgba(8,5,2,.97) 100%),
   linear-gradient(270deg,transparent 28%,rgba(8,5,2,.52) 52%,rgba(8,5,2,.96) 78%)}
 .feature .veil::after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,rgba(8,5,2,1) 0%,rgba(8,5,2,.7) 4%,transparent 12%,transparent 88%,rgba(8,5,2,.7) 96%,rgba(8,5,2,1) 100%)}
+/* Linked feature panels */
+a.feature{cursor:pointer;text-decoration:none}
+.feat-link-cue{display:inline-block;margin-top:1.2rem;font-size:.58rem;letter-spacing:.35em;text-transform:uppercase;color:var(--gold-bright);transition:opacity .4s,transform .4s var(--ease)}
+a.feature:hover .feat-link-cue{opacity:.85;transform:translateX(4px)}
+
 /* Seam blur strip — sits at the join of two panels, blurs both images */
 .seam-blur{position:relative;height:48px;margin:-24px 0;z-index:4;pointer-events:none;
   -webkit-backdrop-filter:blur(18px) brightness(.5) saturate(.65);
@@ -670,15 +675,19 @@ function buildCollections(C){
       const title=meta.title ? esc(meta.title) : nameWithEm(c.name);
       const text=meta.text ? esc(meta.text) : (url ? '' : 'Add photos &amp; text in the admin panel');
       const bg=url ? `background-image:url('${url}')` : `background:linear-gradient(${130+s*30}deg,${c.c1},${c.c2})`;
+      const lnk=(meta.link&&url) ? esc(meta.link) : '';
+      const ftag=lnk ? 'a' : 'div';
+      const fattr=lnk ? ` href="${lnk}" target="_blank" rel="noopener"` : '';
       if(s>0) features+=`<div class="seam-blur" aria-hidden="true"></div>`;
-      features+=`<div class="feature text-${side} reveal">
+      features+=`<${ftag} class="feature text-${side} reveal"${fattr}>
         <div class="fimg" style="${bg}"><span class="veil"></span></div>
         <div class="ftext">
           <div class="eyebrow">${eyebrow}</div>
           <h3>${title}</h3>
           ${text?`<p>${text}</p>`:''}
+          ${lnk?`<span class="feat-link-cue">View →</span>`:''}
         </div>
-      </div>`;
+      </${ftag}>`;
     });
 
     const sec=document.createElement('section');
