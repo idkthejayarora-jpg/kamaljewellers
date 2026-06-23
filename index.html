@@ -183,34 +183,29 @@ body.viewing .reviews,body.viewing .visit,body.viewing footer{display:none}
 .catalogue-pill{display:inline-flex;align-items:center;gap:.55rem;padding:.55rem 1.3rem;border-radius:40px;border:1px solid rgba(244,215,132,.55);background:linear-gradient(135deg,rgba(244,215,132,.13),rgba(216,178,94,.05));backdrop-filter:blur(10px) saturate(140%);color:var(--gold-bright);font-size:.58rem;letter-spacing:.32em;text-transform:uppercase;box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 0 0 rgba(244,215,132,0);transition:background .4s,box-shadow .4s,transform .3s var(--ease)}
 .catalogue-pill:hover{background:linear-gradient(135deg,rgba(244,215,132,.25),rgba(216,178,94,.12));box-shadow:0 0 20px rgba(244,215,132,.22),inset 0 1px 0 rgba(255,255,255,.14);transform:translateY(-1px)}
 
-/* ---------- Horizontal showcase ---------- */
-.showcase{position:relative;margin:2.5rem 0 5rem;user-select:none}
-.show-track{display:flex;border-radius:16px;overflow:hidden;border:1px solid rgba(216,178,94,.1)}
-.show-slide{min-width:100%;aspect-ratio:4/3;position:relative;overflow:hidden;background:var(--ink);flex-shrink:0}
-@media(max-width:640px){.show-slide{aspect-ratio:3/4}}
-.show-slide img,.show-ph{width:100%;height:100%;object-fit:cover;display:block;transition:transform 1.2s var(--ease)}
-.show-ph{min-height:320px}
-.show-slide:hover img,.show-slide:hover .show-ph{transform:scale(1.04)}
-
-/* Caption — centred pill with dark glass behind text */
-.show-caption{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);max-width:min(82%,420px);background:rgba(0,0,0,.75);backdrop-filter:blur(14px) saturate(160%);border:1px solid rgba(216,178,94,.22);border-radius:18px;padding:1.1rem 1.9rem;text-align:center;pointer-events:none;box-shadow:0 8px 40px rgba(0,0,0,.6)}
-@media(max-width:560px){.show-caption{padding:.85rem 1.2rem}}
-.show-caption b{display:block;font-family:'Cormorant Garamond';font-size:clamp(1.1rem,2.5vw,1.65rem);font-weight:400;color:var(--gold-bright);letter-spacing:.04em}
-.show-caption span{display:block;font-size:.55rem;letter-spacing:.32em;text-transform:uppercase;color:rgba(243,234,215,.62);margin-top:.35rem}
-
-/* Arrows */
-.show-arr{position:absolute;top:50%;margin-top:-23px;z-index:6;width:46px;height:46px;border-radius:50%;border:1px solid rgba(216,178,94,.35);background:rgba(8,6,5,.65);backdrop-filter:blur(8px);color:var(--gold-bright);font-size:1.5rem;line-height:1;cursor:pointer;transition:background .3s,border-color .3s,transform .3s var(--ease)}
-.show-arr:hover{background:rgba(216,178,94,.18);border-color:var(--gold-bright);transform:scale(1.09) translateY(0)}
-.show-prev{left:.8rem}
-.show-next{right:.8rem}
-
-/* Numbered tabs */
-.show-tabs{display:flex;justify-content:center;flex-wrap:wrap;gap:.4rem;margin-top:1rem;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:.2rem}
-.show-tabs::-webkit-scrollbar{height:0}
-.show-tab{flex:0 0 auto}
-.show-tab{width:34px;height:34px;border-radius:50%;border:1px solid rgba(216,178,94,.22);background:transparent;color:rgba(243,234,215,.45);font-family:'Jost';font-size:.55rem;letter-spacing:.1em;cursor:pointer;transition:all .35s var(--ease)}
-.show-tab.active{background:linear-gradient(150deg,rgba(244,215,132,.2),rgba(216,178,94,.07));border-color:var(--gold-bright);color:var(--gold-bright);box-shadow:0 0 14px rgba(244,215,132,.22)}
-.show-tab:hover:not(.active){border-color:var(--gold);color:var(--gold)}
+/* ---------- Vertical feature showcase ---------- */
+.showcase-stack{display:flex;flex-direction:column;gap:clamp(1.6rem,4vw,3rem);margin:2.5rem 0 4rem}
+.feature{position:relative;display:flex;align-items:center;min-height:clamp(440px,76vh,720px);border-radius:24px;overflow:hidden;background:#0e0a06;border:1px solid rgba(216,178,94,.12);opacity:0;transform:translateY(46px);transition:opacity 1s var(--ease),transform 1.1s var(--ease)}
+.feature.in{opacity:1;transform:none}
+.feature .fimg{position:absolute;inset:-9% 0;background-size:cover;background-position:center;will-change:transform}
+.feature .veil{position:absolute;inset:0;display:block}
+.feature.text-right .veil{background:linear-gradient(90deg,transparent 26%,rgba(14,9,4,.55) 56%,rgba(10,7,3,.92) 80%)}
+.feature.text-left  .veil{background:linear-gradient(270deg,transparent 26%,rgba(14,9,4,.55) 56%,rgba(10,7,3,.92) 80%)}
+.feature .veil::after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,rgba(10,7,3,.6),transparent 18%,transparent 82%,rgba(10,7,3,.5));box-shadow:inset 0 0 120px rgba(0,0,0,.55)}
+.feature .ftext{position:relative;z-index:2;width:min(46%,460px);padding:clamp(1.6rem,4vw,3.2rem)}
+.feature.text-right .ftext{margin-left:auto}
+.feature .ftext .eyebrow{display:block;margin-bottom:.9rem}
+.feature .ftext h3{font-family:'Cormorant Garamond';font-weight:300;font-size:clamp(1.9rem,3.6vw,3.1rem);line-height:1.04;margin-bottom:1rem;color:var(--cream)}
+.feature .ftext h3 em{font-style:italic;color:var(--gold-bright)}
+.feature .ftext p{font-size:clamp(.86rem,1.2vw,1rem);line-height:1.85;color:rgba(243,234,215,.8)}
+@media(max-width:760px){
+  .feature{flex-direction:column;align-items:stretch;min-height:0;border-radius:18px}
+  .feature .fimg{position:relative;inset:0;height:64vw;min-height:280px;transform:none!important}
+  .feature .veil{background:linear-gradient(0deg,rgba(10,7,3,.92),rgba(10,7,3,.1) 55%,transparent)!important}
+  .feature .veil::after{display:none}
+  .feature .ftext{width:100%;margin:0!important;padding:1.5rem 1.5rem 1.9rem;background:#0e0a06}
+}
+@media(prefers-reduced-motion:reduce){.feature{transition:opacity .5s ease}.feature .fimg{transform:none!important}}
 
 /* ---------- Reviews (glassmorphism, floating) ---------- */
 .reviews{padding:14vh clamp(1.2rem,5vw,5rem) 16vh;position:relative;z-index:2;overflow:hidden}
@@ -534,6 +529,7 @@ function setText(id,v){ const el=document.getElementById(id); if(el && v!=null) 
 function nameWithEm(name){ const e=esc(name); const i=e.indexOf(' '); return i===-1 ? e : e.slice(0,i)+'<em> '+e.slice(i+1)+'</em>'; }
 
 const waDigits = n => (n||'').replace(/[^0-9]/g,'');
+const imgUrl = x => (x==null ? null : (typeof x==='string' ? x : x.url||null));
 
 function applyContent(C){
   setText('heroEyebrow',C.hero.eyebrow);
@@ -632,7 +628,7 @@ function buildCollections(C){
 
   C.collections.forEach((c,i)=>{
     const n=String(i+1).padStart(2,'0');
-    const cover=(c.images&&c.images[0])||null;
+    const cover=(c.images&&c.images.length)?imgUrl(c.images[0]):null;
     const swatch = cover
       ? `background:#0d0f12 url('${cover}') center/cover no-repeat`
       : `background:linear-gradient(150deg,${c.c1},${c.c2})`;
@@ -650,20 +646,27 @@ function buildCollections(C){
     fa.dataset.open=c.id; fa.textContent=c.name; fa.setAttribute('data-hover','');
     footCols.appendChild(fa);
 
-    // Build showcase slides
-    let slides='';
+    // Build vertical feature panels (up to 6 photos, or 6 placeholders)
     const imgs=c.images&&c.images.length ? c.images : [];
-    if(imgs.length){
-      imgs.forEach((url,s)=>{
-        slides+=`<div class="show-slide"><img src="${url}" alt="${esc(c.name)} Look ${s+1}" loading="lazy"/><div class="show-caption"><b>${esc(c.name)}</b><span>Look ${String(s+1).padStart(2,'0')} · ${esc(c.tag)}</span></div></div>`;
-      });
-    } else {
-      for(let s=0;s<6;s++){
-        slides+=`<div class="show-slide"><div class="show-ph" style="background:linear-gradient(${130+s*22}deg,${c.c1},${c.c2})"></div><div class="show-caption"><b>${esc(c.name)}</b><span>Look ${String(s+1).padStart(2,'0')} · Add photos in admin</span></div></div>`;
-      }
-    }
-    const totalSlides=imgs.length||6;
-    const tabs=Array.from({length:totalSlides},(_,i)=>`<button class="show-tab${i===0?' active':''}" data-i="${i}">${String(i+1).padStart(2,'0')}</button>`).join('');
+    const list=imgs.length ? imgs : Array.from({length:6});
+    let features='';
+    list.forEach((entry,s)=>{
+      const url=entry ? imgUrl(entry) : null;
+      const meta=(entry && typeof entry==='object') ? entry : {};
+      const side=meta.side==='left' ? 'left' : (meta.side==='right' ? 'right' : (s%2 ? 'left' : 'right'));
+      const eyebrow=`Look ${String(s+1).padStart(2,'0')} · ${esc(c.tag)}`;
+      const title=meta.title ? esc(meta.title) : nameWithEm(c.name);
+      const text=meta.text ? esc(meta.text) : (url ? '' : 'Add photos &amp; text in the admin panel');
+      const bg=url ? `background-image:url('${url}')` : `background:linear-gradient(${130+s*30}deg,${c.c1},${c.c2})`;
+      features+=`<div class="feature text-${side} reveal">
+        <div class="fimg" style="${bg}"><span class="veil"></span></div>
+        <div class="ftext">
+          <div class="eyebrow">${eyebrow}</div>
+          <h3>${title}</h3>
+          ${text?`<p>${text}</p>`:''}
+        </div>
+      </div>`;
+    });
 
     const sec=document.createElement('section');
     sec.className='collection'; sec.id='c-'+c.id;
@@ -676,12 +679,7 @@ function buildCollections(C){
       <div class="eyebrow">${esc(c.tag)}</div>
       <h2>${nameWithEm(c.name)}</h2>
       <p class="lede">${esc(c.lede)}</p>
-      <div class="showcase">
-        <button class="show-arr show-prev" aria-label="Previous">‹</button>
-        <div class="show-track">${slides}</div>
-        <button class="show-arr show-next" aria-label="Next">›</button>
-        <div class="show-tabs">${tabs}</div>
-      </div>`;
+      <div class="showcase-stack">${features}</div>`;
     panels.appendChild(sec);
   });
 }
@@ -908,29 +906,21 @@ navToggle.addEventListener('click',()=>toggleMenu(!document.body.classList.conta
 const nav=document.getElementById('nav');
 let lastScroll=0;
 
-function initShowcase(sec){
-  if(sec.dataset.showcaseInit) return;
-  sec.dataset.showcaseInit='1';
-  const track=sec.querySelector('.show-track');
-  if(!track) return;
-  const slides=track.querySelectorAll('.show-slide');
-  const tabs=sec.querySelectorAll('.show-tab');
-  let cur=0;
-  function goTo(i){
-    cur=Math.max(0,Math.min(i,slides.length-1));
-    track.style.transform=`translateX(-${cur*100}%)`;
-    tabs.forEach((t,j)=>t.classList.toggle('active',j===cur));
+/* Feature-image parallax — only the active collection's images, desktop only */
+const reduceMotion=matchMedia('(prefers-reduced-motion:reduce)').matches;
+let activeFimgs=[];
+function setupParallax(sec){
+  activeFimgs=(reduceMotion||innerWidth<=760) ? [] : [...sec.querySelectorAll('.fimg')];
+  runParallax();
+}
+function runParallax(){
+  if(!activeFimgs.length) return;
+  const vh=innerHeight;
+  for(const el of activeFimgs){
+    const r=el.getBoundingClientRect();
+    const off=((r.top+r.height/2)-vh/2)/vh; // -0.5 .. +0.5 across the viewport
+    el.style.transform=`translate3d(0,${(-off*46).toFixed(1)}px,0)`;
   }
-  sec.querySelector('.show-prev')?.addEventListener('click',()=>goTo(cur-1));
-  sec.querySelector('.show-next')?.addEventListener('click',()=>goTo(cur+1));
-  tabs.forEach((t,i)=>t.addEventListener('click',()=>goTo(i)));
-  // touch swipe
-  let tx=0;
-  track.addEventListener('touchstart',e=>{tx=e.touches[0].clientX;},{passive:true});
-  track.addEventListener('touchend',e=>{
-    const dx=e.changedTouches[0].clientX-tx;
-    if(Math.abs(dx)>40) goTo(dx<0?cur+1:cur-1);
-  },{passive:true});
 }
 
 function openCollection(id){
@@ -942,15 +932,15 @@ function openCollection(id){
   document.body.classList.add('viewing');
   lenis.resize();
   lenis.scrollTo(0,{immediate:true});
-  watchReveals(sec);
+  watchReveals(sec);   // features fade in on scroll via IntersectionObserver
   bindMagnets();
-  initShowcase(sec);
-  setTimeout(()=>sec.querySelectorAll('.reveal').forEach(el=>el.classList.add('in')),50);
+  setupParallax(sec);
 }
 
 function closeCollection(){
   document.querySelectorAll('.collection').forEach(s=>s.classList.remove('active'));
   document.body.classList.remove('viewing');
+  activeFimgs=[];
   lenis.resize();
   lenis.scrollTo(lastScroll,{immediate:true});
 }
@@ -967,8 +957,8 @@ document.addEventListener('click',e=>{
   }
 });
 
-/* nav bg on scroll */
-lenis.on('scroll',({scroll})=>{ nav.classList.toggle('scrolled',scroll>40); });
+/* nav bg on scroll + feature parallax */
+lenis.on('scroll',({scroll})=>{ nav.classList.toggle('scrolled',scroll>40); runParallax(); });
 
 /* ============================================================
    LOADER

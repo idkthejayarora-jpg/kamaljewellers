@@ -81,6 +81,20 @@ input,textarea,select{font-family:'Jost'}
 .thumb .ctrls button.del{color:#e08a8a}
 .addphoto{width:108px;height:135px;border:1px dashed var(--gold-deep);border-radius:10px;background:transparent;color:var(--gold);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.4rem;font-size:.6rem;letter-spacing:.16em;text-transform:uppercase}
 .addphoto .plus{font-size:1.6rem;line-height:1}
+/* per-photo editor rows */
+.photo-row{display:flex;gap:1rem;padding:.9rem 0;border-top:1px solid var(--line)}
+.photo-row:first-child{border-top:none}
+.photo-row .pthumb{position:relative;flex:0 0 110px;width:110px;height:138px;border-radius:10px;overflow:hidden;border:1px solid var(--line);background:#0d0b08}
+.photo-row .pthumb img{width:100%;height:100%;object-fit:cover}
+.photo-row .pthumb .cover{position:absolute;top:5px;left:5px;background:var(--gold);color:#1a1206;font-size:.5rem;letter-spacing:.1em;padding:2px 6px;border-radius:8px;text-transform:uppercase}
+.photo-row .pthumb .ctrls{position:absolute;inset:auto 0 0 0;display:flex;justify-content:space-between;padding:4px;background:linear-gradient(0deg,rgba(0,0,0,.85),transparent)}
+.photo-row .pthumb .ctrls button{width:24px;height:24px;border:none;border-radius:6px;background:rgba(20,15,9,.9);color:var(--gold-bright);font-size:.85rem;line-height:1}
+.photo-row .pthumb .ctrls button.del{color:#e08a8a}
+.photo-row .pfields{flex:1;min-width:0}
+.photo-row .pfields .fld{margin-bottom:.7rem}
+.photo-row .pfields .fld:last-child{margin-bottom:0}
+.photo-row .pfields textarea{min-height:60px}
+@media(max-width:560px){.photo-row{flex-direction:column}.photo-row .pthumb{width:100%;height:200px}}
 
 /* enquiries */
 .enq-tools{display:flex;align-items:center;gap:.8rem;margin-bottom:1.2rem;flex-wrap:wrap}
@@ -263,11 +277,22 @@ async function enterAdmin(){
   loadEnquiries();
 }
 
+const imgUrl = x => (x==null ? null : (typeof x==='string' ? x : x.url||null));
+// Coerce legacy string photo entries into { url, title, text, side } objects
+function normalizePhotos(){
+  (C.collections||[]).forEach(c=>{
+    c.images=(c.images||[]).map(e=> typeof e==='string'
+      ? {url:e,title:'',text:'',side:''}
+      : {url:e.url,title:e.title||'',text:e.text||'',side:e.side||''});
+  });
+}
+
 async function loadContent(){
   try{
     const { data } = await api('/content');
     C = deepMerge(DEFAULTS, data || {});
   }catch(e){ console.warn(e); toast('Could not load saved content — showing defaults.'); }
+  normalizePhotos();
 }
 
 /* ── Tabs ───────────────────────────────────────────────────── */
@@ -422,38 +447,59 @@ function renderContent(){
 /* ── Photos ─────────────────────────────────────────────────── */
 function keyFromUrl(u){ const m=(u||'').match(/\/photos\/(.+)$/); return m?m[1]:null; }
 
+function sideSelect(entry){
+  const f=el('div','fld');
+  f.appendChild(el('label',null,'Layout'));
+  const sel=el('select');
+  sel.innerHTML='<option value="">Auto (alternate)</option>'
+    +'<option value="left">Text left · image right</option>'
+    +'<option value="right">Text right · image left</option>';
+  sel.value=entry.side||'';
+  sel.addEventListener('change',()=>{ entry.side=sel.value; markDirty(); });
+  f.appendChild(sel);
+  return f;
+}
+
 function renderPhotos(){
   const root=$('#page-photos'); root.innerHTML='';
-  root.appendChild(el('p','eyebrow','Upload professional shoot images per collection. First photo = collection cover.'));
+  root.appendChild(el('p','eyebrow','Up to 6 photos per collection — they scroll as feature panels on the site. First photo = collection cover.'));
   root.appendChild(el('div',null,'<div style="height:1rem"></div>'));
   C.collections.forEach((c,ci)=>{
     const box=el('div','coll-photos');
     box.appendChild(el('h4',null, esc((ci+1)+'. '+c.name)+' <span>'+(c.images?c.images.length:0)+' photo(s)</span>'));
-    const thumbs=el('div','thumbs');
-    (c.images||[]).forEach((url,ii)=>{
-      const t=el('div','thumb');
-      const img=el('img'); img.src=url; t.appendChild(img);
+    (c.images||[]).forEach((entry,ii)=>{
+      const row=el('div','photo-row');
+      // thumbnail with cover badge + reorder/delete
+      const t=el('div','pthumb');
+      const img=el('img'); img.src=imgUrl(entry); t.appendChild(img);
       if(ii===0) t.appendChild(el('div','cover','Cover'));
       const ctrls=el('div','ctrls');
-      const left=el('button',null,'‹'); left.title='Move left'; left.onclick=()=>{ if(ii>0){ const a=c.images; [a[ii-1],a[ii]]=[a[ii],a[ii-1]]; markDirty(); renderPhotos(); } };
-      const right=el('button',null,'›'); right.title='Move right'; right.onclick=()=>{ const a=c.images; if(ii<a.length-1){ [a[ii+1],a[ii]]=[a[ii],a[ii+1]]; markDirty(); renderPhotos(); } };
+      const up=el('button',null,'▲'); up.title='Move up'; up.onclick=()=>{ if(ii>0){ const a=c.images; [a[ii-1],a[ii]]=[a[ii],a[ii-1]]; markDirty(); renderPhotos(); } };
+      const down=el('button',null,'▼'); down.title='Move down'; down.onclick=()=>{ const a=c.images; if(ii<a.length-1){ [a[ii+1],a[ii]]=[a[ii],a[ii+1]]; markDirty(); renderPhotos(); } };
       const del=el('button','del','✕'); del.title='Delete'; del.onclick=()=>removePhoto(ci,ii);
-      ctrls.appendChild(left); ctrls.appendChild(right); ctrls.appendChild(del);
+      ctrls.appendChild(up); ctrls.appendChild(down); ctrls.appendChild(del);
       t.appendChild(ctrls);
-      thumbs.appendChild(t);
+      row.appendChild(t);
+      // text + layout fields
+      const fields=el('div','pfields');
+      fields.appendChild(sideSelect(entry));
+      fields.appendChild(field('Heading', entry,'title',null,'Shown large beside the photo. Leave blank to use the collection name.'));
+      fields.appendChild(field('Description', entry,'text','textarea','A short blurb shown under the heading.'));
+      row.appendChild(fields);
+      box.appendChild(row);
     });
     const add=el('button','addphoto','<span class="plus">+</span>Add photo');
+    add.style.marginTop='1rem';
     add.onclick=()=>pickPhoto(ci);
-    thumbs.appendChild(add);
-    box.appendChild(thumbs);
+    box.appendChild(add);
     root.appendChild(box);
   });
 }
 
 async function removePhoto(ci,ii){
   if(!confirm('Remove this photo?')) return;
-  const url=C.collections[ci].images[ii];
-  const key=keyFromUrl(url);
+  const entry=C.collections[ci].images[ii];
+  const key=keyFromUrl(imgUrl(entry));
   C.collections[ci].images.splice(ii,1);
   markDirty(); renderPhotos();
   if(key){ try{ await api('/photos/'+encodeURIComponent(key),{method:'DELETE'}); }catch(e){ console.warn(e); } }
@@ -493,7 +539,7 @@ $('#cropUpload').addEventListener('click',()=>{
       form.append('file', blob, 'photo.jpg');
       form.append('collection', c.id);
       const { url } = await api('/photos', { method:'POST', body:form });
-      c.images=c.images||[]; c.images.push(url);
+      c.images=c.images||[]; c.images.push({url,title:'',text:'',side:''});
       markDirty(); closeCropper(); renderPhotos();
       await saveContent();
     }catch(e){ console.warn(e); toast('Upload failed: '+e.message+' (Enable R2 in Cloudflare dashboard to unlock photo upload)'); }
