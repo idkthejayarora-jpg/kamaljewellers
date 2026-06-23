@@ -197,7 +197,14 @@ body.viewing .reviews,body.viewing .visit,body.viewing footer{display:none}
 .feature.text-left  .veil{background:
   radial-gradient(160% 140% at 74% 52%,transparent 18%,rgba(8,5,2,.68) 58%,rgba(8,5,2,.97) 100%),
   linear-gradient(270deg,transparent 28%,rgba(8,5,2,.52) 52%,rgba(8,5,2,.96) 78%)}
-.feature .veil::after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,rgba(8,5,2,.92),transparent 16%,transparent 84%,rgba(8,5,2,.92))}
+.feature .veil::after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,rgba(8,5,2,1) 0%,rgba(8,5,2,.85) 7%,transparent 26%,transparent 74%,rgba(8,5,2,.85) 93%,rgba(8,5,2,1) 100%)}
+/* Seam blur strip — sits at the join of two panels, blurs both images */
+.seam-blur{position:relative;height:80px;margin:-40px 0;z-index:4;pointer-events:none;
+  -webkit-backdrop-filter:blur(22px) brightness(.45) saturate(.6);
+  backdrop-filter:blur(22px) brightness(.45) saturate(.6);
+  background:linear-gradient(180deg,rgba(8,5,2,.15) 0%,rgba(8,5,2,.55) 40%,rgba(8,5,2,.55) 60%,rgba(8,5,2,.15) 100%);
+  -webkit-mask-image:linear-gradient(180deg,transparent 0%,black 22%,black 78%,transparent 100%);
+  mask-image:linear-gradient(180deg,transparent 0%,black 22%,black 78%,transparent 100%)}
 /* Text floats directly on the veil — no card, no border */
 .feature .ftext{position:relative;z-index:2;width:min(42%,440px);margin:0 clamp(2rem,6vw,6rem);padding:clamp(1.4rem,2.5vw,2.4rem) 0}
 .feature.text-right .ftext{margin-left:auto}
@@ -664,6 +671,7 @@ function buildCollections(C){
       const title=meta.title ? esc(meta.title) : nameWithEm(c.name);
       const text=meta.text ? esc(meta.text) : (url ? '' : 'Add photos &amp; text in the admin panel');
       const bg=url ? `background-image:url('${url}')` : `background:linear-gradient(${130+s*30}deg,${c.c1},${c.c2})`;
+      if(s>0) features+=`<div class="seam-blur" aria-hidden="true"></div>`;
       features+=`<div class="feature text-${side} reveal">
         <div class="fimg" style="${bg}"><span class="veil"></span></div>
         <div class="ftext">
