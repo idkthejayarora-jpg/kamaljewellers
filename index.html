@@ -394,7 +394,7 @@ function buildCollections(C){
       const url=entry ? imgUrl(entry) : null;
       const meta=(entry && typeof entry==='object') ? entry : {};
       const side=meta.side==='left' ? 'left' : (meta.side==='right' ? 'right' : (s%2 ? 'left' : 'right'));
-      const eyebrow=`Look ${String(s+1).padStart(2,'0')} · ${esc(c.tag)}`;
+      const eyebrow=meta.eyebrow ? esc(meta.eyebrow) : `Look ${String(s+1).padStart(2,'0')} · ${esc(c.tag)}`;
       const title=meta.title ? esc(meta.title) : nameWithEm(c.name);
       const text=meta.text ? esc(meta.text) : (url ? '' : 'Add photos &amp; text in the admin panel');
       const bg=url ? `background-image:url('${url}')` : `background:linear-gradient(${130+s*30}deg,${c.c1},${c.c2})`;

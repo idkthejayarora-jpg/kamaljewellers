@@ -369,6 +369,7 @@ function normalizePhotos(){
     c.images=(c.images||[]).map(e=> typeof e==='string'
       ? {url:e,title:'',text:'',side:'',link:'',pos:{x:50,y:80},posMobile:{x:50,y:80},focal:{x:50,y:50},focalMobile:{x:50,y:50}}
       : {url:e.url,title:e.title||'',text:e.text||'',side:e.side||'',link:e.link||'',
+         eyebrow:e.eyebrow||'',
          pos:e.pos||{x:50,y:80}, posMobile:e.posMobile||{x:50,y:80},
          focal:e.focal||{x:50,y:50}, focalMobile:e.focalMobile||{x:50,y:50}});
   });
@@ -569,7 +570,7 @@ function buildFeature(c, entry, idx){
     <div class="ftext">
       <div class="drag-grip" title="Drag to reposition card">⠿</div>
       <div class="drag-coord"></div>
-      <div class="eyebrow">Look ${String(idx+1).padStart(2,'0')} · ${esc(c.tag)}</div>
+      <div class="eyebrow ft-eyebrow"></div>
       <h3 class="ft-h"></h3>
       <p class="ft-p"></p>
     </div>
@@ -590,7 +591,16 @@ function buildFeature(c, entry, idx){
         <button class="ph-btn del" data-a="del">🗑</button>
       </div>
     </div>`;
-  // editable heading/description (placeholder text when empty)
+  // editable eyebrow / heading / description
+  const defaultEy=`Look ${String(idx+1).padStart(2,'0')} · ${c.tag}`;
+  const ey=panel.querySelector('.ft-eyebrow');
+  ey.textContent = entry.eyebrow || defaultEy;
+  ey.setAttribute('data-ed',''); ey.contentEditable='true'; ey.spellcheck=false;
+  ey.addEventListener('focus',()=>hint('Eyebrow label · clear to reset to "Look 01 · Tag"'));
+  ey.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); ey.blur(); } });
+  ey.addEventListener('input',()=>{ entry.eyebrow=ey.textContent.trim(); markDirty(); });
+  ey.addEventListener('blur',()=>{ entry.eyebrow=ey.textContent.trim(); if(!entry.eyebrow) ey.textContent=defaultEy; hint(''); });
+
   const h=panel.querySelector('.ft-h'), p=panel.querySelector('.ft-p');
   h.textContent = entry.title || c.name;
   bindText(h, entry, 'title', {hint:'Heading — blank uses the collection name'});
@@ -758,7 +768,7 @@ $('#cropUpload').addEventListener('click',async()=>{
     const { url } = await api('/photos',{method:'POST',body:form});
     c.images=c.images||[];
     if(cropReplace!=null && c.images[cropReplace]){ c.images[cropReplace].url=url; }
-    else { c.images.push({url,title:'',text:'',side:'',link:'',pos:{x:50,y:80},posMobile:{x:50,y:80},focal:{x:50,y:50},focalMobile:{x:50,y:50}}); }
+    else { c.images.push({url,title:'',text:'',side:'',link:'',eyebrow:'',pos:{x:50,y:80},posMobile:{x:50,y:80},focal:{x:50,y:50},focalMobile:{x:50,y:50}}); }
     $('#cropOv').classList.remove('open'); if(cropper){cropper.destroy();cropper=null;}
     markDirty();
     if(openId===c.id) openCollection(c.id);
