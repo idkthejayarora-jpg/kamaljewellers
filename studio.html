@@ -52,8 +52,10 @@ body{padding-top:52px}
 
 /* ---- Collection editor: device preview framing ---- */
 .studio-stack{transition:max-width .4s var(--ease),margin .4s var(--ease)}
-.studio-stack.mob{max-width:412px;margin-inline:auto;border-radius:24px;overflow:hidden;box-shadow:0 0 0 1px rgba(216,178,94,.2),0 40px 80px -30px #000}
+.studio-stack.mob{max-width:412px;margin-inline:auto;border-radius:24px;overflow:visible;box-shadow:0 0 0 1px rgba(216,178,94,.2),0 40px 80px -30px #000}
 .studio-stack.mob .feature{min-height:560px}
+/* in placing mode, features must NOT clip so grips and dragged cards stay visible */
+.feature.placing{overflow:visible !important}
 
 /* ---- Photo bar — always-visible at bottom of each feature panel ---- */
 .feature{cursor:default}
@@ -76,17 +78,18 @@ body{padding-top:52px}
 .drag-grip:hover{background:rgba(216,178,94,.32)}
 .drag-grip.dragging{cursor:grabbing;transform:scale(.88)}
 .feature.placing .drag-grip{display:flex}
-/* resize grip — right edge of ftext card */
-.resize-grip{position:absolute;right:-14px;top:50%;transform:translateY(-50%);display:none;
-  width:22px;height:44px;border-radius:11px;
-  background:rgba(216,178,94,.15);border:1px solid rgba(216,178,94,.45);
-  color:var(--gold-bright);font-size:.72rem;cursor:ew-resize;align-items:center;justify-content:center;
-  transition:background .18s;z-index:5;user-select:none;touch-action:none}
-.resize-grip:hover{background:rgba(216,178,94,.32)}
-.resize-grip.dragging{background:rgba(216,178,94,.45)}
+/* resize grip — inside right edge of ftext card (never clips) */
+.resize-grip{position:absolute;right:0;top:0;bottom:0;display:none;
+  width:16px;border-radius:0 22px 22px 0;
+  background:rgba(216,178,94,.07);border-left:1px solid rgba(216,178,94,.2);
+  color:rgba(216,178,94,.55);font-size:.5rem;cursor:ew-resize;align-items:center;justify-content:center;
+  transition:background .18s,border-color .18s;z-index:10;user-select:none;touch-action:none;
+  writing-mode:vertical-rl;letter-spacing:.12em}
+.resize-grip:hover{background:rgba(216,178,94,.22);border-color:rgba(216,178,94,.5);color:var(--gold-bright)}
+.resize-grip.dragging{background:rgba(216,178,94,.35);border-color:rgba(216,178,94,.7);color:var(--gold-bright)}
 .feature.placing .resize-grip{display:flex}
 /* width label shown while resizing */
-.resize-coord{position:absolute;top:-.1rem;right:1.2rem;transform:translateY(-100%);
+.resize-coord{position:absolute;top:0;right:1.4rem;transform:translateY(-100%);
   padding:.26rem .6rem;background:rgba(7,4,2,.92);border:1px solid rgba(216,178,94,.35);
   color:var(--gold-bright);font-size:.58rem;letter-spacing:.06em;border-radius:20px;
   white-space:nowrap;pointer-events:none;z-index:12;opacity:0;transition:opacity .15s}
@@ -620,7 +623,7 @@ function buildFeature(c, entry, idx){
     <div class="ftext">
       <div class="drag-grip" title="Drag to reposition card">⠿</div>
       <div class="drag-coord"></div>
-      <div class="resize-grip" title="Drag to resize card">⟺</div>
+      <div class="resize-grip" title="Drag right/left to widen or narrow card">⋮</div>
       <div class="resize-coord"></div>
       <div class="eyebrow ft-eyebrow"></div>
       <h3 class="ft-h"></h3>
