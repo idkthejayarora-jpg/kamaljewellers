@@ -76,6 +76,21 @@ body{padding-top:52px}
 .drag-grip:hover{background:rgba(216,178,94,.32)}
 .drag-grip.dragging{cursor:grabbing;transform:scale(.88)}
 .feature.placing .drag-grip{display:flex}
+/* resize grip — right edge of ftext card */
+.resize-grip{position:absolute;right:-14px;top:50%;transform:translateY(-50%);display:none;
+  width:22px;height:44px;border-radius:11px;
+  background:rgba(216,178,94,.15);border:1px solid rgba(216,178,94,.45);
+  color:var(--gold-bright);font-size:.72rem;cursor:ew-resize;align-items:center;justify-content:center;
+  transition:background .18s;z-index:5;user-select:none;touch-action:none}
+.resize-grip:hover{background:rgba(216,178,94,.32)}
+.resize-grip.dragging{background:rgba(216,178,94,.45)}
+.feature.placing .resize-grip{display:flex}
+/* width label shown while resizing */
+.resize-coord{position:absolute;top:-.1rem;right:1.2rem;transform:translateY(-100%);
+  padding:.26rem .6rem;background:rgba(7,4,2,.92);border:1px solid rgba(216,178,94,.35);
+  color:var(--gold-bright);font-size:.58rem;letter-spacing:.06em;border-radius:20px;
+  white-space:nowrap;pointer-events:none;z-index:12;opacity:0;transition:opacity .15s}
+.resize-coord.show{opacity:1}
 /* coord bubble shown while dragging */
 .drag-coord{position:absolute;top:-.25rem;left:50%;transform:translate(-50%,-100%);
   padding:.26rem .6rem;background:rgba(7,4,2,.92);border:1px solid rgba(216,178,94,.35);
@@ -371,7 +386,8 @@ function normalizePhotos(){
       : {url:e.url,title:e.title||'',text:e.text||'',side:e.side||'',link:e.link||'',
          eyebrow:e.eyebrow||'',
          pos:e.pos||{x:50,y:80}, posMobile:e.posMobile||{x:50,y:80},
-         focal:e.focal||{x:50,y:50}, focalMobile:e.focalMobile||{x:50,y:50}});
+         focal:e.focal||{x:50,y:50}, focalMobile:e.focalMobile||{x:50,y:50},
+         cardW:e.cardW??null, cardWm:e.cardWm??null});
   });
 }
 async function loadContent(){
@@ -498,6 +514,40 @@ function makeFtextDraggable(panel, entry){
   grip.addEventListener('pointercancel',endDrag);
 }
 
+function applyFtextSize(panel, entry){
+  const ft=panel.querySelector('.ftext'); if(!ft) return;
+  const w=device==='mob' ? (entry.cardWm??entry.cardW) : entry.cardW;
+  if(w!=null){ ft.style.width=w+'%'; ft.style.setProperty('--fs-w',w+'%'); }
+  else { ft.style.width=''; ft.style.removeProperty('--fs-w'); }
+}
+function makeFtextResizable(panel, entry){
+  const ft=panel.querySelector('.ftext');
+  const rg=panel.querySelector('.resize-grip');
+  const rc=panel.querySelector('.resize-coord');
+  if(!ft||!rg) return;
+  let dragging=false, startX, startW;
+  rg.addEventListener('pointerdown',e=>{
+    startX=e.clientX; startW=ft.offsetWidth;
+    dragging=true; rg.classList.add('dragging');
+    rg.setPointerCapture(e.pointerId);
+    if(rc) rc.classList.add('show');
+    e.preventDefault(); e.stopPropagation();
+  });
+  rg.addEventListener('pointermove',e=>{
+    if(!dragging) return;
+    const panelW=panel.offsetWidth;
+    const newW=Math.round(Math.max(140,Math.min(panelW*0.94,startW+(e.clientX-startX))));
+    const pct=Math.round(newW/panelW*100);
+    if(device==='mob'){ entry.cardWm=pct; } else { entry.cardW=pct; }
+    ft.style.width=pct+'%';
+    if(rc) rc.textContent=pct+'% wide';
+    markDirty();
+  });
+  const end=()=>{ dragging=false; rg.classList.remove('dragging'); if(rc) rc.classList.remove('show'); };
+  rg.addEventListener('pointerup',end);
+  rg.addEventListener('pointercancel',end);
+}
+
 function applyFocalPos(panel, entry){
   const fimg=panel.querySelector('.fimg');
   const dot=panel.querySelector('.focal-dot');
@@ -570,6 +620,8 @@ function buildFeature(c, entry, idx){
     <div class="ftext">
       <div class="drag-grip" title="Drag to reposition card">⠿</div>
       <div class="drag-coord"></div>
+      <div class="resize-grip" title="Drag to resize card">⟺</div>
+      <div class="resize-coord"></div>
       <div class="eyebrow ft-eyebrow"></div>
       <h3 class="ft-h"></h3>
       <p class="ft-p"></p>
@@ -620,7 +672,8 @@ function buildFeature(c, entry, idx){
   panel.querySelector('.rfDone').addEventListener('click',ev=>{ ev.stopPropagation(); exitReframe(panel); });
   makeFtextDraggable(panel, entry);
   makeImgDraggable(panel, entry);
-  setTimeout(()=>applyFtextPos(panel, entry),0);
+  makeFtextResizable(panel, entry);
+  setTimeout(()=>{ applyFtextPos(panel, entry); applyFtextSize(panel, entry); },0);
   return panel;
 }
 
@@ -768,7 +821,7 @@ $('#cropUpload').addEventListener('click',async()=>{
     const { url } = await api('/photos',{method:'POST',body:form});
     c.images=c.images||[];
     if(cropReplace!=null && c.images[cropReplace]){ c.images[cropReplace].url=url; }
-    else { c.images.push({url,title:'',text:'',side:'',link:'',eyebrow:'',pos:{x:50,y:80},posMobile:{x:50,y:80},focal:{x:50,y:50},focalMobile:{x:50,y:50}}); }
+    else { c.images.push({url,title:'',text:'',side:'',link:'',eyebrow:'',pos:{x:50,y:80},posMobile:{x:50,y:80},focal:{x:50,y:50},focalMobile:{x:50,y:50},cardW:null,cardWm:null}); }
     $('#cropOv').classList.remove('open'); if(cropper){cropper.destroy();cropper=null;}
     markDirty();
     if(openId===c.id) openCollection(c.id);
