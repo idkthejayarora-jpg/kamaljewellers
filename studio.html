@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="robots" content="noindex,nofollow" />
+<title>Kamal Jewellers — Studio</title>
+<link rel="icon" type="image/png" href="logo.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css" rel="stylesheet" />
+<!-- The exact same stylesheet the live site uses → pixel-identical look -->
+<link rel="stylesheet" href="site.css" />
+<style>
+/* ============================================================
+   STUDIO — editor chrome layered over the real site styling
+   ============================================================ */
+body{cursor:auto!important}
+.cursor,.cursor-dot{display:none!important}
+/* Everything visible immediately — no scroll-reveal in the editor */
+.reveal,.feature{opacity:1!important;transform:none!important}
+/* Hero gets a warm static backdrop in the studio (no WebGL) */
+#studioHero{position:relative}
+#studioHero::before{content:'';position:absolute;inset:0;z-index:0;
+  background:radial-gradient(ellipse 70% 60% at 50% 38%,#3a2a0e,#140d05 60%,#0a0807)}
+#studioHero .hero{z-index:2}
+
+/* ---- Top editor bar ---- */
+.ebar{position:fixed;top:0;left:0;width:100%;z-index:400;display:flex;align-items:center;gap:.7rem;flex-wrap:wrap;
+  padding:.7rem clamp(.9rem,3vw,1.6rem);background:rgba(10,8,7,.92);backdrop-filter:blur(16px) saturate(150%);
+  -webkit-backdrop-filter:blur(16px) saturate(150%);border-bottom:1px solid rgba(216,178,94,.18)}
+.ebar .ebrand{font-family:'Cormorant Garamond';font-size:1.2rem;color:var(--gold-bright);letter-spacing:.06em;display:flex;align-items:center;gap:.5rem}
+.ebar .ebrand img{width:30px;height:30px;border-radius:50%}
+.ebar .spacer{margin-left:auto}
+.ebar .state{font-size:.72rem;color:var(--gold);min-width:96px;text-align:right}
+.ebtn{padding:.55rem 1.05rem;border:1px solid var(--gold-deep);border-radius:30px;background:linear-gradient(150deg,var(--gold),var(--gold-deep));color:#1a1206;font-family:'Jost';font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;font-weight:500;cursor:pointer}
+.ebtn.ghost{background:transparent;color:var(--gold);border-color:rgba(216,178,94,.3)}
+.ebtn:disabled{opacity:.5}
+/* segmented device toggle */
+.seg{display:inline-flex;border:1px solid rgba(216,178,94,.3);border-radius:30px;overflow:hidden}
+.seg button{padding:.5rem .95rem;background:transparent;border:none;color:var(--cream);font-family:'Jost';font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;cursor:pointer}
+.seg button.on{background:rgba(244,215,132,.2);color:var(--gold-bright)}
+body{padding-top:60px}
+
+/* ---- Inline editable affordance ---- */
+[data-ed]{outline:1px dashed transparent;outline-offset:5px;border-radius:3px;transition:outline-color .2s,background .2s}
+[data-ed]:hover{outline-color:rgba(244,215,132,.55);cursor:text}
+[data-ed]:focus{outline:1px solid var(--gold-bright);background:rgba(244,215,132,.07)}
+.ed-hint{position:fixed;left:50%;bottom:1.2rem;transform:translateX(-50%);z-index:360;background:rgba(20,15,9,.92);border:1px solid var(--gold-deep);color:var(--gold-bright);font-size:.72rem;letter-spacing:.04em;padding:.6rem 1.1rem;border-radius:30px;pointer-events:none;opacity:0;transition:opacity .3s}
+.ed-hint.show{opacity:1}
+
+/* ---- Collection editor: device preview framing ---- */
+.studio-stack{transition:max-width .4s var(--ease),margin .4s var(--ease)}
+.studio-stack.mob{max-width:412px;margin-inline:auto;border-radius:24px;overflow:hidden;box-shadow:0 0 0 1px rgba(216,178,94,.2),0 40px 80px -30px #000}
+.studio-stack.mob .feature{min-height:560px}
+
+/* ---- Photo tools on each feature ---- */
+.feature{cursor:default}
+.ph-tools{position:absolute;top:.9rem;left:50%;transform:translateX(-50%);z-index:6;display:flex;gap:.4rem;
+  padding:.4rem;border-radius:30px;background:rgba(10,8,7,.7);backdrop-filter:blur(12px);border:1px solid rgba(216,178,94,.25);
+  opacity:0;transition:opacity .3s;pointer-events:none}
+.feature:hover .ph-tools{opacity:1;pointer-events:auto}
+.ph-tools button{display:inline-flex;align-items:center;gap:.35rem;padding:.42rem .7rem;border:none;border-radius:20px;
+  background:rgba(244,215,132,.12);color:var(--gold-bright);font-family:'Jost';font-size:.56rem;letter-spacing:.14em;text-transform:uppercase;cursor:pointer}
+.ph-tools button:hover{background:rgba(244,215,132,.26)}
+.ph-tools button.del{color:#e89a9a;background:rgba(224,138,138,.12)}
+/* the draggable text card in edit mode */
+.feature.placing .ftext{cursor:grab;box-shadow:inset 0 1.5px 0 rgba(255,255,255,.16),0 0 0 2px var(--gold-bright),0 24px 64px -20px rgba(0,0,0,.7)}
+.feature.placing .ftext:active{cursor:grabbing}
+.ftext .move-cue{display:none;margin-top:.6rem;font-size:.54rem;letter-spacing:.24em;text-transform:uppercase;color:var(--gold-bright)}
+.feature.placing .ftext .move-cue{display:block}
+.feature .ftext[data-ed]:hover{outline-color:transparent}
+
+/* add photo / empty */
+.add-feature{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.7rem;min-height:340px;margin:4vh calc(50% - 50vw);width:100vw;
+  border-top:1px dashed rgba(216,178,94,.25);border-bottom:1px dashed rgba(216,178,94,.25);background:rgba(244,215,132,.02);color:var(--gold);cursor:pointer}
+.add-feature .plus{font-size:2.4rem;line-height:1}
+.add-feature span{font-size:.62rem;letter-spacing:.28em;text-transform:uppercase}
+.add-feature:hover{background:rgba(244,215,132,.05)}
+.studio-stack.mob .add-feature{margin:0;width:100%}
+
+/* review + footer edit add/remove */
+.rv-del,.rv-add{margin-top:.8rem}
+.mini-ed{display:inline-flex;align-items:center;gap:.4rem;padding:.4rem .8rem;border:1px solid rgba(216,178,94,.3);border-radius:20px;background:transparent;color:var(--gold);font-family:'Jost';font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;cursor:pointer}
+.mini-ed.danger{color:#e89a9a;border-color:rgba(224,138,138,.3)}
+
+/* ---- Login ---- */
+.login{position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;padding:1.5rem;background:radial-gradient(circle at 50% 30%,#1a130a,#0a0807 70%)}
+.login .card{width:min(420px,100%);padding:2.6rem;border:1px solid rgba(216,178,94,.18);border-radius:20px;background:linear-gradient(155deg,rgba(28,21,13,.9),rgba(12,9,6,.95));box-shadow:0 40px 80px -40px #000;text-align:center}
+.login img{width:84px;height:84px;border-radius:50%;margin-bottom:.6rem}
+.login h1{font-family:'Cormorant Garamond';font-weight:400;font-size:1.9rem;color:var(--gold-bright)}
+.login p{font-size:.84rem;color:rgba(243,234,215,.6);margin:.4rem 0 1.6rem}
+.login input{width:100%;background:rgba(243,234,215,.04);border:1px solid rgba(216,178,94,.18);border-radius:12px;padding:.9rem 1rem;color:var(--cream);font-family:'Jost';font-size:1rem;outline:none}
+.login input:focus{border-color:var(--gold-bright)}
+.login button{width:100%;margin-top:1rem;padding:1rem;border:none;border-radius:40px;background:linear-gradient(150deg,var(--gold),var(--gold-deep));color:#1a1206;font-family:'Jost';font-size:.66rem;letter-spacing:.32em;text-transform:uppercase;font-weight:500;cursor:pointer}
+.login .msg{margin-top:1rem;font-size:.82rem;color:var(--gold);min-height:1.1em}
+
+/* ---- Settings drawer ---- */
+.drawer-ov{position:fixed;inset:0;z-index:440;background:rgba(6,4,3,.6);backdrop-filter:blur(4px);opacity:0;visibility:hidden;transition:.4s var(--ease)}
+.drawer-ov.open{opacity:1;visibility:visible}
+.drawer{position:fixed;top:0;right:0;height:100%;width:min(460px,100%);z-index:450;overflow-y:auto;padding:1.6rem clamp(1.1rem,3vw,1.8rem) 4rem;
+  background:linear-gradient(155deg,#1c150d,#0c0906);border-left:1px solid rgba(216,178,94,.2);transform:translateX(100%);transition:transform .5s var(--ease)}
+.drawer.open{transform:none}
+.drawer h2{font-family:'Cormorant Garamond';font-weight:400;font-size:1.6rem;color:var(--gold-bright);margin-bottom:.3rem}
+.drawer .dsub{font-size:.78rem;color:rgba(243,234,215,.55);margin-bottom:1.4rem}
+.dgroup{border:1px solid rgba(216,178,94,.16);border-radius:14px;background:rgba(244,215,132,.03);margin-bottom:1rem;padding:1rem 1.1rem}
+.dgroup h3{font-family:'Cormorant Garamond';font-size:1.2rem;color:var(--gold-bright);margin-bottom:.7rem}
+.fld{margin-bottom:.8rem}
+.fld:last-child{margin-bottom:0}
+.fld label{display:block;font-size:.54rem;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);margin-bottom:.4rem}
+.fld input,.fld textarea{width:100%;background:rgba(243,234,215,.04);border:1px solid rgba(216,178,94,.18);border-radius:10px;padding:.65rem .8rem;color:var(--cream);font-family:'Jost';font-size:.92rem;outline:none}
+.fld textarea{resize:vertical;min-height:70px;line-height:1.5}
+.fld input:focus,.fld textarea:focus{border-color:var(--gold-bright)}
+.fld .cbx{display:flex;align-items:center;gap:.6rem;color:var(--cream);font-size:.92rem}
+.fld .cbx input{width:18px;height:18px;accent-color:#d8b25e}
+.drawer .x{position:absolute;top:1.1rem;right:1.2rem;font-size:1.4rem;color:var(--gold);cursor:pointer;line-height:1}
+
+/* ---- Crop modal (same as admin) ---- */
+.crop-ov{position:fixed;inset:0;z-index:520;background:rgba(5,4,3,.85);display:none;align-items:center;justify-content:center;padding:1.2rem}
+.crop-ov.open{display:flex}
+.crop-modal{width:min(720px,100%);max-height:92vh;overflow:auto;background:linear-gradient(155deg,#1c150d,#0c0906);border:1px solid rgba(216,178,94,.2);border-radius:18px;padding:1.4rem}
+.crop-modal h3{font-family:'Cormorant Garamond';font-size:1.5rem;color:var(--gold-bright);margin-bottom:.3rem}
+.crop-modal .sub{font-size:.8rem;color:rgba(243,234,215,.6);margin-bottom:1rem}
+.crop-stage{max-height:54vh;background:#0d0b08;border-radius:10px;overflow:hidden}
+.crop-stage img{display:block;max-width:100%}
+.crop-bar{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin-top:1rem}
+.crop-bar .ratios{display:flex;gap:.4rem;margin-right:auto;flex-wrap:wrap}
+.ratio{padding:.4rem .8rem;border:1px solid rgba(216,178,94,.18);border-radius:20px;background:transparent;color:var(--cream);font-family:'Jost';font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;cursor:pointer}
+.ratio.on{background:rgba(244,215,132,.18);color:var(--gold-bright);border-color:var(--gold-deep)}
+.toast{position:fixed;bottom:1.2rem;left:50%;transform:translateX(-50%) translateY(20px);opacity:0;transition:.4s var(--ease);background:#1c150d;border:1px solid var(--gold-deep);color:var(--gold-bright);padding:.8rem 1.4rem;border-radius:30px;font-size:.8rem;z-index:540}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+
+<!-- ===== LOGIN ===== -->
+<div class="login" id="login">
+  <div class="card">
+    <img src="logo.png" alt="Kamal Jewellers" />
+    <h1>Studio</h1>
+    <p>Enter your admin password to edit the site visually.</p>
+    <form id="loginForm">
+      <input type="password" id="pw" placeholder="Password" autocomplete="current-password" />
+      <button type="submit" id="loginBtn">Enter Studio</button>
+    </form>
+    <div class="msg" id="loginMsg"></div>
+  </div>
+</div>
+
+<!-- ===== EDITOR BAR ===== -->
+<div class="ebar" id="ebar" style="display:none">
+  <div class="ebrand"><img src="logo.png" alt="" />Studio</div>
+  <div class="seg" id="deviceSeg" style="display:none">
+    <button data-dev="desk" class="on">Desktop</button>
+    <button data-dev="mob">Mobile</button>
+  </div>
+  <div class="spacer"></div>
+  <span class="state" id="state"></span>
+  <button class="ebtn ghost" id="settingsBtn">Settings</button>
+  <a class="ebtn ghost" href="admin.html" target="_blank">Inbox ↗</a>
+  <a class="ebtn ghost" href="index.html" target="_blank">View ↗</a>
+  <button class="ebtn" id="saveBtn">Save</button>
+  <button class="ebtn ghost" id="logoutBtn">Log out</button>
+</div>
+
+<div class="ed-hint" id="edHint"></div>
+
+<!-- ===== SITE REPLICA (rendered by JS) ===== -->
+<div id="studioHero">
+  <header class="hero">
+    <div class="eyebrow" data-ed id="heroEyebrow"></div>
+    <h1><span data-ed id="heroTitle"></span><em data-ed id="heroTitleEm"></em></h1>
+    <p class="sub" data-ed id="heroSub"></p>
+  </header>
+</div>
+
+<div class="solid">
+  <!-- DIRECTORY -->
+  <section class="directory" id="collections">
+    <div class="head">
+      <h3>The Collections</h3>
+      <div class="eyebrow">Tap a collection to edit its photos &amp; story</div>
+    </div>
+    <div class="grid" id="grid"></div>
+  </section>
+
+  <!-- COLLECTION DETAIL PANELS -->
+  <div id="panels"></div>
+
+  <!-- REVIEWS -->
+  <section class="reviews" id="reviews">
+    <div class="center">
+      <div class="eyebrow">In their words</div>
+      <h3>Loved across Delhi</h3>
+    </div>
+    <div class="review-field" id="reviewField"></div>
+    <div style="text-align:center;margin-top:2rem"><button class="mini-ed" id="addReview">+ Add review</button></div>
+  </section>
+
+  <!-- VISIT -->
+  <section class="visit" id="visit">
+    <div>
+      <div class="eyebrow">Come see them shimmer</div>
+      <h3>Visit our <em>atelier</em></h3>
+      <div class="info-row"><div class="k">Address</div><div class="v" data-ed id="visitAddress"></div></div>
+      <div class="info-row"><div class="k">Hours</div><div class="v" data-ed id="visitHours"></div></div>
+      <div class="info-row"><div class="k">Call</div><div class="v" id="visitPhones"></div></div>
+      <div class="info-row"><div class="k">Follow</div><div class="v"><a id="visitInsta"></a></div></div>
+      <p style="margin-top:1rem;font-size:.72rem;color:rgba(243,234,215,.45)">Phone, Instagram &amp; map links live in <b style="color:var(--gold)">Settings</b>.</p>
+    </div>
+    <div class="visit-right">
+      <div class="store-card">
+        <img src="storefront.jpg" alt="Storefront" />
+        <div class="cap">Our store · Sadar Bazar</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="f-top">
+      <div class="f-brand"><img class="footLogo" src="logo.png" alt="Kamal Jewellers" />Kamal Jewellers
+        <p data-ed id="footBrandText"></p>
+      </div>
+      <div class="f-col">
+        <h5>Reach Us</h5>
+        <div id="footPhones"></div>
+        <p id="footAddress"></p>
+      </div>
+      <div class="f-col" id="footCols"><h5>Collections</h5></div>
+    </div>
+    <div class="f-bottom"><span>© <span id="yr"></span> Kamal Jewellers · Sadar Bazar, Delhi</span></div>
+  </footer>
+</div>
+
+<!-- ===== SETTINGS DRAWER ===== -->
+<div class="drawer-ov" id="drawerOv"></div>
+<div class="drawer" id="drawer">
+  <div class="x" id="drawerClose">✕</div>
+  <h2>Settings</h2>
+  <div class="dsub">Links, SEO and the announcement bar — the bits that don't show as plain text on the page.</div>
+  <div id="drawerBody"></div>
+</div>
+
+<!-- ===== CROP MODAL ===== -->
+<div class="crop-ov" id="cropOv">
+  <div class="crop-modal">
+    <h3>Position &amp; crop</h3>
+    <p class="sub">Drag the image and scroll/pinch to zoom. The shaded box is exactly what appears on the site.</p>
+    <div class="crop-stage"><img id="cropImg" alt="" /></div>
+    <div class="crop-bar">
+      <div class="ratios" id="ratioBar">
+        <button class="ratio on" data-r="0.8">Portrait 4:5</button>
+        <button class="ratio" data-r="1">Square</button>
+        <button class="ratio" data-r="1.3333">Landscape</button>
+        <button class="ratio" data-r="0">Free</button>
+      </div>
+      <button class="ebtn ghost" id="cropCancel">Cancel</button>
+      <button class="ebtn" id="cropUpload">Use photo</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js"></script>
+<script src="config.js"></script>
+<script src="content-defaults.js"></script>
+<script>
+/* ============================================================
+   KAMAL JEWELLERS STUDIO — visual editor
+   Same token auth + /api endpoints as admin.html.
+   ============================================================ */
+const DEFAULTS = window.KAMAL_DEFAULTS || {};
+const API = (window.KAMAL_CONFIG || {}).API_BASE || '/api';
+const $ = s => document.querySelector(s);
+const el = (t,c,h)=>{ const n=document.createElement(t); if(c)n.className=c; if(h!=null)n.innerHTML=h; return n; };
+const esc = s => (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const imgUrl = x => (x==null ? null : (typeof x==='string' ? x : x.url||null));
+const telDigits = p => (p||'').replace(/[^0-9+]/g,'');
+const waDigits  = n => (n||'').replace(/[^0-9]/g,'');
+function toast(m){ const t=$('#toast'); t.textContent=m; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),2800); }
+function deepMerge(base, over){
+  if(Array.isArray(over)) return over;
+  if(over && typeof over==='object'){ const o=Object.assign({},base); for(const k in over) o[k]=deepMerge(base?base[k]:undefined, over[k]); return o; }
+  return over===undefined?base:over;
+}
+
+let C = JSON.parse(JSON.stringify(DEFAULTS));
+let dirty=false, device='desk';
+function markDirty(){ dirty=true; $('#state').textContent='Unsaved'; }
+function hint(msg){ const h=$('#edHint'); if(!msg){ h.classList.remove('show'); return; } h.textContent=msg; h.classList.add('show'); clearTimeout(h._t); h._t=setTimeout(()=>h.classList.remove('show'),2200); }
+
+/* ── API + auth ─────────────────────────────────────────────── */
+let TOKEN = sessionStorage.getItem('kj_token');
+async function api(path, opts={}){
+  const headers={ ...(opts.headers||{}) };
+  if(TOKEN) headers['Authorization']='Bearer '+TOKEN;
+  const isForm = opts.body instanceof FormData;
+  if(!isForm && opts.body && typeof opts.body!=='string'){ opts={...opts, body:JSON.stringify(opts.body)}; headers['Content-Type']='application/json'; }
+  const res = await fetch(API+path, {...opts, headers});
+  const data = await res.json().catch(()=>({}));
+  if(!res.ok) throw new Error(data.error||res.statusText);
+  return data;
+}
+
+$('#loginForm').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const pw=$('#pw').value, btn=$('#loginBtn'), msg=$('#loginMsg');
+  if(!pw) return;
+  btn.disabled=true; msg.textContent='Checking…';
+  try{
+    const { token } = await api('/auth',{method:'POST',body:{password:pw}});
+    TOKEN=token; sessionStorage.setItem('kj_token',token); enterStudio();
+  }catch(err){ msg.textContent = /401/.test(err.message)?'Wrong password. Try again.':'Error: '+err.message; btn.disabled=false; }
+});
+$('#logoutBtn').addEventListener('click',()=>{
+  if(dirty && !confirm('You have unsaved changes. Log out anyway?')) return;
+  TOKEN=null; sessionStorage.removeItem('kj_token'); location.reload();
+});
+
+function normalizePhotos(){
+  (C.collections||[]).forEach(c=>{
+    c.images=(c.images||[]).map(e=> typeof e==='string'
+      ? {url:e,title:'',text:'',side:'',link:'',pos:{x:50,y:80},posMobile:{x:50,y:80}}
+      : {url:e.url,title:e.title||'',text:e.text||'',side:e.side||'',link:e.link||'',
+         pos:e.pos||{x:50,y:80}, posMobile:e.posMobile||{x:50,y:80}});
+  });
+}
+async function loadContent(){
+  try{ const { data } = await api('/content'); C = deepMerge(DEFAULTS, data||{}); }
+  catch(e){ console.warn(e); toast('Could not load saved content — showing defaults.'); }
+  normalizePhotos();
+}
+
+async function enterStudio(){
+  $('#login').style.display='none';
+  $('#ebar').style.display='flex';
+  await loadContent();
+  renderAll();
+}
+
+/* ── Save ───────────────────────────────────────────────────── */
+$('#saveBtn').addEventListener('click', saveContent);
+async function saveContent(){
+  const btn=$('#saveBtn'); btn.disabled=true; $('#state').textContent='Saving…';
+  try{ await api('/content',{method:'POST',body:{data:C}}); dirty=false; $('#state').textContent='Saved ✓'; toast('Saved — live site updated.'); }
+  catch(e){ console.warn(e); $('#state').textContent='Save failed'; toast('Save failed: '+e.message); }
+  btn.disabled=false;
+}
+window.addEventListener('beforeunload',e=>{ if(dirty){ e.preventDefault(); e.returnValue=''; } });
+
+/* ── Inline text editing ────────────────────────────────────── */
+// Bind an element as an editable text field writing obj[key].
+function bindText(elm, obj, key, opts={}){
+  if(!elm) return;
+  elm.setAttribute('data-ed','');
+  elm.textContent = obj[key]||'';
+  elm.contentEditable = 'true';
+  elm.spellcheck=false;
+  elm.addEventListener('focus',()=>hint(opts.hint||'Type to edit · click away to keep'));
+  elm.addEventListener('keydown',e=>{ if(e.key==='Enter' && !opts.multiline){ e.preventDefault(); elm.blur(); } });
+  elm.addEventListener('input',()=>{ obj[key]=elm.textContent.trim(); markDirty(); });
+  elm.addEventListener('blur',()=>{ obj[key]=elm.textContent.trim(); hint(''); });
+}
+
+/* ── Render: hero, visit, footer ────────────────────────────── */
+function renderChrome(){
+  $('#yr').textContent=new Date().getFullYear();
+  bindText($('#heroEyebrow'), C.hero,'eyebrow');
+  bindText($('#heroTitle'),   C.hero,'title');
+  bindText($('#heroTitleEm'), C.hero,'titleEm');
+  bindText($('#heroSub'),     C.hero,'sub',{multiline:true});
+
+  // Visit (address rendered with <br> → editable as plain text, store back with <br/>)
+  const va=$('#visitAddress');
+  va.setAttribute('data-ed',''); va.contentEditable='true'; va.spellcheck=false;
+  va.textContent=(C.contact.addressHtml||'').replace(/<br\s*\/?>/gi,'\n');
+  va.style.whiteSpace='pre-line';
+  va.addEventListener('focus',()=>hint('Use Enter for a new line'));
+  va.addEventListener('input',()=>{ C.contact.addressHtml=va.textContent.trim().replace(/\n/g,'<br/>'); markDirty(); });
+  va.addEventListener('blur',()=>hint(''));
+  bindText($('#visitHours'), C.contact,'hours');
+  // read-only mirrors
+  const phoneLinks=$('#visitPhones'); phoneLinks.innerHTML=`<a>${esc(C.contact.phone1)}</a>`+(C.contact.phone2?`<br/><a>${esc(C.contact.phone2)}</a>`:'');
+  $('#visitInsta').textContent=C.contact.instaLabel||'@kamaljewellers';
+  $('#footPhones').innerHTML=`<a>${esc(C.contact.phone1)}</a>`+(C.contact.phone2?`<a>${esc(C.contact.phone2)}</a>`:'');
+  $('#footAddress').textContent=(C.contact.addressHtml||'').replace(/<br\s*\/?>/gi,', ');
+  bindText($('#footBrandText'), C.contact,'footerBrand',{multiline:true});
+}
+
+/* ── Render: collections grid ───────────────────────────────── */
+function renderGrid(){
+  const grid=$('#grid'); grid.innerHTML='';
+  $('#footCols').querySelectorAll('a').forEach(a=>a.remove());
+  C.collections.forEach((c,i)=>{
+    const n=String(i+1).padStart(2,'0');
+    const cover=(c.images&&c.images.length)?imgUrl(c.images[0]):null;
+    const swatch = cover ? `background:#0d0f12 url('${cover}') center/cover no-repeat` : `background:transparent`;
+    const tile=el('button','tile');
+    tile.innerHTML=`<div class="swatch" style="${swatch}"></div><span class="num">${n}</span><h4>${esc(c.name)}</h4><span class="enter">Edit →</span>`;
+    tile.addEventListener('click',()=>openCollection(c.id));
+    grid.appendChild(tile);
+    const fa=el('a',null,esc(c.name)); $('#footCols').appendChild(fa);
+  });
+}
+
+/* ── Render: a collection's detail + feature stack ──────────── */
+function applyFtextPos(panel, entry){
+  const ft=panel.querySelector('.ftext'); if(!ft) return;
+  const p = device==='mob' ? (entry.posMobile||{x:50,y:80}) : (entry.pos||{x:50,y:80});
+  ft.style.setProperty('--fp-x',p.x+'%');
+  ft.style.setProperty('--fp-y',p.y+'%');
+  ft.style.left=p.x+'%'; ft.style.top=p.y+'%';
+}
+function makeFtextDraggable(panel, entry){
+  const ft=panel.querySelector('.ftext'); if(!ft) return;
+  let dragging=false;
+  ft.addEventListener('pointerdown',e=>{
+    if(e.target.closest('[data-ed]') && !e.target.classList.contains('move-cue')) return; // let text edits through
+    dragging=true; ft.setPointerCapture(e.pointerId); e.preventDefault();
+  });
+  ft.addEventListener('pointermove',e=>{
+    if(!dragging) return;
+    const r=panel.getBoundingClientRect();
+    const x=Math.round(Math.max(4,Math.min(96,((e.clientX-r.left)/r.width)*100)));
+    const y=Math.round(Math.max(4,Math.min(96,((e.clientY-r.top)/r.height)*100)));
+    const key = device==='mob' ? 'posMobile' : 'pos';
+    entry[key]={x,y};
+    ft.style.left=x+'%'; ft.style.top=y+'%';
+    ft.style.setProperty('--fp-x',x+'%'); ft.style.setProperty('--fp-y',y+'%');
+    markDirty();
+  });
+  ft.addEventListener('pointerup',()=>{ dragging=false; });
+}
+
+function buildFeature(c, entry, idx){
+  const url=imgUrl(entry);
+  const bg = url ? `background-image:url('${url}')` : `background:linear-gradient(${130+idx*30}deg,${c.c1},${c.c2})`;
+  const panel=el('div','feature placing');
+  panel.innerHTML=`
+    <div class="fimg" style="${bg}"><span class="veil"></span></div>
+    <div class="ftext">
+      <div class="eyebrow">Look ${String(idx+1).padStart(2,'0')} · ${esc(c.tag)}</div>
+      <h3 class="ft-h"></h3>
+      <p class="ft-p"></p>
+      <span class="move-cue">⤧ Drag to position</span>
+    </div>
+    <div class="ph-tools">
+      <button data-a="replace">⟳ Replace</button>
+      <button data-a="up">▲</button>
+      <button data-a="down">▼</button>
+      <button data-a="link">🔗 Link</button>
+      <button class="del" data-a="del">✕ Delete</button>
+    </div>`;
+  // editable heading/description (placeholder text when empty)
+  const h=panel.querySelector('.ft-h'), p=panel.querySelector('.ft-p');
+  h.textContent = entry.title || c.name;
+  bindText(h, entry, 'title', {hint:'Heading — blank uses the collection name'});
+  p.textContent = entry.text || '';
+  bindText(p, entry, 'text', {multiline:true, hint:'Short description under the heading'});
+  // tools
+  const ci=C.collections.indexOf(c), ii=c.images.indexOf(entry);
+  panel.querySelector('[data-a="replace"]').addEventListener('click',ev=>{ ev.stopPropagation(); pickPhoto(ci,ii); });
+  panel.querySelector('[data-a="del"]').addEventListener('click',ev=>{ ev.stopPropagation(); removePhoto(ci,ii); });
+  panel.querySelector('[data-a="up"]').addEventListener('click',ev=>{ ev.stopPropagation(); move(ci,ii,-1); });
+  panel.querySelector('[data-a="down"]').addEventListener('click',ev=>{ ev.stopPropagation(); move(ci,ii,1); });
+  panel.querySelector('[data-a="link"]').addEventListener('click',ev=>{ ev.stopPropagation();
+    const v=prompt('Tap-through link for this photo (WhatsApp / Instagram / catalogue). Blank = no link:', entry.link||'');
+    if(v!==null){ entry.link=v.trim(); markDirty(); toast(entry.link?'Link set ✓':'Link cleared'); }
+  });
+  makeFtextDraggable(panel, entry);
+  setTimeout(()=>applyFtextPos(panel, entry),0);
+  return panel;
+}
+
+let openId=null;
+function openCollection(id){
+  openId=id;
+  const c=C.collections.find(x=>x.id===id); if(!c) return;
+  document.body.classList.add('viewing');
+  $('#deviceSeg').style.display='inline-flex';
+  const panels=$('#panels'); panels.innerHTML='';
+  const sec=el('section','collection active'); sec.id='c-'+id;
+  const n=String(C.collections.findIndex(x=>x.id===id)+1).padStart(2,'0');
+  sec.innerHTML=`
+    <div class="topline">
+      <a class="back" id="backBtn">← All collections</a>
+      <span class="eyebrow">${n} / ${C.collections.length}</span>
+    </div>
+    <div class="eyebrow" data-ed id="cTag"></div>
+    <h2 data-ed id="cName"></h2>
+    <p class="lede" data-ed id="cLede"></p>
+    <div class="showcase-stack studio-stack" id="stack"></div>`;
+  panels.appendChild(sec);
+  bindText(sec.querySelector('#cTag'),  c,'tag');
+  bindText(sec.querySelector('#cName'), c,'name');
+  bindText(sec.querySelector('#cLede'), c,'lede',{multiline:true});
+  sec.querySelector('#backBtn').addEventListener('click',closeCollection);
+
+  const stack=sec.querySelector('#stack');
+  stack.classList.toggle('mob', device==='mob');
+  (c.images||[]).forEach((entry,idx)=> stack.appendChild(buildFeature(c, entry, idx)) );
+  const add=el('div','add-feature','<span class="plus">+</span><span>Add photo</span>');
+  add.addEventListener('click',()=>pickPhoto(C.collections.indexOf(c), null));
+  stack.appendChild(add);
+  window.scrollTo(0,0);
+}
+function closeCollection(){
+  openId=null; document.body.classList.remove('viewing');
+  $('#deviceSeg').style.display='none';
+  $('#panels').innerHTML='';
+  window.scrollTo(0,0);
+}
+
+/* device toggle */
+$('#deviceSeg').addEventListener('click',e=>{
+  const b=e.target.closest('[data-dev]'); if(!b) return;
+  device=b.dataset.dev;
+  $('#deviceSeg').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
+  if(openId) openCollection(openId);
+});
+
+/* ── Reviews ────────────────────────────────────────────────── */
+function renderReviews(){
+  const field=$('#reviewField'); field.innerHTML='';
+  (C.reviews||[]).forEach((r,i)=>{
+    const d=el('div','gcard');
+    d.innerHTML=`<div class="stars">★ ★ ★ ★ ★</div><p class="rv-t"></p><div class="who rv-w"></div>
+      <button class="mini-ed danger rv-del">✕ Remove</button>`;
+    bindText(d.querySelector('.rv-t'), r,'t',{multiline:true});
+    bindText(d.querySelector('.rv-w'), r,'w');
+    d.querySelector('.rv-del').addEventListener('click',()=>{ C.reviews.splice(i,1); markDirty(); renderReviews(); });
+    field.appendChild(d);
+  });
+}
+$('#addReview').addEventListener('click',()=>{ C.reviews=C.reviews||[]; C.reviews.push({t:'A lovely new review…',w:'Verified Customer'}); markDirty(); renderReviews(); });
+
+/* ── Settings drawer ────────────────────────────────────────── */
+function dfield(label,obj,key,ta){
+  const f=el('div','fld'); f.appendChild(el('label',null,esc(label)));
+  const inp= ta?el('textarea'):el('input'); if(!ta) inp.type='text'; inp.value=obj[key]||'';
+  inp.addEventListener('input',()=>{ obj[key]=inp.value; markDirty(); });
+  f.appendChild(inp); return f;
+}
+function renderDrawer(){
+  const b=$('#drawerBody'); b.innerHTML='';
+  // Announcement
+  if(!C.announcement) C.announcement={enabled:false,text:'',link:''};
+  let g=el('div','dgroup'); g.appendChild(el('h3',null,'Announcement bar'));
+  const cb=el('div','fld'); const lbl=el('label','cbx'); const box=el('input'); box.type='checkbox'; box.checked=!!C.announcement.enabled;
+  box.addEventListener('change',()=>{ C.announcement.enabled=box.checked; markDirty(); });
+  lbl.appendChild(box); lbl.appendChild(document.createTextNode('Show the bar on the site')); cb.appendChild(lbl); g.appendChild(cb);
+  g.appendChild(dfield('Text', C.announcement,'text'));
+  g.appendChild(dfield('Link when clicked (optional)', C.announcement,'link'));
+  b.appendChild(g);
+  // Contact
+  g=el('div','dgroup'); g.appendChild(el('h3',null,'Contact & links'));
+  g.appendChild(dfield('Phone 1', C.contact,'phone1'));
+  g.appendChild(dfield('Phone 2', C.contact,'phone2'));
+  g.appendChild(dfield('WhatsApp number', C.contact,'whatsapp'));
+  g.appendChild(dfield('Instagram / Linktree', C,'instagram'));
+  g.appendChild(dfield('Instagram label', C.contact,'instaLabel'));
+  g.appendChild(dfield('Google Maps link', C.contact,'mapUrl'));
+  b.appendChild(g);
+  // SEO
+  if(!C.seo) C.seo={title:'',description:''};
+  g=el('div','dgroup'); g.appendChild(el('h3',null,'SEO — Google & sharing'));
+  g.appendChild(dfield('Page title', C.seo,'title'));
+  g.appendChild(dfield('Meta description', C.seo,'description',true));
+  b.appendChild(g);
+  // Password
+  g=el('div','dgroup'); g.appendChild(el('h3',null,'Change password'));
+  const pf=el('div','fld'); pf.appendChild(el('label',null,'New password (min 6 chars)'));
+  const pin=el('input'); pin.type='password'; pin.placeholder='••••••'; pf.appendChild(pin); g.appendChild(pf);
+  const pbtn=el('button','mini-ed','Save password');
+  pbtn.addEventListener('click',async()=>{ const v=pin.value.trim(); if(v.length<6){ toast('At least 6 characters'); return; }
+    pbtn.disabled=true; try{ await api('/password',{method:'POST',body:{newPassword:v}}); toast('Password changed ✓'); pin.value=''; }catch(e){ toast('Failed: '+e.message); } pbtn.disabled=false; });
+  g.appendChild(pbtn); b.appendChild(g);
+}
+function openDrawer(v){ $('#drawer').classList.toggle('open',v); $('#drawerOv').classList.toggle('open',v); if(v) renderDrawer(); }
+$('#settingsBtn').addEventListener('click',()=>openDrawer(true));
+$('#drawerClose').addEventListener('click',()=>openDrawer(false));
+$('#drawerOv').addEventListener('click',()=>openDrawer(false));
+
+/* ── Photos: crop + upload (mirrors admin.html) ─────────────── */
+function keyFromUrl(u){ const m=(u||'').match(/\/photos\/(.+)$/); return m?m[1]:null; }
+let cropper=null, cropColl=null, cropReplace=null;
+function pickPhoto(ci, ii){
+  cropColl=ci; cropReplace=ii; // ii=null → add new
+  const inp=el('input'); inp.type='file'; inp.accept='image/*'; inp.style.cssText='position:fixed;left:-9999px';
+  document.body.appendChild(inp);
+  inp.onchange=()=>{ const f=inp.files[0]; inp.remove(); if(!f) return; openCropper(URL.createObjectURL(f)); };
+  inp.click();
+}
+function openCropper(src){
+  if(cropper){ cropper.destroy(); cropper=null; }
+  $('#cropOv').classList.add('open');
+  const img=$('#cropImg'); img.src=src;
+  cropper=new Cropper(img,{viewMode:1,aspectRatio:0.8,autoCropArea:1,background:false,dragMode:'move'});
+  document.querySelectorAll('.ratio').forEach(x=>x.classList.toggle('on',x.dataset.r==='0.8'));
+}
+document.querySelectorAll('.ratio').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.ratio').forEach(x=>x.classList.remove('on')); b.classList.add('on');
+  const r=parseFloat(b.dataset.r); cropper.setAspectRatio(r===0?NaN:r);
+}));
+$('#cropCancel').addEventListener('click',()=>{ $('#cropOv').classList.remove('open'); if(cropper){cropper.destroy();cropper=null;} });
+$('#cropUpload').addEventListener('click',async()=>{
+  if(!cropper){ toast('Pick a photo first.'); return; }
+  const btn=$('#cropUpload'); btn.disabled=true;
+  try{
+    const canvas=cropper.getCroppedCanvas({maxWidth:1600,maxHeight:2000,imageSmoothingQuality:'high'});
+    if(!canvas){ toast('Image still loading — try again.'); return; }
+    toast('Uploading…');
+    const blob=await new Promise((res,rej)=>canvas.toBlob(b=>b?res(b):rej(new Error('Could not process image')),'image/jpeg',0.9));
+    const c=C.collections[cropColl];
+    const form=new FormData(); form.append('file',blob,'photo.jpg'); form.append('collection',c.id);
+    const { url } = await api('/photos',{method:'POST',body:form});
+    c.images=c.images||[];
+    if(cropReplace!=null && c.images[cropReplace]){ c.images[cropReplace].url=url; }
+    else { c.images.push({url,title:'',text:'',side:'',link:'',pos:{x:50,y:80},posMobile:{x:50,y:80}}); }
+    $('#cropOv').classList.remove('open'); if(cropper){cropper.destroy();cropper=null;}
+    markDirty();
+    if(openId===c.id) openCollection(c.id);
+    renderGrid();
+    await saveContent();
+    toast('Photo saved ✓');
+  }catch(e){
+    console.warn(e);
+    const msg=/unauth|401/i.test(e.message||'')?'Session expired — log out and back in.'
+      :/503|not yet enabled/i.test(e.message||'')?'Photo storage off — enable R2 in Cloudflare.'
+      :(e.message||'Something went wrong');
+    toast('Upload failed: '+msg);
+  }finally{ btn.disabled=false; }
+});
+
+async function removePhoto(ci,ii){
+  if(!confirm('Remove this photo?')) return;
+  const entry=C.collections[ci].images[ii];
+  const key=keyFromUrl(imgUrl(entry));
+  C.collections[ci].images.splice(ii,1);
+  markDirty();
+  if(openId) openCollection(C.collections[ci].id);
+  renderGrid();
+  if(key){ try{ await api('/photos/'+encodeURIComponent(key),{method:'DELETE'}); }catch(e){ console.warn(e); } }
+  await saveContent();
+}
+function move(ci,ii,dir){
+  const a=C.collections[ci].images; const j=ii+dir;
+  if(j<0||j>=a.length) return;
+  [a[ii],a[j]]=[a[j],a[ii]]; markDirty();
+  openCollection(C.collections[ci].id); renderGrid();
+}
+
+/* ── Boot ───────────────────────────────────────────────────── */
+function renderAll(){ renderChrome(); renderGrid(); renderReviews(); }
+async function checkSession(){
+  if(!TOKEN) return;
+  try{ await api('/content'); enterStudio(); }
+  catch(e){ if(/401|unauthorized/i.test(e.message)){ TOKEN=null; sessionStorage.removeItem('kj_token'); } }
+}
+checkSession();
+</script>
+</body>
+</html>
