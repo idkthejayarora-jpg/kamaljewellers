@@ -55,22 +55,45 @@ body{padding-top:60px}
 .studio-stack.mob{max-width:412px;margin-inline:auto;border-radius:24px;overflow:hidden;box-shadow:0 0 0 1px rgba(216,178,94,.2),0 40px 80px -30px #000}
 .studio-stack.mob .feature{min-height:560px}
 
-/* ---- Photo tools on each feature ---- */
+/* ---- Photo bar — always-visible at bottom of each feature panel ---- */
 .feature{cursor:default}
-.ph-tools{position:absolute;top:.9rem;left:50%;transform:translateX(-50%);z-index:6;display:flex;gap:.4rem;
-  padding:.4rem;border-radius:30px;background:rgba(10,8,7,.7);backdrop-filter:blur(12px);border:1px solid rgba(216,178,94,.25);
-  opacity:0;transition:opacity .3s;pointer-events:none}
-.feature:hover .ph-tools{opacity:1;pointer-events:auto}
-.ph-tools button{display:inline-flex;align-items:center;gap:.35rem;padding:.42rem .7rem;border:none;border-radius:20px;
-  background:rgba(244,215,132,.12);color:var(--gold-bright);font-family:'Jost';font-size:.56rem;letter-spacing:.14em;text-transform:uppercase;cursor:pointer}
-.ph-tools button:hover{background:rgba(244,215,132,.26)}
-.ph-tools button.del{color:#e89a9a;background:rgba(224,138,138,.12)}
-/* the draggable text card in edit mode */
-.feature.placing .ftext{cursor:grab;box-shadow:inset 0 1.5px 0 rgba(255,255,255,.16),0 0 0 2px var(--gold-bright),0 24px 64px -20px rgba(0,0,0,.7)}
-.feature.placing .ftext:active{cursor:grabbing}
-.ftext .move-cue{display:none;margin-top:.6rem;font-size:.54rem;letter-spacing:.24em;text-transform:uppercase;color:var(--gold-bright)}
-.feature.placing .ftext .move-cue{display:block}
-.feature .ftext[data-ed]:hover{outline-color:transparent}
+.ph-bar{position:absolute;bottom:0;left:0;right:0;z-index:8;display:flex;align-items:center;gap:.36rem;
+  padding:.55rem .8rem;background:rgba(7,4,2,.88);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-top:1px solid rgba(216,178,94,.18);flex-wrap:wrap}
+.ph-bar .ph-label{font-size:.54rem;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);margin-right:auto;white-space:nowrap}
+.ph-btn{display:inline-flex;align-items:center;gap:.25rem;padding:.44rem .72rem;border:none;border-radius:20px;
+  background:rgba(255,255,255,.07);color:var(--gold-bright);font-family:'Jost';font-size:.57rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:background .18s,transform .15s;white-space:nowrap}
+.ph-btn:hover{background:rgba(244,215,132,.22);transform:translateY(-1px)}
+.ph-btn.del{color:#f07878;background:rgba(240,96,96,.1)}
+.ph-btn.del:hover{background:rgba(240,96,96,.28);transform:translateY(-1px)}
+/* ftext card in placing mode — gold outline (keep position:absolute from site.css) */
+.feature.placing .ftext{cursor:default;box-shadow:inset 0 1.5px 0 rgba(255,255,255,.16),0 0 0 1.5px rgba(216,178,94,.55),0 24px 64px -20px rgba(0,0,0,.7)}
+/* drag grip handle pinned to top-right of ftext card */
+.drag-grip{position:absolute;top:.55rem;right:.65rem;display:none;width:32px;height:32px;
+  border-radius:50%;background:rgba(216,178,94,.15);border:1px solid rgba(216,178,94,.5);
+  color:var(--gold-bright);font-size:1.1rem;cursor:grab;align-items:center;justify-content:center;
+  transition:background .18s,transform .18s;touch-action:none;user-select:none;z-index:5;line-height:1}
+.drag-grip:hover{background:rgba(216,178,94,.32)}
+.drag-grip.dragging{cursor:grabbing;transform:scale(.88)}
+.feature.placing .drag-grip{display:flex}
+/* coord bubble shown while dragging */
+.drag-coord{position:absolute;top:-.25rem;left:50%;transform:translate(-50%,-100%);
+  padding:.26rem .6rem;background:rgba(7,4,2,.92);border:1px solid rgba(216,178,94,.35);
+  color:var(--gold-bright);font-size:.58rem;letter-spacing:.06em;border-radius:20px;
+  white-space:nowrap;pointer-events:none;z-index:12;opacity:0;transition:opacity .15s}
+.drag-coord.show{opacity:1}
+/* mobile direction arrows — subtle pulses to hint "drag me anywhere" */
+.drag-dirs{position:absolute;inset:0;pointer-events:none;z-index:4;opacity:0;transition:opacity .3s}
+.drag-dirs.show{opacity:1}
+.da{position:absolute;width:26px;height:26px;border-radius:50%;
+  background:rgba(216,178,94,.14);border:1px solid rgba(216,178,94,.38);
+  color:rgba(216,178,94,.9);display:flex;align-items:center;justify-content:center;font-size:.82rem;
+  animation:daPulse 2s ease-in-out infinite}
+.da-n{top:8%;left:calc(50% - 13px);animation-delay:0s}
+.da-s{bottom:15%;left:calc(50% - 13px);animation-delay:.5s}
+.da-w{left:4%;top:calc(42% - 13px);animation-delay:.25s}
+.da-e{right:4%;top:calc(42% - 13px);animation-delay:.75s}
+@keyframes daPulse{0%,100%{opacity:.35;transform:scale(1)}50%{opacity:.9;transform:scale(1.18)}}
 
 /* add photo / empty */
 .add-feature{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.7rem;min-height:340px;margin:4vh calc(50% - 50vw);width:100vw;
@@ -415,24 +438,41 @@ function applyFtextPos(panel, entry){
   ft.style.left=p.x+'%'; ft.style.top=p.y+'%';
 }
 function makeFtextDraggable(panel, entry){
-  const ft=panel.querySelector('.ftext'); if(!ft) return;
+  const ft=panel.querySelector('.ftext');
+  const grip=panel.querySelector('.drag-grip');
+  const coord=panel.querySelector('.drag-coord');
+  const dirs=panel.querySelector('.drag-dirs');
+  if(!ft||!grip) return;
   let dragging=false;
-  ft.addEventListener('pointerdown',e=>{
-    if(e.target.closest('[data-ed]') && !e.target.classList.contains('move-cue')) return; // let text edits through
-    dragging=true; ft.setPointerCapture(e.pointerId); e.preventDefault();
+
+  grip.addEventListener('pointerdown',e=>{
+    dragging=true;
+    grip.classList.add('dragging');
+    grip.setPointerCapture(e.pointerId);
+    if(coord) coord.classList.add('show');
+    if(dirs) dirs.classList.add('show');
+    e.preventDefault(); e.stopPropagation();
   });
-  ft.addEventListener('pointermove',e=>{
+  grip.addEventListener('pointermove',e=>{
     if(!dragging) return;
     const r=panel.getBoundingClientRect();
-    const x=Math.round(Math.max(4,Math.min(96,((e.clientX-r.left)/r.width)*100)));
-    const y=Math.round(Math.max(4,Math.min(96,((e.clientY-r.top)/r.height)*100)));
-    const key = device==='mob' ? 'posMobile' : 'pos';
+    const x=Math.round(Math.max(5,Math.min(95,((e.clientX-r.left)/r.width)*100)));
+    const y=Math.round(Math.max(5,Math.min(95,((e.clientY-r.top)/r.height)*100)));
+    const key=device==='mob'?'posMobile':'pos';
     entry[key]={x,y};
     ft.style.left=x+'%'; ft.style.top=y+'%';
     ft.style.setProperty('--fp-x',x+'%'); ft.style.setProperty('--fp-y',y+'%');
+    if(coord) coord.textContent=`x: ${x}% · y: ${y}%`;
     markDirty();
   });
-  ft.addEventListener('pointerup',()=>{ dragging=false; });
+  const endDrag=()=>{
+    dragging=false;
+    grip.classList.remove('dragging');
+    if(coord) coord.classList.remove('show');
+    if(dirs) dirs.classList.remove('show');
+  };
+  grip.addEventListener('pointerup',endDrag);
+  grip.addEventListener('pointercancel',endDrag);
 }
 
 function buildFeature(c, entry, idx){
@@ -442,17 +482,27 @@ function buildFeature(c, entry, idx){
   panel.innerHTML=`
     <div class="fimg" style="${bg}"><span class="veil"></span></div>
     <div class="ftext">
+      <div class="drag-grip" title="Drag to reposition card">⠿</div>
+      <div class="drag-coord"></div>
       <div class="eyebrow">Look ${String(idx+1).padStart(2,'0')} · ${esc(c.tag)}</div>
       <h3 class="ft-h"></h3>
       <p class="ft-p"></p>
-      <span class="move-cue">⤧ Drag to position</span>
     </div>
-    <div class="ph-tools">
-      <button data-a="replace">⟳ Replace</button>
-      <button data-a="up">▲</button>
-      <button data-a="down">▼</button>
-      <button data-a="link">🔗 Link</button>
-      <button class="del" data-a="del">✕ Delete</button>
+    <div class="drag-dirs">
+      <div class="da da-n">↑</div>
+      <div class="da da-s">↓</div>
+      <div class="da da-w">←</div>
+      <div class="da da-e">→</div>
+    </div>
+    <div class="ph-bar">
+      <span class="ph-label">📸 Photo ${idx+1}</span>
+      <div style="display:flex;gap:.3rem;flex-wrap:wrap">
+        <button class="ph-btn" data-a="up">↑ Up</button>
+        <button class="ph-btn" data-a="down">↓ Down</button>
+        <button class="ph-btn" data-a="replace">🔄 Replace</button>
+        <button class="ph-btn" data-a="link">🔗 Link</button>
+        <button class="ph-btn del" data-a="del">🗑</button>
+      </div>
     </div>`;
   // editable heading/description (placeholder text when empty)
   const h=panel.querySelector('.ft-h'), p=panel.querySelector('.ft-p');
