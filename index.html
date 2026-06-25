@@ -405,9 +405,13 @@ function buildCollections(C){
       const py=meta.pos?.y ?? 80;
       const pxm=meta.posMobile?.x ?? px;
       const pym=meta.posMobile?.y ?? py;
+      const fx=meta.focal?.x ?? 50;
+      const fy=meta.focal?.y ?? 50;
+      const fxm=meta.focalMobile?.x ?? fx;
+      const fym=meta.focalMobile?.y ?? fy;
       if(s>0) features+=`<div class="seam-blur" aria-hidden="true"></div>`;
       features+=`<${ftag} class="feature reveal"${fattr}>
-        <div class="fimg" style="${bg}"><span class="veil"></span></div>
+        <div class="fimg" style="${bg};--fi-x:${fx}%;--fi-y:${fy}%;--fi-xm:${fxm}%;--fi-ym:${fym}%"><span class="veil"></span></div>
         <div class="ftext" style="--fp-x:${px}%;--fp-y:${py}%;--fp-xm:${pxm}%;--fp-ym:${pym}%">
           <div class="eyebrow">${eyebrow}</div>
           <h3>${title}</h3>

@@ -183,7 +183,7 @@ body.viewing .reviews,body.viewing .visit,body.viewing footer{display:none}
 .showcase-stack{margin:4vh calc(50% - 50vw) 0;width:100vw;overflow:hidden}
 .feature{position:relative;display:block;min-height:clamp(560px,90svh,1000px);overflow:hidden;background:#080502;opacity:0;transform:translateY(40px);transition:opacity 1.1s var(--ease),transform 1.2s var(--ease)}
 .feature.in{opacity:1;transform:none}
-.feature .fimg{position:absolute;inset:-9% 0;background-size:cover;background-position:center;will-change:transform}
+.feature .fimg{position:absolute;inset:-9% 0;background-size:cover;background-position:var(--fi-x,50%) var(--fi-y,50%);will-change:transform}
 /* Veil: clear centre so the jewellery is visible whole — edges only */
 .feature .veil{position:absolute;inset:0;background:
   radial-gradient(ellipse 86% 74% at 50% 48%,transparent 38%,rgba(8,5,2,.62) 100%),
@@ -210,6 +210,7 @@ a.feature:hover .feat-link-cue{opacity:.85;transform:translateX(4px)}
 .feature .ftext p{font-size:clamp(.82rem,1.1vw,.95rem);line-height:1.8;color:rgba(243,234,215,.82)}
 @media(max-width:760px){
   .feature{min-height:88svh}
+  .feature .fimg{background-position:var(--fi-xm,var(--fi-x,50%)) var(--fi-ym,var(--fi-y,50%))}
   .feature .ftext{width:min(88vw,360px);left:var(--fp-xm,var(--fp-x,50%));top:var(--fp-ym,var(--fp-y,80%));padding:1rem 1.2rem}
   .feature .ftext h3{font-size:clamp(1.35rem,5vw,1.9rem)}
 }
