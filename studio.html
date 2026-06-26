@@ -59,12 +59,15 @@ body{padding-top:52px}
 
 /* ---- Photo bar — always-visible at bottom of each feature panel ---- */
 .feature{cursor:default}
-.ph-bar{position:absolute;bottom:0;left:0;right:0;z-index:8;display:flex;align-items:center;gap:.36rem;
-  padding:.55rem .8rem;background:rgba(7,4,2,.88);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
-  border-top:1px solid rgba(216,178,94,.18);flex-wrap:wrap}
-.ph-bar .ph-label{font-size:.54rem;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);margin-right:auto;white-space:nowrap}
-.ph-btn{display:inline-flex;align-items:center;gap:.25rem;padding:.44rem .72rem;border:none;border-radius:20px;
-  background:rgba(255,255,255,.07);color:var(--gold-bright);font-family:'Jost';font-size:.57rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:background .18s,transform .15s;white-space:nowrap}
+.ph-bar{position:absolute;bottom:0;left:0;right:0;z-index:8;display:flex;align-items:center;gap:.4rem;
+  padding:.45rem .7rem;background:rgba(7,4,2,.88);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-top:1px solid rgba(216,178,94,.18);overflow:hidden}
+.ph-bar .ph-label{font-size:.5rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);white-space:nowrap;flex-shrink:0}
+.ph-bar .ph-btns{display:flex;gap:.28rem;overflow-x:auto;-webkit-overflow-scrolling:touch;flex-shrink:1;
+  scrollbar-width:none;-ms-overflow-style:none}
+.ph-bar .ph-btns::-webkit-scrollbar{display:none}
+.ph-btn{display:inline-flex;align-items:center;gap:.2rem;padding:.36rem .58rem;border:none;border-radius:20px;
+  background:rgba(255,255,255,.07);color:var(--gold-bright);font-family:'Jost';font-size:.53rem;letter-spacing:.09em;text-transform:uppercase;cursor:pointer;transition:background .18s,transform .15s;white-space:nowrap;flex-shrink:0}
 .ph-btn:hover{background:rgba(244,215,132,.22);transform:translateY(-1px)}
 .ph-btn.del{color:#f07878;background:rgba(240,96,96,.1)}
 .ph-btn.del:hover{background:rgba(240,96,96,.28);transform:translateY(-1px)}
@@ -597,7 +600,7 @@ function applyCardVisibility(panel, entry){
   const hidden = entry.showCard === false;
   panel.classList.toggle('card-hidden', hidden);
   const btn = panel.querySelector('[data-a="toggleCard"]');
-  if(btn) btn.textContent = hidden ? '👁 Show Card' : '🚫 Hide Card';
+  if(btn) btn.textContent = hidden ? '👁 Show' : '🚫 Hide';
 }
 function enterCardRepo(panel, entry){
   panel.classList.add('card-repo');
@@ -742,11 +745,11 @@ function buildFeature(c, entry, idx){
       <div class="da da-e">→</div>
     </div>
     <div class="ph-bar">
-      <span class="ph-label">📸 Photo ${idx+1}</span>
-      <div style="display:flex;gap:.3rem;flex-wrap:wrap">
+      <span class="ph-label">Photo ${idx+1}</span>
+      <div class="ph-btns">
         <button class="ph-btn" data-a="adjust">🖼 Adjust</button>
-        <button class="ph-btn" data-a="moveCard">✥ Move Card</button>
-        <button class="ph-btn" data-a="toggleCard">🚫 Hide Card</button>
+        <button class="ph-btn" data-a="moveCard">✥ Move</button>
+        <button class="ph-btn" data-a="toggleCard">🚫 Hide</button>
         <button class="ph-btn" data-a="up">↑</button>
         <button class="ph-btn" data-a="down">↓</button>
         <button class="ph-btn" data-a="replace">🔄 Replace</button>
