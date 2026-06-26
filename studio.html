@@ -78,18 +78,20 @@ body{padding-top:52px}
 .drag-grip:hover{background:rgba(216,178,94,.32)}
 .drag-grip.dragging{cursor:grabbing;transform:scale(.88)}
 .feature.placing .drag-grip{display:flex}
-/* resize grip — inside right edge of ftext card (never clips) */
-.resize-grip{position:absolute;right:0;top:0;bottom:0;display:none;
-  width:16px;border-radius:0 22px 22px 0;
-  background:rgba(216,178,94,.07);border-left:1px solid rgba(216,178,94,.2);
-  color:rgba(216,178,94,.55);font-size:.5rem;cursor:ew-resize;align-items:center;justify-content:center;
-  transition:background .18s,border-color .18s;z-index:10;user-select:none;touch-action:none;
-  writing-mode:vertical-rl;letter-spacing:.12em}
-.resize-grip:hover{background:rgba(216,178,94,.22);border-color:rgba(216,178,94,.5);color:var(--gold-bright)}
-.resize-grip.dragging{background:rgba(216,178,94,.35);border-color:rgba(216,178,94,.7);color:var(--gold-bright)}
-.feature.placing .resize-grip{display:flex}
-/* width label shown while resizing */
-.resize-coord{position:absolute;top:0;right:1.4rem;transform:translateY(-100%);
+/* corner resize handles — grab any corner to resize freely */
+.crn{position:absolute;width:18px;height:18px;display:none;z-index:11;
+  background:rgba(216,178,94,.14);border:1.5px solid rgba(216,178,94,.55);
+  user-select:none;touch-action:none;transition:background .15s,border-color .15s,transform .15s}
+.crn:hover{background:rgba(216,178,94,.32);border-color:var(--gold-bright);transform:scale(1.25)}
+.crn.active{background:rgba(216,178,94,.48);border-color:var(--gold-bright);transform:scale(1.1)}
+.feature.placing .crn{display:block}
+.feature.reframing .crn,.feature.card-repo .crn,.feature.card-hidden .crn{display:none!important}
+.crn-tl{top:-7px;left:-7px;cursor:nw-resize;border-radius:5px 2px 2px 2px}
+.crn-tr{top:-7px;right:-7px;cursor:ne-resize;border-radius:2px 5px 2px 2px}
+.crn-bl{bottom:-7px;left:-7px;cursor:sw-resize;border-radius:2px 2px 2px 5px}
+.crn-br{bottom:-7px;right:-7px;cursor:se-resize;border-radius:2px 2px 5px 2px}
+/* size label shown while resizing */
+.resize-coord{position:absolute;top:-2.4rem;left:50%;transform:translateX(-50%);
   padding:.26rem .6rem;background:rgba(7,4,2,.92);border:1px solid rgba(216,178,94,.35);
   color:var(--gold-bright);font-size:.58rem;letter-spacing:.06em;border-radius:20px;
   white-space:nowrap;pointer-events:none;z-index:12;opacity:0;transition:opacity .15s}
@@ -412,7 +414,8 @@ function normalizePhotos(){
          eyebrow:e.eyebrow||'',showCard:e.showCard!==false,
          pos:e.pos||{x:50,y:80}, posMobile:e.posMobile||{x:50,y:80},
          focal:e.focal||{x:50,y:50}, focalMobile:e.focalMobile||{x:50,y:50},
-         cardW:e.cardW??null, cardWm:e.cardWm??null});
+         cardW:e.cardW??null, cardWm:e.cardWm??null,
+         cardH:e.cardH??null, cardHm:e.cardHm??null});
   });
 }
 async function loadContent(){
@@ -546,36 +549,48 @@ function makeFtextDraggable(panel, entry){
 
 function applyFtextSize(panel, entry){
   const ft=panel.querySelector('.ftext'); if(!ft) return;
-  const w=device==='mob' ? (entry.cardWm??entry.cardW) : entry.cardW;
-  if(w!=null){ ft.style.width=w+'%'; ft.style.setProperty('--fs-w',w+'%'); }
-  else { ft.style.width=''; ft.style.removeProperty('--fs-w'); }
+  const mob=device==='mob';
+  const w=mob?(entry.cardWm??entry.cardW):entry.cardW;
+  const h=mob?(entry.cardHm??entry.cardH):entry.cardH;
+  if(w!=null){ft.style.width=w+'%';ft.style.setProperty('--fs-w',w+'%');}
+  else{ft.style.width='';ft.style.removeProperty('--fs-w');}
+  if(h!=null){ft.style.minHeight=h+'px';ft.style.setProperty('--fs-h',h+'px');}
+  else{ft.style.minHeight='';ft.style.removeProperty('--fs-h');}
 }
 function makeFtextResizable(panel, entry){
   const ft=panel.querySelector('.ftext');
-  const rg=panel.querySelector('.resize-grip');
   const rc=panel.querySelector('.resize-coord');
-  if(!ft||!rg) return;
-  let dragging=false, startX, startW;
-  rg.addEventListener('pointerdown',e=>{
-    startX=e.clientX; startW=ft.offsetWidth;
-    dragging=true; rg.classList.add('dragging');
-    rg.setPointerCapture(e.pointerId);
-    if(rc) rc.classList.add('show');
-    e.preventDefault(); e.stopPropagation();
+  if(!ft) return;
+  panel.querySelectorAll('.crn').forEach(crn=>{
+    const xDir=parseInt(crn.dataset.xd), yDir=parseInt(crn.dataset.yd);
+    let dragging=false, startX, startY, startW, startH;
+    crn.addEventListener('pointerdown',e=>{
+      dragging=true; crn.classList.add('active');
+      crn.setPointerCapture(e.pointerId);
+      startX=e.clientX; startY=e.clientY;
+      startW=ft.offsetWidth; startH=ft.offsetHeight;
+      if(rc) rc.classList.add('show');
+      e.preventDefault(); e.stopPropagation();
+    });
+    crn.addEventListener('pointermove',e=>{
+      if(!dragging) return;
+      const panelW=panel.offsetWidth, panelH=panel.offsetHeight;
+      const dW=(e.clientX-startX)*xDir*2;
+      const dH=(e.clientY-startY)*yDir*2;
+      const newW=Math.round(Math.max(120,Math.min(panelW*0.94,startW+dW)));
+      const newH=Math.round(Math.max(60,Math.min(panelH*0.88,startH+dH)));
+      const pctW=Math.round(newW/panelW*100);
+      const mob=device==='mob';
+      if(mob){entry.cardWm=pctW;entry.cardHm=newH;}
+      else{entry.cardW=pctW;entry.cardH=newH;}
+      ft.style.width=pctW+'%'; ft.style.minHeight=newH+'px';
+      if(rc) rc.textContent=`${pctW}% · ${newH}px`;
+      markDirty();
+    });
+    const end=()=>{dragging=false;crn.classList.remove('active');if(rc)rc.classList.remove('show');};
+    crn.addEventListener('pointerup',end);
+    crn.addEventListener('pointercancel',end);
   });
-  rg.addEventListener('pointermove',e=>{
-    if(!dragging) return;
-    const panelW=panel.offsetWidth;
-    const newW=Math.round(Math.max(140,Math.min(panelW*0.94,startW+(e.clientX-startX))));
-    const pct=Math.round(newW/panelW*100);
-    if(device==='mob'){ entry.cardWm=pct; } else { entry.cardW=pct; }
-    ft.style.width=pct+'%';
-    if(rc) rc.textContent=pct+'% wide';
-    markDirty();
-  });
-  const end=()=>{ dragging=false; rg.classList.remove('dragging'); if(rc) rc.classList.remove('show'); };
-  rg.addEventListener('pointerup',end);
-  rg.addEventListener('pointercancel',end);
 }
 
 function applyCardVisibility(panel, entry){
@@ -710,7 +725,10 @@ function buildFeature(c, entry, idx){
     <div class="ftext">
       <div class="drag-grip" title="Drag to reposition card">⠿</div>
       <div class="drag-coord"></div>
-      <div class="resize-grip" title="Drag right/left to widen or narrow card">⋮</div>
+      <div class="crn crn-tl" data-xd="-1" data-yd="-1"></div>
+      <div class="crn crn-tr" data-xd="1"  data-yd="-1"></div>
+      <div class="crn crn-bl" data-xd="-1" data-yd="1"></div>
+      <div class="crn crn-br" data-xd="1"  data-yd="1"></div>
       <div class="resize-coord"></div>
       <div class="card-hidden-badge">Card hidden on site</div>
       <div class="eyebrow ft-eyebrow"></div>
@@ -923,7 +941,7 @@ $('#cropUpload').addEventListener('click',async()=>{
     const { url } = await api('/photos',{method:'POST',body:form});
     c.images=c.images||[];
     if(cropReplace!=null && c.images[cropReplace]){ c.images[cropReplace].url=url; }
-    else { c.images.push({url,title:'',text:'',side:'',link:'',eyebrow:'',showCard:true,pos:{x:50,y:80},posMobile:{x:50,y:80},focal:{x:50,y:50},focalMobile:{x:50,y:50},cardW:null,cardWm:null}); }
+    else { c.images.push({url,title:'',text:'',side:'',link:'',eyebrow:'',showCard:true,pos:{x:50,y:80},posMobile:{x:50,y:80},focal:{x:50,y:50},focalMobile:{x:50,y:50},cardW:null,cardWm:null,cardH:null,cardHm:null}); }
     $('#cropOv').classList.remove('open'); if(cropper){cropper.destroy();cropper=null;}
     markDirty();
     if(openId===c.id) openCollection(c.id);
