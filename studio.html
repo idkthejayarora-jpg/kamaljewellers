@@ -507,7 +507,7 @@ function makeFtextDraggable(panel, entry){
   const coord=panel.querySelector('.drag-coord');
   const dirs=panel.querySelector('.drag-dirs');
   if(!ft||!grip) return;
-  let dragging=false;
+  let dragging=false, ox=0, oy=0;
 
   grip.addEventListener('pointerdown',e=>{
     dragging=true;
@@ -515,13 +515,18 @@ function makeFtextDraggable(panel, entry){
     grip.setPointerCapture(e.pointerId);
     if(coord) coord.classList.add('show');
     if(dirs) dirs.classList.add('show');
+    // offset: where inside the panel the card centre currently sits vs pointer
+    const r=panel.getBoundingClientRect();
+    const fr=ft.getBoundingClientRect();
+    ox=(fr.left+fr.width/2) - e.clientX;
+    oy=(fr.top+fr.height/2) - e.clientY;
     e.preventDefault(); e.stopPropagation();
   });
   grip.addEventListener('pointermove',e=>{
     if(!dragging) return;
     const r=panel.getBoundingClientRect();
-    const x=Math.round(Math.max(5,Math.min(95,((e.clientX-r.left)/r.width)*100)));
-    const y=Math.round(Math.max(5,Math.min(95,((e.clientY-r.top)/r.height)*100)));
+    const x=Math.round(Math.max(5,Math.min(95,((e.clientX+ox-r.left)/r.width)*100)));
+    const y=Math.round(Math.max(5,Math.min(95,((e.clientY+oy-r.top)/r.height)*100)));
     const key=device==='mob'?'posMobile':'pos';
     entry[key]={x,y};
     ft.style.left=x+'%'; ft.style.top=y+'%';
@@ -585,17 +590,21 @@ function enterCardRepo(panel, entry){
   const dirs=panel.querySelector('.drag-dirs');
   if(dirs) dirs.classList.add('show');
   hint('Drag the glass card to reposition it · tap Done when happy');
-  let dragging=false;
+  let dragging=false, ox=0, oy=0;
   const onDown=e=>{
     if(e.target.closest('[contenteditable]')||e.target.closest('.resize-grip')) return;
     dragging=true; ft.setPointerCapture(e.pointerId); ft.classList.add('grabbing');
+    const r=panel.getBoundingClientRect();
+    const fr=ft.getBoundingClientRect();
+    ox=(fr.left+fr.width/2)-e.clientX;
+    oy=(fr.top+fr.height/2)-e.clientY;
     e.preventDefault(); e.stopPropagation();
   };
   const onMove=e=>{
     if(!dragging) return;
     const r=panel.getBoundingClientRect();
-    const x=Math.round(Math.max(5,Math.min(95,((e.clientX-r.left)/r.width)*100)));
-    const y=Math.round(Math.max(5,Math.min(95,((e.clientY-r.top)/r.height)*100)));
+    const x=Math.round(Math.max(5,Math.min(95,((e.clientX+ox-r.left)/r.width)*100)));
+    const y=Math.round(Math.max(5,Math.min(95,((e.clientY+oy-r.top)/r.height)*100)));
     entry[device==='mob'?'posMobile':'pos']={x,y};
     ft.style.left=x+'%'; ft.style.top=y+'%';
     ft.style.setProperty('--fp-x',x+'%'); ft.style.setProperty('--fp-y',y+'%');
