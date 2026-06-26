@@ -134,6 +134,28 @@ body{padding-top:52px}
   transform:translate(-50%,-50%);pointer-events:none;z-index:8;transition:left .08s,top .08s}
 .feature.reframing .focal-dot{display:block}
 
+/* ---- Card reposition mode (move the glass card) ---- */
+.repo-bar{display:none;position:absolute;bottom:0;left:0;right:0;z-index:9;
+  align-items:center;gap:.7rem;padding:.55rem .9rem;
+  background:rgba(7,4,2,.92);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-top:1px solid rgba(216,178,94,.3)}
+.feature.card-repo .repo-bar{display:flex}
+.feature.card-repo .ph-bar{opacity:0;pointer-events:none}
+.feature.card-repo .drag-grip{display:none!important}
+.feature.card-repo .resize-grip{display:none!important}
+.feature.card-repo .ftext{cursor:grab;box-shadow:inset 0 0 0 2px rgba(216,178,94,.65),0 0 40px rgba(216,178,94,.18),0 24px 64px -20px rgba(0,0,0,.7)!important}
+.feature.card-repo .ftext.grabbing{cursor:grabbing}
+.repo-bar .rf-hint{flex:1;font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold-bright)}
+.repo-bar .rf-sub{font-size:.56rem;color:rgba(243,234,215,.5);letter-spacing:.06em;text-transform:none}
+
+/* ---- Card hidden / optional card ---- */
+.feature.card-hidden .ftext{opacity:.08!important;pointer-events:none!important}
+.card-hidden-badge{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  font-size:.46rem;letter-spacing:.3em;text-transform:uppercase;color:var(--gold-bright);
+  background:rgba(7,4,2,.88);padding:.28rem .72rem;border-radius:8px;
+  border:1px solid rgba(216,178,94,.3);pointer-events:none;z-index:3;display:none}
+.feature.card-hidden .card-hidden-badge{display:block}
+
 /* add photo / empty */
 .add-feature{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.7rem;min-height:340px;margin:4vh calc(50% - 50vw);width:100vw;
   border-top:1px dashed rgba(216,178,94,.25);border-bottom:1px dashed rgba(216,178,94,.25);background:rgba(244,215,132,.02);color:var(--gold);cursor:pointer}
@@ -385,9 +407,9 @@ $('#logoutBtn').addEventListener('click',()=>{
 function normalizePhotos(){
   (C.collections||[]).forEach(c=>{
     c.images=(c.images||[]).map(e=> typeof e==='string'
-      ? {url:e,title:'',text:'',side:'',link:'',pos:{x:50,y:80},posMobile:{x:50,y:80},focal:{x:50,y:50},focalMobile:{x:50,y:50}}
+      ? {url:e,title:'',text:'',side:'',link:'',eyebrow:'',showCard:true,pos:{x:50,y:80},posMobile:{x:50,y:80},focal:{x:50,y:50},focalMobile:{x:50,y:50},cardW:null,cardWm:null}
       : {url:e.url,title:e.title||'',text:e.text||'',side:e.side||'',link:e.link||'',
-         eyebrow:e.eyebrow||'',
+         eyebrow:e.eyebrow||'',showCard:e.showCard!==false,
          pos:e.pos||{x:50,y:80}, posMobile:e.posMobile||{x:50,y:80},
          focal:e.focal||{x:50,y:50}, focalMobile:e.focalMobile||{x:50,y:50},
          cardW:e.cardW??null, cardWm:e.cardWm??null});
@@ -551,6 +573,55 @@ function makeFtextResizable(panel, entry){
   rg.addEventListener('pointercancel',end);
 }
 
+function applyCardVisibility(panel, entry){
+  const hidden = entry.showCard === false;
+  panel.classList.toggle('card-hidden', hidden);
+  const btn = panel.querySelector('[data-a="toggleCard"]');
+  if(btn) btn.textContent = hidden ? '👁 Show Card' : '🚫 Hide Card';
+}
+function enterCardRepo(panel, entry){
+  panel.classList.add('card-repo');
+  const ft=panel.querySelector('.ftext');
+  const dirs=panel.querySelector('.drag-dirs');
+  if(dirs) dirs.classList.add('show');
+  hint('Drag the glass card to reposition it · tap Done when happy');
+  let dragging=false;
+  const onDown=e=>{
+    if(e.target.closest('[contenteditable]')||e.target.closest('.resize-grip')) return;
+    dragging=true; ft.setPointerCapture(e.pointerId); ft.classList.add('grabbing');
+    e.preventDefault(); e.stopPropagation();
+  };
+  const onMove=e=>{
+    if(!dragging) return;
+    const r=panel.getBoundingClientRect();
+    const x=Math.round(Math.max(5,Math.min(95,((e.clientX-r.left)/r.width)*100)));
+    const y=Math.round(Math.max(5,Math.min(95,((e.clientY-r.top)/r.height)*100)));
+    entry[device==='mob'?'posMobile':'pos']={x,y};
+    ft.style.left=x+'%'; ft.style.top=y+'%';
+    ft.style.setProperty('--fp-x',x+'%'); ft.style.setProperty('--fp-y',y+'%');
+    markDirty();
+  };
+  const onUp=()=>{ dragging=false; ft.classList.remove('grabbing'); };
+  ft._repo={onDown,onMove,onUp};
+  ft.addEventListener('pointerdown',onDown);
+  ft.addEventListener('pointermove',onMove);
+  ft.addEventListener('pointerup',onUp);
+  ft.addEventListener('pointercancel',onUp);
+}
+function exitCardRepo(panel){
+  panel.classList.remove('card-repo');
+  const ft=panel.querySelector('.ftext');
+  const dirs=panel.querySelector('.drag-dirs');
+  if(dirs) dirs.classList.remove('show');
+  if(ft._repo){
+    ft.removeEventListener('pointerdown',ft._repo.onDown);
+    ft.removeEventListener('pointermove',ft._repo.onMove);
+    ft.removeEventListener('pointerup',ft._repo.onUp);
+    ft.removeEventListener('pointercancel',ft._repo.onUp);
+    delete ft._repo;
+  }
+  hint(''); toast('Card repositioned — hit Save to keep it');
+}
 function applyFocalPos(panel, entry){
   const fimg=panel.querySelector('.fimg');
   const dot=panel.querySelector('.focal-dot');
@@ -620,11 +691,19 @@ function buildFeature(c, entry, idx){
       </div>
       <button class="ph-btn rfDone">✓ Done</button>
     </div>
+    <div class="repo-bar">
+      <div>
+        <div class="rf-hint">✥ Drag card to reposition</div>
+        <div class="rf-sub">Moves the glass card on this photo only</div>
+      </div>
+      <button class="ph-btn repoDone">✓ Done</button>
+    </div>
     <div class="ftext">
       <div class="drag-grip" title="Drag to reposition card">⠿</div>
       <div class="drag-coord"></div>
       <div class="resize-grip" title="Drag right/left to widen or narrow card">⋮</div>
       <div class="resize-coord"></div>
+      <div class="card-hidden-badge">Card hidden on site</div>
       <div class="eyebrow ft-eyebrow"></div>
       <h3 class="ft-h"></h3>
       <p class="ft-p"></p>
@@ -639,8 +718,10 @@ function buildFeature(c, entry, idx){
       <span class="ph-label">📸 Photo ${idx+1}</span>
       <div style="display:flex;gap:.3rem;flex-wrap:wrap">
         <button class="ph-btn" data-a="adjust">🖼 Adjust</button>
-        <button class="ph-btn" data-a="up">↑ Up</button>
-        <button class="ph-btn" data-a="down">↓ Down</button>
+        <button class="ph-btn" data-a="moveCard">✥ Move Card</button>
+        <button class="ph-btn" data-a="toggleCard">🚫 Hide Card</button>
+        <button class="ph-btn" data-a="up">↑</button>
+        <button class="ph-btn" data-a="down">↓</button>
         <button class="ph-btn" data-a="replace">🔄 Replace</button>
         <button class="ph-btn" data-a="link">🔗 Link</button>
         <button class="ph-btn del" data-a="del">🗑</button>
@@ -673,10 +754,19 @@ function buildFeature(c, entry, idx){
   });
   panel.querySelector('[data-a="adjust"]').addEventListener('click',ev=>{ ev.stopPropagation(); enterReframe(panel, entry); });
   panel.querySelector('.rfDone').addEventListener('click',ev=>{ ev.stopPropagation(); exitReframe(panel); });
+  panel.querySelector('[data-a="moveCard"]').addEventListener('click',ev=>{ ev.stopPropagation(); enterCardRepo(panel, entry); });
+  panel.querySelector('.repoDone').addEventListener('click',ev=>{ ev.stopPropagation(); exitCardRepo(panel); });
+  panel.querySelector('[data-a="toggleCard"]').addEventListener('click',ev=>{
+    ev.stopPropagation();
+    entry.showCard = entry.showCard === false ? true : false;
+    applyCardVisibility(panel, entry);
+    markDirty();
+    toast(entry.showCard === false ? 'Card hidden on live site' : 'Card visible on live site');
+  });
   makeFtextDraggable(panel, entry);
   makeImgDraggable(panel, entry);
   makeFtextResizable(panel, entry);
-  setTimeout(()=>{ applyFtextPos(panel, entry); applyFtextSize(panel, entry); },0);
+  setTimeout(()=>{ applyFtextPos(panel, entry); applyFtextSize(panel, entry); applyCardVisibility(panel, entry); },0);
   return panel;
 }
 
@@ -824,7 +914,7 @@ $('#cropUpload').addEventListener('click',async()=>{
     const { url } = await api('/photos',{method:'POST',body:form});
     c.images=c.images||[];
     if(cropReplace!=null && c.images[cropReplace]){ c.images[cropReplace].url=url; }
-    else { c.images.push({url,title:'',text:'',side:'',link:'',eyebrow:'',pos:{x:50,y:80},posMobile:{x:50,y:80},focal:{x:50,y:50},focalMobile:{x:50,y:50},cardW:null,cardWm:null}); }
+    else { c.images.push({url,title:'',text:'',side:'',link:'',eyebrow:'',showCard:true,pos:{x:50,y:80},posMobile:{x:50,y:80},focal:{x:50,y:50},focalMobile:{x:50,y:50},cardW:null,cardWm:null}); }
     $('#cropOv').classList.remove('open'); if(cropper){cropper.destroy();cropper=null;}
     markDirty();
     if(openId===c.id) openCollection(c.id);

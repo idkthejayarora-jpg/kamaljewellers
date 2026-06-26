@@ -411,15 +411,16 @@ function buildCollections(C){
       const fym=meta.focalMobile?.y ?? fy;
       const fsw=meta.cardW!=null?`--fs-w:${meta.cardW}%;`:'';
       const fswm=meta.cardWm!=null?`--fs-wm:${meta.cardWm}%;`:'';
+      const showCard = meta.showCard !== false;
       if(s>0) features+=`<div class="seam-blur" aria-hidden="true"></div>`;
       features+=`<${ftag} class="feature reveal"${fattr}>
         <div class="fimg" style="${bg};--fi-x:${fx}%;--fi-y:${fy}%;--fi-xm:${fxm}%;--fi-ym:${fym}%"><span class="veil"></span></div>
-        <div class="ftext" style="--fp-x:${px}%;--fp-y:${py}%;--fp-xm:${pxm}%;--fp-ym:${pym}%;${fsw}${fswm}">
+        ${showCard?`<div class="ftext" style="--fp-x:${px}%;--fp-y:${py}%;--fp-xm:${pxm}%;--fp-ym:${pym}%;${fsw}${fswm}">
           <div class="eyebrow">${eyebrow}</div>
           <h3>${title}</h3>
           ${text?`<p>${text}</p>`:''}
           ${lnk?`<span class="feat-link-cue">View →</span>`:''}
-        </div>
+        </div>`:''}
       </${ftag}>`;
     });
 
