@@ -89,6 +89,15 @@
   <!-- everything below sits on solid bg so the canvas only shows through the hero -->
   <div class="solid">
 
+    <!-- FLASH SALE (shown only when admin has active sale items) -->
+    <section class="sale-sec" id="saleSec">
+      <div class="sale-head reveal">
+        <span class="eyebrow">Limited pieces · While stocks last</span>
+        <h2>Sale <em>now on</em></h2>
+      </div>
+      <div class="sale-track" id="saleGrid"></div>
+    </section>
+
     <!-- DIRECTORY -->
     <section class="directory" id="collections">
       <div class="dir-cta reveal">
@@ -190,6 +199,28 @@
       <div class="tick">✦</div>
       <p>Thank you — your enquiry is with us.</p>
       <small>We'll reach out shortly. For anything urgent, call <span id="enqDonePhone">+91 99999 25670</span>.</small>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Sale item modal ===== -->
+<div class="sale-ov" id="saleOv" aria-hidden="true">
+  <div class="sale-modal">
+    <button class="sm-close mag" id="saleClose" aria-label="Close">✕</button>
+    <div class="sm-img" id="smImg"></div>
+    <div class="sm-body">
+      <div class="sm-off" id="smOff"></div>
+      <h3 class="sm-name" id="smName"></h3>
+      <p class="sm-note" id="smNote" style="display:none"></p>
+      <div class="sm-prices">
+        <span class="sm-orig" id="smOrig"></span>
+        <span class="sm-price" id="smPrice"></span>
+      </div>
+      <div class="sm-stock" id="smStock"></div>
+      <a class="sm-wa mag" id="smWa" target="_blank" rel="noopener">
+        <svg width="17" height="17" viewBox="0 0 32 32" fill="currentColor" aria-hidden="true"><path d="M16 3C9.4 3 4 8.3 4 14.9c0 2.3.6 4.4 1.8 6.3L4 29l8-2.1c1.8 1 3.8 1.5 6 1.5 6.6 0 12-5.3 12-11.9S22.6 3 16 3zm5.5 16.3c-.3-.2-1.8-.9-2-1-.3-.1-.5-.2-.7.1-.2.3-.8 1-.9 1.1-.2.2-.3.2-.6.1-.3-.2-1.3-.5-2.4-1.5-.9-.8-1.5-1.8-1.7-2.1-.2-.3 0-.5.1-.6l.5-.5c.2-.2.2-.3.3-.5.1-.2 0-.4 0-.5l-.9-2.2c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.2.2 2.1 3.3 5.1 4.6.7.3 1.3.5 1.7.6.7.2 1.4.2 1.9.1.6-.1 1.8-.7 2-1.4.3-.7.3-1.3.2-1.4-.1-.2-.3-.2-.6-.4z"/></svg>
+        Reserve via WhatsApp
+      </a>
     </div>
   </div>
 </div>
@@ -457,6 +488,71 @@ function setupReviewFloat(){
     c.animate([
       {transform:'translateY(0)'},{transform:'translateY(-14px)'},{transform:'translateY(0)'}
     ],{duration:5200+i*900,iterations:Infinity,easing:'ease-in-out',delay:i*400});
+  });
+}
+
+/* ============================================================
+   FLASH SALE
+   ============================================================ */
+const saleOv = document.getElementById('saleOv');
+let _saleWa = null; // href set per item
+
+function openSaleModal(item){
+  const sp = Math.round(item.originalPrice * (1 - item.discountPct/100));
+  document.getElementById('smOff').textContent = `−${item.discountPct}% OFF`;
+  document.getElementById('smName').textContent = item.name;
+  const note = document.getElementById('smNote');
+  if(item.note){ note.textContent=item.note; note.style.display=''; }
+  else note.style.display='none';
+  document.getElementById('smOrig').textContent = `₹${item.originalPrice.toLocaleString('en-IN')}`;
+  document.getElementById('smPrice').textContent = `₹${sp.toLocaleString('en-IN')}`;
+  const stk = document.getElementById('smStock');
+  if(item.stock > 0 && item.stock <= 3){ stk.textContent=`Only ${item.stock} left!`; stk.classList.add('show'); }
+  else stk.classList.remove('show');
+  const si = document.getElementById('smImg');
+  si.innerHTML = item.photo ? `<img src="${esc(item.photo)}" alt="${esc(item.name)}" />` : '';
+  const wa = waDigits(CONTENT.contact.whatsapp);
+  const msg = encodeURIComponent(`Hi Kamal Jewellers! I'm interested in "${item.name}" (Sale price: ₹${sp.toLocaleString('en-IN')}). Is it available?`);
+  document.getElementById('smWa').href = wa ? `https://wa.me/${wa}?text=${msg}` : '#';
+  saleOv.classList.add('open'); saleOv.removeAttribute('aria-hidden');
+  if(window.lenis) window.lenis.stop();
+}
+function closeSaleModal(){
+  saleOv.classList.remove('open'); saleOv.setAttribute('aria-hidden','true');
+  if(window.lenis) window.lenis.start();
+}
+document.getElementById('saleClose').addEventListener('click', closeSaleModal);
+saleOv.addEventListener('click', e=>{ if(e.target===saleOv) closeSaleModal(); });
+document.addEventListener('keydown', e=>{ if(e.key==='Escape' && saleOv.classList.contains('open')) closeSaleModal(); });
+
+function buildSale(C){
+  const sec = document.getElementById('saleSec');
+  const track = document.getElementById('saleGrid');
+  const items = (C.saleItems||[]).filter(i=>i.active && i.stock > 0);
+  sec.classList.toggle('live', items.length > 0);
+  if(!items.length){ track.innerHTML=''; return; }
+  track.innerHTML = items.map(item=>{
+    const sp = Math.round(item.originalPrice * (1 - item.discountPct/100));
+    const low = item.stock > 0 && item.stock <= 3;
+    return `<div class="sale-card mag" data-sale-id="${esc(item.id)}">
+      <div class="sc-off">−${item.discountPct}% OFF</div>
+      <div class="sc-img">${item.photo?`<img src="${esc(item.photo)}" alt="${esc(item.name)}" loading="lazy"/>`:'<div style="height:100%"></div>'}</div>
+      <div class="sc-body">
+        <h4 class="sc-name">${esc(item.name)}</h4>
+        ${item.note?`<p class="sc-note">${esc(item.note)}</p>`:''}
+        <div class="sc-prices">
+          <span class="sc-orig">₹${item.originalPrice.toLocaleString('en-IN')}</span>
+          <span class="sc-sale">₹${sp.toLocaleString('en-IN')}</span>
+        </div>
+        ${low?`<div class="sc-stock show">Only ${item.stock} left!</div>`:''}
+        <button class="sc-btn">Reserve Now →</button>
+      </div>
+    </div>`;
+  }).join('');
+  track.querySelectorAll('.sale-card').forEach(card=>{
+    const id = card.dataset.saleId;
+    const item = (C.saleItems||[]).find(i=>i.id===id);
+    if(item) card.addEventListener('click', ()=>openSaleModal(item));
   });
 }
 
@@ -797,6 +893,7 @@ function buildAll(C){
   try{
     applyContent(C);
     initAnnouncement(C);
+    buildSale(C);
     buildCollections(C);
     buildReviews(C);
     setupEnquiry(C);

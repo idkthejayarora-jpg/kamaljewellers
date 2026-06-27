@@ -43,6 +43,7 @@ window.KAMAL_DEFAULTS = {
     {t:"Excellent quality and an incredibly wide variety of beautiful imitation jewellery.", w:"Verified Customer"},
     {t:"Such an enjoyable shopping experience with wonderful customer service.", w:"Verified Customer"}
   ],
+  saleItems:[],
   // Each collection's `images` entries are objects: { url, title, text, side }
   // (side: "" auto-alternate | "left" | "right" — which side the text sits on).
   // Plain URL strings from older saves are still accepted and auto-upgraded.

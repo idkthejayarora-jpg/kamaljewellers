@@ -59,7 +59,7 @@ body{padding-top:52px}
 
 /* ---- Photo bar — always-visible at bottom of each feature panel ---- */
 .feature{cursor:default}
-.ph-bar{position:absolute;bottom:0;left:0;right:0;z-index:8;display:flex;align-items:center;gap:.4rem;
+.ph-bar{position:absolute;bottom:0;left:0;right:0;z-index:20;display:flex;align-items:center;gap:.4rem;
   padding:.45rem .7rem;background:rgba(7,4,2,.88);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
   border-top:1px solid rgba(216,178,94,.18);overflow:hidden}
 .ph-bar .ph-label{font-size:.5rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);white-space:nowrap;flex-shrink:0}
@@ -219,6 +219,42 @@ body{padding-top:52px}
 .ratio.on{background:rgba(244,215,132,.18);color:var(--gold-bright);border-color:var(--gold-deep)}
 .toast{position:fixed;bottom:1.2rem;left:50%;transform:translateX(-50%) translateY(20px);opacity:0;transition:.4s var(--ease);background:#1c150d;border:1px solid var(--gold-deep);color:var(--gold-bright);padding:.8rem 1.4rem;border-radius:30px;font-size:.8rem;z-index:540}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ── Sale editor ────────────────────────────────────────────── */
+.sale-sec-edit{padding:3rem 1.2rem 4rem;max-width:860px;margin:0 auto}
+.sale-sec-edit .head{text-align:center;margin-bottom:2rem}
+.sale-sec-edit .head h3{font-family:'Cormorant Garamond';font-size:2rem;font-weight:300}
+.sale-sec-edit .head .eyebrow{color:rgba(243,234,215,.45);font-size:.58rem;letter-spacing:.22em;margin-top:.4rem}
+.si-card{background:rgba(255,255,255,.04);border:1px solid rgba(216,178,94,.15);border-radius:14px;
+  padding:1.2rem;display:grid;grid-template-columns:90px 1fr;gap:1.2rem;margin-bottom:1rem;position:relative;
+  transition:border-color .2s}
+.si-card:hover{border-color:rgba(216,178,94,.28)}
+.si-thumb{width:90px;height:118px;border-radius:10px;border:1px dashed rgba(216,178,94,.3);
+  background:rgba(255,255,255,.04);cursor:pointer;overflow:hidden;display:flex;align-items:center;
+  justify-content:center;color:rgba(243,234,215,.3);font-size:.6rem;text-align:center;
+  padding:.4rem;line-height:1.4;transition:border-color .2s,background .2s;flex-shrink:0}
+.si-thumb:hover{border-color:var(--gold);background:rgba(244,215,132,.06)}
+.si-thumb img{width:100%;height:100%;object-fit:cover}
+.si-fields{display:flex;flex-direction:column;gap:.52rem}
+.si-row{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap}
+.si-lbl{font-size:.54rem;letter-spacing:.13em;text-transform:uppercase;color:var(--gold);min-width:68px;flex-shrink:0}
+.si-inp{flex:1;min-width:80px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);
+  border-radius:6px;padding:.32rem .6rem;color:var(--cream);font-family:'Jost';font-size:.74rem;outline:none;
+  transition:border-color .2s,background .2s}
+.si-inp:focus{border-color:var(--gold);background:rgba(244,215,132,.07)}
+.si-inp[type=number]{width:82px;min-width:unset;flex:none}
+.si-stock-ctrl{display:flex;align-items:center;gap:.45rem}
+.si-stock-btn{width:24px;height:24px;border-radius:50%;border:1px solid rgba(216,178,94,.4);
+  background:rgba(255,255,255,.06);color:var(--gold-bright);font-size:1rem;line-height:1;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s}
+.si-stock-btn:hover{background:rgba(216,178,94,.2)}
+.si-stock-n{font-family:'Cormorant Garamond';font-size:1.3rem;color:var(--gold-bright);min-width:2rem;text-align:center}
+.si-active{display:flex;align-items:center;gap:.45rem;font-size:.66rem;color:var(--cream)}
+.si-toggle{width:14px;height:14px;accent-color:var(--gold);cursor:pointer}
+.si-del{position:absolute;top:.6rem;right:.7rem;background:none;border:none;color:#f07878;
+  cursor:pointer;font-size:.88rem;opacity:.55;transition:opacity .2s;padding:.1rem .3rem}
+.si-del:hover{opacity:1}
+.si-computed{font-size:.62rem;color:rgba(243,234,215,.35);letter-spacing:.04em}
 </style>
 </head>
 <body>
@@ -285,6 +321,18 @@ body{padding-top:52px}
     </div>
     <div class="review-field" id="reviewField"></div>
     <div style="text-align:center;margin-top:2rem"><button class="mini-ed" id="addReview">+ Add review</button></div>
+  </section>
+
+  <!-- SALE EDITOR -->
+  <section class="sale-sec-edit" id="saleSecEdit">
+    <div class="head">
+      <h3>Flash Sale</h3>
+      <div class="eyebrow">Active items appear on the live site under the hero · Stock = 0 hides them automatically</div>
+    </div>
+    <div id="saleItemList"></div>
+    <div style="text-align:center;margin:1.5rem 0">
+      <button class="mini-ed" id="addSaleItem">+ Add sale item</button>
+    </div>
   </section>
 
   <!-- VISIT -->
@@ -566,33 +614,56 @@ function makeFtextResizable(panel, entry){
   if(!ft) return;
   panel.querySelectorAll('.crn').forEach(crn=>{
     const xDir=parseInt(crn.dataset.xd), yDir=parseInt(crn.dataset.yd);
-    let dragging=false, startX, startY, startW, startH;
+    let dragging=false, panRect, oppX, oppY;
     crn.addEventListener('pointerdown',e=>{
       dragging=true; crn.classList.add('active');
       crn.setPointerCapture(e.pointerId);
-      startX=e.clientX; startY=e.clientY;
-      startW=ft.offsetWidth; startH=ft.offsetHeight;
+      // Capture panel rect and opposite-corner position once (stable during drag)
+      panRect=panel.getBoundingClientRect();
+      const fr=ft.getBoundingClientRect();
+      const cx=fr.left+fr.width/2-panRect.left;
+      const cy=fr.top+fr.height/2-panRect.top;
+      // Opposite corner stays fixed: subtract xDir/yDir * half-size
+      oppX=cx - xDir*(fr.width/2);
+      oppY=cy - yDir*(fr.height/2);
       if(rc) rc.classList.add('show');
       e.preventDefault(); e.stopPropagation();
     });
     crn.addEventListener('pointermove',e=>{
       if(!dragging) return;
-      const panelW=panel.offsetWidth, panelH=panel.offsetHeight;
-      const dW=(e.clientX-startX)*xDir*2;
-      const dH=(e.clientY-startY)*yDir*2;
-      const newW=Math.round(Math.max(120,Math.min(panelW*0.94,startW+dW)));
-      const newH=Math.round(Math.max(60,Math.min(panelH*0.88,startH+dH)));
-      const pctW=Math.round(newW/panelW*100);
+      const panW=panRect.width, panH=panRect.height;
+      const curX=e.clientX-panRect.left, curY=e.clientY-panRect.top;
+      // Size = distance from fixed opposite corner to cursor, in the drag direction
+      const rawW=xDir*(curX-oppX), rawH=yDir*(curY-oppY);
+      const newW=Math.max(60, rawW);   // allow very small — full Canva control
+      const newH=Math.max(36, rawH);
+      // New center = midpoint between opposite corner and the clamped dragged edge
+      const newCX=oppX + xDir*newW/2;
+      const newCY=oppY + yDir*newH/2;
+      const posX=Math.round(newCX/panW*100);
+      const posY=Math.round(newCY/panH*100);
+      const pctW=Math.round(newW/panW*100);
+      const pxH=Math.round(newH);
       const mob=device==='mob';
-      if(mob){entry.cardWm=pctW;entry.cardHm=newH;}
-      else{entry.cardW=pctW;entry.cardH=newH;}
-      ft.style.width=pctW+'%'; ft.style.minHeight=newH+'px';
-      if(rc) rc.textContent=`${pctW}% · ${newH}px`;
+      if(mob){ entry.posMobile={x:posX,y:posY}; entry.cardWm=pctW; entry.cardHm=pxH; }
+      else   { entry.pos     ={x:posX,y:posY}; entry.cardW =pctW; entry.cardH =pxH; }
+      ft.style.left=posX+'%'; ft.style.top=posY+'%';
+      ft.style.setProperty('--fp-x',posX+'%'); ft.style.setProperty('--fp-y',posY+'%');
+      ft.style.width=pctW+'%'; ft.style.minHeight=pxH+'px';
+      if(rc) rc.textContent=`${pctW}% · ${pxH}px`;
       markDirty();
     });
     const end=()=>{dragging=false;crn.classList.remove('active');if(rc)rc.classList.remove('show');};
     crn.addEventListener('pointerup',end);
     crn.addEventListener('pointercancel',end);
+    crn.addEventListener('dblclick',e=>{
+      e.preventDefault(); e.stopPropagation();
+      const mob=device==='mob';
+      if(mob){entry.cardWm=null;entry.cardHm=null;}else{entry.cardW=null;entry.cardH=null;}
+      applyFtextSize(panel,entry);
+      if(rc){rc.textContent='Reset';rc.classList.add('show');setTimeout(()=>rc.classList.remove('show'),900);}
+      markDirty(); toast('Card size reset to auto');
+    });
   });
 }
 
@@ -745,11 +816,12 @@ function buildFeature(c, entry, idx){
       <div class="da da-e">→</div>
     </div>
     <div class="ph-bar">
-      <span class="ph-label">Photo ${idx+1}</span>
+      <span class="ph-label">${device==='mob'?'📱':'🖥'} ${idx+1}</span>
       <div class="ph-btns">
         <button class="ph-btn" data-a="adjust">🖼 Adjust</button>
         <button class="ph-btn" data-a="moveCard">✥ Move</button>
         <button class="ph-btn" data-a="toggleCard">🚫 Hide</button>
+        <button class="ph-btn" data-a="resetSize">↺ Size</button>
         <button class="ph-btn" data-a="up">↑</button>
         <button class="ph-btn" data-a="down">↓</button>
         <button class="ph-btn" data-a="replace">🔄 Replace</button>
@@ -775,7 +847,11 @@ function buildFeature(c, entry, idx){
   // tools
   const ci=C.collections.indexOf(c), ii=c.images.indexOf(entry);
   panel.querySelector('[data-a="replace"]').addEventListener('click',ev=>{ ev.stopPropagation(); pickPhoto(ci,ii); });
-  panel.querySelector('[data-a="del"]').addEventListener('click',ev=>{ ev.stopPropagation(); removePhoto(ci,ii); });
+  { const delBtn=panel.querySelector('[data-a="del"]'); let delTimer;
+    delBtn.addEventListener('click',ev=>{ ev.stopPropagation();
+      if(delBtn.dataset.confirming){ clearTimeout(delTimer); delete delBtn.dataset.confirming; delBtn.textContent='🗑'; removePhoto(ci,ii); }
+      else{ delBtn.dataset.confirming='1'; delBtn.textContent='Sure?'; delTimer=setTimeout(()=>{ delete delBtn.dataset.confirming; delBtn.textContent='🗑'; },2500); }
+    }); }
   panel.querySelector('[data-a="up"]').addEventListener('click',ev=>{ ev.stopPropagation(); move(ci,ii,-1); });
   panel.querySelector('[data-a="down"]').addEventListener('click',ev=>{ ev.stopPropagation(); move(ci,ii,1); });
   panel.querySelector('[data-a="link"]').addEventListener('click',ev=>{ ev.stopPropagation();
@@ -792,6 +868,11 @@ function buildFeature(c, entry, idx){
     applyCardVisibility(panel, entry);
     markDirty();
     toast(entry.showCard === false ? 'Card hidden on live site' : 'Card visible on live site');
+  });
+  panel.querySelector('[data-a="resetSize"]').addEventListener('click',ev=>{ ev.stopPropagation();
+    const mob=device==='mob';
+    if(mob){entry.cardWm=null;entry.cardHm=null;}else{entry.cardW=null;entry.cardH=null;}
+    applyFtextSize(panel,entry); markDirty(); toast('Card size reset to auto');
   });
   makeFtextDraggable(panel, entry);
   makeImgDraggable(panel, entry);
@@ -861,6 +942,105 @@ function renderReviews(){
   });
 }
 $('#addReview').addEventListener('click',()=>{ C.reviews=C.reviews||[]; C.reviews.push({t:'A lovely new review…',w:'Verified Customer'}); markDirty(); renderReviews(); });
+
+/* ── Sale editor ────────────────────────────────────────────── */
+function renderSale(){
+  const list=$('#saleItemList'); if(!list) return;
+  C.saleItems=C.saleItems||[];
+  list.innerHTML='';
+  if(!C.saleItems.length){
+    list.innerHTML='<p style="text-align:center;color:rgba(243,234,215,.35);font-size:.75rem;padding:1.8rem 0">No sale items yet — click + Add sale item to get started.</p>';
+    return;
+  }
+  C.saleItems.forEach((item,idx)=>{
+    const sp=item.originalPrice&&item.discountPct?Math.round(item.originalPrice*(1-item.discountPct/100)):null;
+    const card=el('div','si-card');
+    const thumbHtml=item.photo?`<img src="${esc(item.photo)}" alt="${esc(item.name||'')}" />`:'Tap to<br/>add photo';
+    card.innerHTML=`
+      <div class="si-thumb" data-idx="${idx}">${thumbHtml}</div>
+      <div class="si-fields">
+        <div class="si-row">
+          <span class="si-lbl">Name</span>
+          <input class="si-inp si-name" value="${esc(item.name||'')}" placeholder="e.g. Bangle Set No. 4" />
+        </div>
+        <div class="si-row">
+          <span class="si-lbl">Note</span>
+          <input class="si-inp si-note" value="${esc(item.note||'')}" placeholder="Short tagline (optional)" />
+        </div>
+        <div class="si-row">
+          <span class="si-lbl">Orig. ₹</span>
+          <input class="si-inp" type="number" min="0" step="50" value="${item.originalPrice||0}" data-f="originalPrice" />
+          <span class="si-lbl" style="min-width:44px;margin-left:.3rem">Off %</span>
+          <input class="si-inp" type="number" min="0" max="99" step="5" value="${item.discountPct||0}" data-f="discountPct" />
+        </div>
+        <div class="si-row">
+          <span class="si-lbl">Stock</span>
+          <div class="si-stock-ctrl">
+            <button class="si-stock-btn si-dec" title="Mark 1 sold">−</button>
+            <span class="si-stock-n">${item.stock??0}</span>
+            <button class="si-stock-btn si-inc" title="Add 1 to stock">+</button>
+          </div>
+          ${sp!=null?`<span class="si-computed" style="margin-left:.6rem">Sale price: ₹${sp.toLocaleString('en-IN')}</span>`:''}
+        </div>
+        <div class="si-row si-active">
+          <input type="checkbox" class="si-toggle" ${item.active?'checked':''} />
+          <span>Show on live site</span>
+          ${!item.active?'<span style="color:#ff9966;font-size:.6rem">(hidden)</span>':''}
+        </div>
+      </div>
+      <button class="si-del" title="Delete item">🗑</button>`;
+
+    // Photo upload
+    const thumb=card.querySelector('.si-thumb');
+    thumb.addEventListener('click',()=>{
+      const inp=document.createElement('input'); inp.type='file'; inp.accept='image/*';
+      inp.style.cssText='position:fixed;left:-9999px'; document.body.appendChild(inp);
+      inp.onchange=async()=>{
+        const file=inp.files[0]; inp.remove(); if(!file) return;
+        try{
+          toast('Uploading…');
+          const form=new FormData(); form.append('file',file); form.append('collection','sale');
+          const {url}=await api('/photos',{method:'POST',body:form});
+          item.photo=url;
+          thumb.innerHTML=`<img src="${url}" alt="" />`;
+          markDirty(); toast('Photo uploaded ✓');
+        }catch(e){ toast('Upload failed: '+(e.message||e)); }
+      };
+      inp.click();
+    });
+
+    // Text fields
+    card.querySelector('.si-name').addEventListener('input',e=>{ item.name=e.target.value; markDirty(); });
+    card.querySelector('.si-note').addEventListener('input',e=>{ item.note=e.target.value; markDirty(); });
+
+    // Number fields
+    card.querySelectorAll('.si-inp[data-f]').forEach(inp=>{
+      inp.addEventListener('input',()=>{ item[inp.dataset.f]=Number(inp.value)||0; markDirty(); });
+    });
+
+    // Stock ±
+    const stockN=card.querySelector('.si-stock-n');
+    card.querySelector('.si-dec').addEventListener('click',()=>{ item.stock=Math.max(0,(item.stock||0)-1); stockN.textContent=item.stock; markDirty(); });
+    card.querySelector('.si-inc').addEventListener('click',()=>{ item.stock=(item.stock||0)+1; stockN.textContent=item.stock; markDirty(); });
+
+    // Active toggle
+    card.querySelector('.si-toggle').addEventListener('change',e=>{ item.active=e.target.checked; markDirty(); });
+
+    // Two-tap delete
+    const delBtn=card.querySelector('.si-del'); let delTimer;
+    delBtn.addEventListener('click',()=>{
+      if(delBtn.dataset.confirming){ clearTimeout(delTimer); C.saleItems.splice(idx,1); markDirty(); renderSale(); }
+      else{ delBtn.dataset.confirming='1'; delBtn.textContent='Sure?'; delTimer=setTimeout(()=>{ delete delBtn.dataset.confirming; delBtn.textContent='🗑'; },2500); }
+    });
+
+    list.appendChild(card);
+  });
+}
+$('#addSaleItem').addEventListener('click',()=>{
+  C.saleItems=C.saleItems||[];
+  C.saleItems.push({id:crypto.randomUUID(),name:'New Item',note:'',photo:'',originalPrice:5000,discountPct:20,stock:5,active:false});
+  markDirty(); renderSale();
+});
 
 /* ── Settings drawer ────────────────────────────────────────── */
 function dfield(label,obj,key,ta){
@@ -961,7 +1141,6 @@ $('#cropUpload').addEventListener('click',async()=>{
 });
 
 async function removePhoto(ci,ii){
-  if(!confirm('Remove this photo?')) return;
   const entry=C.collections[ci].images[ii];
   const key=keyFromUrl(imgUrl(entry));
   C.collections[ci].images.splice(ii,1);
@@ -979,7 +1158,7 @@ function move(ci,ii,dir){
 }
 
 /* ── Boot ───────────────────────────────────────────────────── */
-function renderAll(){ renderChrome(); renderGrid(); renderReviews(); }
+function renderAll(){ renderChrome(); renderGrid(); renderReviews(); renderSale(); }
 async function checkSession(){
   if(!TOKEN) return;
   try{ await api('/content'); enterStudio(); }
