@@ -238,35 +238,88 @@ body{padding-top:52px}
 .sale-sec-edit .head h3{font-family:'Cormorant Garamond';font-size:2rem;font-weight:300}
 .sale-sec-edit .head .eyebrow{color:rgba(243,234,215,.45);font-size:.58rem;letter-spacing:.22em;margin-top:.4rem}
 .si-card{background:rgba(255,255,255,.04);border:1px solid rgba(216,178,94,.15);border-radius:14px;
-  padding:1.2rem;display:grid;grid-template-columns:90px 1fr;gap:1.2rem;margin-bottom:1rem;position:relative;
-  transition:border-color .2s}
+  margin-bottom:1rem;overflow:hidden;transition:border-color .2s}
 .si-card:hover{border-color:rgba(216,178,94,.28)}
-.si-thumb{width:90px;height:118px;border-radius:10px;border:1px dashed rgba(216,178,94,.3);
-  background:rgba(255,255,255,.04);cursor:pointer;overflow:hidden;display:flex;align-items:center;
-  justify-content:center;color:rgba(243,234,215,.3);font-size:.6rem;text-align:center;
-  padding:.4rem;line-height:1.4;transition:border-color .2s,background .2s;flex-shrink:0}
-.si-thumb:hover{border-color:var(--gold);background:rgba(244,215,132,.06)}
-.si-thumb img{width:100%;height:100%;object-fit:cover}
-.si-fields{display:flex;flex-direction:column;gap:.52rem}
-.si-row{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap}
-.si-lbl{font-size:.54rem;letter-spacing:.13em;text-transform:uppercase;color:var(--gold);min-width:68px;flex-shrink:0}
-.si-inp{flex:1;min-width:80px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);
-  border-radius:6px;padding:.32rem .6rem;color:var(--cream);font-family:'Jost';font-size:.74rem;outline:none;
-  transition:border-color .2s,background .2s}
-.si-inp:focus{border-color:var(--gold);background:rgba(244,215,132,.07)}
-.si-inp[type=number]{width:82px;min-width:unset;flex:none}
+/* collapsed header */
+.si-head{display:flex;align-items:center;gap:.9rem;padding:.7rem .9rem;cursor:pointer}
+.si-head-thumb{width:52px;height:64px;border-radius:8px;overflow:hidden;flex-shrink:0;
+  background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;
+  color:rgba(243,234,215,.3);font-size:.5rem;text-align:center;line-height:1.3}
+.si-head-thumb img{width:100%;height:100%;object-fit:cover}
+.si-head-info{flex:1;min-width:0}
+.si-head-name{font-family:'Cormorant Garamond';font-size:1.15rem;color:var(--cream);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.si-head-meta{display:flex;gap:.55rem;align-items:center;flex-wrap:wrap;font-size:.66rem;color:rgba(243,234,215,.55);margin-top:.15rem}
+.si-tag-off{background:#b82e2e;color:#fff;font-size:.55rem;padding:.1rem .4rem;border-radius:10px;letter-spacing:.04em}
+.si-head-stock{font-size:.58rem;letter-spacing:.08em;text-transform:uppercase}
+.si-head-stock.low{color:#ff9966}.si-head-stock.out{color:#f07878}
+.si-head-hidden{font-size:.55rem;color:#ff9966;border:1px solid rgba(255,153,102,.4);padding:.05rem .35rem;border-radius:8px}
+.si-expand{background:none;border:none;color:var(--gold-bright);font-size:.7rem;cursor:pointer;padding:.3rem .5rem;flex-shrink:0}
+/* body (hidden until open) */
+.si-body{display:none;padding:0 .9rem 1rem;border-top:1px solid rgba(216,178,94,.12)}
+.si-card.open .si-body{display:block}
+.si-section{margin-top:1rem}
+.si-sec-lbl{font-size:.56rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:.5rem}
+.si-sec-lbl small{text-transform:none;letter-spacing:.02em;color:rgba(243,234,215,.35)}
+/* gallery */
+.si-gallery{display:flex;gap:.55rem;flex-wrap:wrap}
+.si-img-tile{position:relative;width:74px;height:92px;border-radius:8px;overflow:hidden;border:1px solid rgba(255,255,255,.1)}
+.si-img-tile.cover{border-color:var(--gold)}
+.si-img-tile img{width:100%;height:100%;object-fit:cover}
+.si-cover-badge{position:absolute;bottom:0;left:0;right:0;background:rgba(216,178,94,.85);color:#1a1206;
+  font-size:.48rem;letter-spacing:.1em;text-transform:uppercase;text-align:center;padding:.12rem}
+.si-img-x{position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;border:none;
+  background:rgba(7,4,2,.8);color:#f07878;font-size:.8rem;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.si-mk-cover{position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;border:none;
+  background:rgba(7,4,2,.8);color:var(--gold-bright);font-size:.7rem;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.si-img-add{width:74px;height:92px;border-radius:8px;border:1px dashed rgba(216,178,94,.35);
+  background:rgba(255,255,255,.03);color:var(--gold);font-size:.56rem;cursor:pointer;transition:border-color .2s,background .2s}
+.si-img-add:hover{border-color:var(--gold);background:rgba(244,215,132,.06)}
+/* fields grid */
+.si-grid{display:grid;grid-template-columns:1fr 1fr;gap:.7rem;margin-top:1rem}
+.si-field{display:flex;flex-direction:column;gap:.25rem}
+.si-field.si-span2{grid-column:1/-1}
+.si-field>span{font-size:.54rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gold)}
+.si-field>span small{text-transform:none;letter-spacing:0;color:rgba(243,234,215,.35)}
+.si-field input,.si-field textarea,.si-inp{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);
+  border-radius:6px;padding:.4rem .6rem;color:var(--cream);font-family:'Jost';font-size:.78rem;outline:none;
+  transition:border-color .2s,background .2s;width:100%;resize:vertical}
+.si-field input:focus,.si-field textarea:focus,.si-inp:focus{border-color:var(--gold);background:rgba(244,215,132,.07)}
+.si-price-line{margin-top:.6rem;font-size:.72rem;color:rgba(243,234,215,.6)}
+.si-price-line b{color:var(--gold-bright);font-size:.95rem}
+.si-strike{text-decoration:line-through;color:rgba(243,234,215,.35);margin-left:.3rem}
+.si-row2{display:flex;align-items:center;gap:1rem;margin-top:.9rem;flex-wrap:wrap}
 .si-stock-ctrl{display:flex;align-items:center;gap:.45rem}
-.si-stock-btn{width:24px;height:24px;border-radius:50%;border:1px solid rgba(216,178,94,.4);
+.si-stock-btn{width:26px;height:26px;border-radius:50%;border:1px solid rgba(216,178,94,.4);
   background:rgba(255,255,255,.06);color:var(--gold-bright);font-size:1rem;line-height:1;
   cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s}
 .si-stock-btn:hover{background:rgba(216,178,94,.2)}
 .si-stock-n{font-family:'Cormorant Garamond';font-size:1.3rem;color:var(--gold-bright);min-width:2rem;text-align:center}
-.si-active{display:flex;align-items:center;gap:.45rem;font-size:.66rem;color:var(--cream)}
+.si-active{display:flex;align-items:center;gap:.45rem;font-size:.66rem;color:var(--cream);cursor:pointer}
 .si-toggle{width:14px;height:14px;accent-color:var(--gold);cursor:pointer}
-.si-del{position:absolute;top:.6rem;right:.7rem;background:none;border:none;color:#f07878;
-  cursor:pointer;font-size:.88rem;opacity:.55;transition:opacity .2s;padding:.1rem .3rem}
-.si-del:hover{opacity:1}
-.si-computed{font-size:.62rem;color:rgba(243,234,215,.35);letter-spacing:.04em}
+/* detail + review rows */
+.si-detail-row{display:flex;gap:.5rem;margin-bottom:.45rem}
+.si-detail-row .dl{flex:0 0 38%}.si-detail-row .dv{flex:1}
+.si-detail-row input{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:6px;
+  padding:.38rem .6rem;color:var(--cream);font-family:'Jost';font-size:.76rem;outline:none}
+.si-detail-row input:focus{border-color:var(--gold)}
+.si-review-row{border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:.55rem;margin-bottom:.55rem}
+.si-rev-top{display:flex;gap:.5rem;margin-bottom:.4rem}
+.si-rev-top .rn{flex:1;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:6px;
+  padding:.36rem .6rem;color:var(--cream);font-family:'Jost';font-size:.76rem;outline:none}
+.si-rev-top .rr{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:6px;
+  color:var(--gold-bright);font-family:'Jost';font-size:.74rem;padding:.36rem .4rem;outline:none}
+.si-review-row .rt{width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:6px;
+  padding:.4rem .6rem;color:var(--cream);font-family:'Jost';font-size:.76rem;outline:none;resize:vertical}
+.si-row-x{background:none;border:1px solid rgba(240,120,120,.4);color:#f07878;border-radius:6px;
+  width:30px;flex-shrink:0;cursor:pointer;font-size:.9rem}
+.si-row-x:hover{background:rgba(240,96,96,.15)}
+.si-footer{display:flex;justify-content:space-between;align-items:center;gap:1rem;margin-top:1.3rem;flex-wrap:wrap}
+.si-view{text-decoration:none}
+.si-del{background:rgba(240,96,96,.1);border:1px solid rgba(240,120,120,.35);color:#f07878;
+  border-radius:20px;padding:.4rem .8rem;font-family:'Jost';font-size:.58rem;letter-spacing:.1em;
+  text-transform:uppercase;cursor:pointer;transition:background .2s}
+.si-del:hover{background:rgba(240,96,96,.25)}
+@media(max-width:560px){.si-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -486,6 +539,26 @@ function normalizePhotos(){
          focal:e.focal||{x:50,y:50}, focalMobile:e.focalMobile||{x:50,y:50},
          cardW:e.cardW??null, cardWm:e.cardWm??null,
          cardH:e.cardH??null, cardHm:e.cardHm??null});
+  });
+  normalizeSale();
+}
+/* Upgrade sale items to the rich SKU model (multi-image, specs, reviews). */
+function normalizeSale(){
+  C.saleItems=(C.saleItems||[]).map(it=>{
+    const images = Array.isArray(it.images) && it.images.length ? it.images.slice()
+                 : (it.photo ? [it.photo] : []);
+    return {
+      id: it.id || (crypto.randomUUID ? crypto.randomUUID() : 's'+Date.now()+Math.random().toString(36).slice(2)),
+      name: it.name||'', sku: it.sku||'',
+      images,
+      note: it.note||'', description: it.description||'',
+      details: Array.isArray(it.details) ? it.details.map(d=>({label:d.label||'',value:d.value||''})) : [],
+      originalPrice: Number(it.originalPrice)||0,
+      discountPct: Number(it.discountPct)||0,
+      stock: it.stock==null?0:Number(it.stock)||0,
+      active: it.active!==false,
+      reviews: Array.isArray(it.reviews) ? it.reviews.map(r=>({name:r.name||'',rating:Number(r.rating)||5,text:r.text||''})) : []
+    };
   });
 }
 async function loadContent(){
@@ -1067,7 +1140,9 @@ function renderReviews(){
 }
 $('#addReview').addEventListener('click',()=>{ C.reviews=C.reviews||[]; C.reviews.push({t:'A lovely new review…',w:'Verified Customer'}); markDirty(); renderReviews(); });
 
-/* ── Sale editor ────────────────────────────────────────────── */
+/* ── Sale editor (Shopify-style SKU cards) ──────────────────── */
+const saleOpen=new Set(); // ids of expanded cards (preserved across re-render)
+function salePrice(it){ return Math.round((it.originalPrice||0)*(1-(it.discountPct||0)/100)); }
 function renderSale(){
   const list=$('#saleItemList'); if(!list) return;
   C.saleItems=C.saleItems||[];
@@ -1076,94 +1151,188 @@ function renderSale(){
     list.innerHTML='<p style="text-align:center;color:rgba(243,234,215,.35);font-size:.75rem;padding:1.8rem 0">No sale items yet — click + Add sale item to get started.</p>';
     return;
   }
-  C.saleItems.forEach((item,idx)=>{
-    const sp=item.originalPrice&&item.discountPct?Math.round(item.originalPrice*(1-item.discountPct/100)):null;
-    const card=el('div','si-card');
-    const thumbHtml=item.photo?`<img src="${esc(item.photo)}" alt="${esc(item.name||'')}" />`:'Tap to<br/>add photo';
-    card.innerHTML=`
-      <div class="si-thumb" data-idx="${idx}">${thumbHtml}</div>
-      <div class="si-fields">
-        <div class="si-row">
-          <span class="si-lbl">Name</span>
-          <input class="si-inp si-name" value="${esc(item.name||'')}" placeholder="e.g. Bangle Set No. 4" />
-        </div>
-        <div class="si-row">
-          <span class="si-lbl">Note</span>
-          <input class="si-inp si-note" value="${esc(item.note||'')}" placeholder="Short tagline (optional)" />
-        </div>
-        <div class="si-row">
-          <span class="si-lbl">Orig. ₹</span>
-          <input class="si-inp" type="number" min="0" step="50" value="${item.originalPrice||0}" data-f="originalPrice" />
-          <span class="si-lbl" style="min-width:44px;margin-left:.3rem">Off %</span>
-          <input class="si-inp" type="number" min="0" max="99" step="5" value="${item.discountPct||0}" data-f="discountPct" />
-        </div>
-        <div class="si-row">
-          <span class="si-lbl">Stock</span>
-          <div class="si-stock-ctrl">
-            <button class="si-stock-btn si-dec" title="Mark 1 sold">−</button>
-            <span class="si-stock-n">${item.stock??0}</span>
-            <button class="si-stock-btn si-inc" title="Add 1 to stock">+</button>
-          </div>
-          ${sp!=null?`<span class="si-computed" style="margin-left:.6rem">Sale price: ₹${sp.toLocaleString('en-IN')}</span>`:''}
-        </div>
-        <div class="si-row si-active">
-          <input type="checkbox" class="si-toggle" ${item.active?'checked':''} />
-          <span>Show on live site</span>
-          ${!item.active?'<span style="color:#ff9966;font-size:.6rem">(hidden)</span>':''}
+  C.saleItems.forEach((item,idx)=> list.appendChild(buildSaleCard(item,idx)) );
+}
+function buildSaleCard(item, idx){
+  const sp=salePrice(item);
+  const cover=item.images&&item.images[0];
+  const open=saleOpen.has(item.id);
+  const card=el('div','si-card'+(open?' open':''));
+  card.innerHTML=`
+    <div class="si-head">
+      <div class="si-head-thumb">${cover?`<img src="${esc(cover)}" alt="">`:'<span>no<br>image</span>'}</div>
+      <div class="si-head-info">
+        <div class="si-head-name">${esc(item.name||'Untitled item')}</div>
+        <div class="si-head-meta">
+          ${item.discountPct?`<span class="si-tag-off">−${item.discountPct}%</span>`:''}
+          <span>₹${sp.toLocaleString('en-IN')}</span>
+          <span class="si-head-stock${item.stock<=0?' out':(item.stock<=3?' low':'')}">${item.stock<=0?'Sold out':item.stock+' in stock'}</span>
+          ${item.active?'':'<span class="si-head-hidden">Hidden</span>'}
         </div>
       </div>
-      <button class="si-del" title="Delete item">🗑</button>`;
+      <div class="si-reorder">
+        <button class="si-mv si-mv-up" title="Move up"${idx===0?' disabled':''}>↑</button>
+        <button class="si-mv si-mv-down" title="Move down"${idx===C.saleItems.length-1?' disabled':''}>↓</button>
+      </div>
+      <button class="si-expand" title="Expand / collapse">${open?'▲':'▼'}</button>
+    </div>
+    <div class="si-body">
+      <!-- Images -->
+      <div class="si-section">
+        <div class="si-sec-lbl">Images <small>· first is the cover · use ◀ ▶ to reorder, ★ to make cover</small></div>
+        <div class="si-gallery"></div>
+      </div>
+      <!-- Core fields -->
+      <div class="si-grid">
+        <label class="si-field"><span>Name</span><input class="si-name" value="${esc(item.name||'')}" placeholder="Bangle Set No. 4"></label>
+        <label class="si-field"><span>SKU / code <small>(optional)</small></span><input class="si-sku" value="${esc(item.sku||'')}" placeholder="KJ-BNG-004"></label>
+        <label class="si-field si-span2"><span>Short tagline</span><input class="si-note" value="${esc(item.note||'')}" placeholder="Shown under the name"></label>
+        <label class="si-field si-span2"><span>Description</span><textarea class="si-desc" rows="3" placeholder="Tell the story of this piece…">${esc(item.description||'')}</textarea></label>
+        <label class="si-field"><span>Original price ₹</span><input class="si-inp" type="number" min="0" step="50" value="${item.originalPrice||0}" data-f="originalPrice"></label>
+        <label class="si-field"><span>Discount %</span><input class="si-inp" type="number" min="0" max="99" step="5" value="${item.discountPct||0}" data-f="discountPct"></label>
+      </div>
+      <div class="si-price-line">Sale price: <b>₹${sp.toLocaleString('en-IN')}</b>${item.discountPct?` <span class="si-strike">₹${(item.originalPrice||0).toLocaleString('en-IN')}</span>`:''}</div>
+      <div class="si-row2">
+        <span class="si-sec-lbl" style="margin:0">Stock</span>
+        <div class="si-stock-ctrl">
+          <button class="si-stock-btn si-dec" title="Mark 1 sold">−</button>
+          <span class="si-stock-n">${item.stock??0}</span>
+          <button class="si-stock-btn si-inc" title="Add 1 to stock">+</button>
+        </div>
+        <label class="si-active"><input type="checkbox" class="si-toggle" ${item.active?'checked':''}> Show on live site</label>
+      </div>
+      <!-- Product details / specs -->
+      <div class="si-section">
+        <div class="si-sec-lbl">Product details <small>· e.g. Material → 22k gold-plated</small></div>
+        <div class="si-detail-rows"></div>
+        <button class="mini-ed si-add-detail">+ Add detail</button>
+      </div>
+      <!-- Reviews -->
+      <div class="si-section">
+        <div class="si-sec-lbl">Customer reviews <small>· shown under this product's page</small></div>
+        <div class="si-review-rows"></div>
+        <button class="mini-ed si-add-review">+ Add review</button>
+      </div>
+      <div class="si-footer">
+        <a class="mini-ed si-view" href="product.html?id=${encodeURIComponent(item.id)}" target="_blank">View product page ↗</a>
+        <button class="si-del" title="Delete item">🗑 Delete item</button>
+      </div>
+    </div>`;
 
-    // Photo upload
-    const thumb=card.querySelector('.si-thumb');
-    thumb.addEventListener('click',()=>{
-      const inp=document.createElement('input'); inp.type='file'; inp.accept='image/*';
-      inp.style.cssText='position:fixed;left:-9999px'; document.body.appendChild(inp);
-      inp.onchange=async()=>{
-        const file=inp.files[0]; inp.remove(); if(!file) return;
-        try{
-          toast('Uploading…');
-          const form=new FormData(); form.append('file',file); form.append('collection','sale');
-          const {url}=await api('/photos',{method:'POST',body:form});
-          item.photo=url;
-          thumb.innerHTML=`<img src="${url}" alt="" />`;
-          markDirty(); toast('Photo uploaded ✓');
-        }catch(e){ toast('Upload failed: '+(e.message||e)); }
-      };
-      inp.click();
+  /* expand / collapse */
+  const toggleOpen=()=>{
+    if(saleOpen.has(item.id)) saleOpen.delete(item.id); else saleOpen.add(item.id);
+    card.classList.toggle('open');
+    card.querySelector('.si-expand').textContent = card.classList.contains('open')?'▲':'▼';
+  };
+  card.querySelector('.si-head').addEventListener('click',e=>{ if(e.target.closest('a,button')&&!e.target.closest('.si-expand')) return; toggleOpen(); });
+
+  /* ---- gallery ---- */
+  const gal=card.querySelector('.si-gallery');
+  const renderGallery=()=>{
+    gal.innerHTML='';
+    (item.images||[]).forEach((url,i)=>{
+      const tile=el('div','si-img-tile'+(i===0?' cover':''));
+      tile.innerHTML=`<img src="${esc(url)}" alt="">
+        ${i===0?'<span class="si-cover-badge">Cover</span>':'<button class="si-mk-cover" title="Make cover">★</button>'}
+        <button class="si-img-x" title="Remove">×</button>`;
+      tile.querySelector('.si-img-x').addEventListener('click',ev=>{ ev.stopPropagation(); item.images.splice(i,1); markDirty(); renderGallery(); refreshHead(); });
+      const mk=tile.querySelector('.si-mk-cover');
+      if(mk) mk.addEventListener('click',ev=>{ ev.stopPropagation(); const [m]=item.images.splice(i,1); item.images.unshift(m); markDirty(); renderGallery(); refreshHead(); });
+      gal.appendChild(tile);
     });
+    const add=el('button','si-img-add','+ Add image');
+    add.addEventListener('click',()=> pickImageFor(url=>{ item.images=item.images||[]; item.images.push(url); markDirty(); renderGallery(); refreshHead(); }, 'sale', 0.8));
+    gal.appendChild(add);
+  };
+  renderGallery();
 
-    // Text fields
-    card.querySelector('.si-name').addEventListener('input',e=>{ item.name=e.target.value; markDirty(); });
-    card.querySelector('.si-note').addEventListener('input',e=>{ item.note=e.target.value; markDirty(); });
+  /* refresh collapsed header summary */
+  const refreshHead=()=>{
+    const c2=item.images&&item.images[0];
+    card.querySelector('.si-head-thumb').innerHTML=c2?`<img src="${esc(c2)}" alt="">`:'<span>no<br>image</span>';
+    card.querySelector('.si-head-name').textContent=item.name||'Untitled item';
+    const sp2=salePrice(item);
+    card.querySelector('.si-head-meta').innerHTML=
+      `${item.discountPct?`<span class="si-tag-off">−${item.discountPct}%</span>`:''}`+
+      `<span>₹${sp2.toLocaleString('en-IN')}</span>`+
+      `<span class="si-head-stock${item.stock<=0?' out':(item.stock<=3?' low':'')}">${item.stock<=0?'Sold out':item.stock+' in stock'}</span>`+
+      `${item.active?'':'<span class="si-head-hidden">Hidden</span>'}`;
+    const pl=card.querySelector('.si-price-line');
+    pl.innerHTML=`Sale price: <b>₹${sp2.toLocaleString('en-IN')}</b>${item.discountPct?` <span class="si-strike">₹${(item.originalPrice||0).toLocaleString('en-IN')}</span>`:''}`;
+  };
 
-    // Number fields
-    card.querySelectorAll('.si-inp[data-f]').forEach(inp=>{
-      inp.addEventListener('input',()=>{ item[inp.dataset.f]=Number(inp.value)||0; markDirty(); });
-    });
-
-    // Stock ±
-    const stockN=card.querySelector('.si-stock-n');
-    card.querySelector('.si-dec').addEventListener('click',()=>{ item.stock=Math.max(0,(item.stock||0)-1); stockN.textContent=item.stock; markDirty(); });
-    card.querySelector('.si-inc').addEventListener('click',()=>{ item.stock=(item.stock||0)+1; stockN.textContent=item.stock; markDirty(); });
-
-    // Active toggle
-    card.querySelector('.si-toggle').addEventListener('change',e=>{ item.active=e.target.checked; markDirty(); });
-
-    // Two-tap delete
-    const delBtn=card.querySelector('.si-del'); let delTimer;
-    delBtn.addEventListener('click',()=>{
-      if(delBtn.dataset.confirming){ clearTimeout(delTimer); C.saleItems.splice(idx,1); markDirty(); renderSale(); }
-      else{ delBtn.dataset.confirming='1'; delBtn.textContent='Sure?'; delTimer=setTimeout(()=>{ delete delBtn.dataset.confirming; delBtn.textContent='🗑'; },2500); }
-    });
-
-    list.appendChild(card);
+  /* ---- text fields ---- */
+  card.querySelector('.si-name').addEventListener('input',e=>{ item.name=e.target.value; markDirty(); refreshHead(); });
+  card.querySelector('.si-sku').addEventListener('input',e=>{ item.sku=e.target.value; markDirty(); });
+  card.querySelector('.si-note').addEventListener('input',e=>{ item.note=e.target.value; markDirty(); });
+  card.querySelector('.si-desc').addEventListener('input',e=>{ item.description=e.target.value; markDirty(); });
+  card.querySelectorAll('.si-inp[data-f]').forEach(inp=>{
+    inp.addEventListener('input',()=>{ item[inp.dataset.f]=Number(inp.value)||0; markDirty(); refreshHead(); });
   });
+
+  /* ---- stock ---- */
+  const stockN=card.querySelector('.si-stock-n');
+  card.querySelector('.si-dec').addEventListener('click',()=>{ item.stock=Math.max(0,(item.stock||0)-1); stockN.textContent=item.stock; markDirty(); refreshHead(); });
+  card.querySelector('.si-inc').addEventListener('click',()=>{ item.stock=(item.stock||0)+1; stockN.textContent=item.stock; markDirty(); refreshHead(); });
+  card.querySelector('.si-toggle').addEventListener('change',e=>{ item.active=e.target.checked; markDirty(); refreshHead(); });
+
+  /* ---- details ---- */
+  const drows=card.querySelector('.si-detail-rows');
+  const renderDetails=()=>{
+    drows.innerHTML='';
+    (item.details||[]).forEach((d,i)=>{
+      const row=el('div','si-detail-row');
+      row.innerHTML=`<input class="dl" value="${esc(d.label||'')}" placeholder="Label (Material)">
+        <input class="dv" value="${esc(d.value||'')}" placeholder="Value (22k gold-plated)">
+        <button class="si-row-x" title="Remove">×</button>`;
+      row.querySelector('.dl').addEventListener('input',e=>{ d.label=e.target.value; markDirty(); });
+      row.querySelector('.dv').addEventListener('input',e=>{ d.value=e.target.value; markDirty(); });
+      row.querySelector('.si-row-x').addEventListener('click',()=>{ item.details.splice(i,1); markDirty(); renderDetails(); });
+      drows.appendChild(row);
+    });
+  };
+  renderDetails();
+  card.querySelector('.si-add-detail').addEventListener('click',()=>{ item.details=item.details||[]; item.details.push({label:'',value:''}); markDirty(); renderDetails(); });
+
+  /* ---- reviews ---- */
+  const rrows=card.querySelector('.si-review-rows');
+  const renderReviewRows=()=>{
+    rrows.innerHTML='';
+    (item.reviews||[]).forEach((r,i)=>{
+      const row=el('div','si-review-row');
+      row.innerHTML=`
+        <div class="si-rev-top">
+          <input class="rn" value="${esc(r.name||'')}" placeholder="Customer name">
+          <select class="rr">${[5,4,3,2,1].map(n=>`<option value="${n}" ${Number(r.rating)===n?'selected':''}>${'★'.repeat(n)}</option>`).join('')}</select>
+          <button class="si-row-x" title="Remove">×</button>
+        </div>
+        <textarea class="rt" rows="2" placeholder="What they said…">${esc(r.text||'')}</textarea>`;
+      row.querySelector('.rn').addEventListener('input',e=>{ r.name=e.target.value; markDirty(); });
+      row.querySelector('.rr').addEventListener('change',e=>{ r.rating=Number(e.target.value); markDirty(); });
+      row.querySelector('.rt').addEventListener('input',e=>{ r.text=e.target.value; markDirty(); });
+      row.querySelector('.si-row-x').addEventListener('click',()=>{ item.reviews.splice(i,1); markDirty(); renderReviewRows(); });
+      rrows.appendChild(row);
+    });
+  };
+  renderReviewRows();
+  card.querySelector('.si-add-review').addEventListener('click',()=>{ item.reviews=item.reviews||[]; item.reviews.push({name:'',rating:5,text:''}); markDirty(); renderReviewRows(); });
+
+  /* ---- delete (two-tap) ---- */
+  const delBtn=card.querySelector('.si-del'); let delTimer;
+  delBtn.addEventListener('click',()=>{
+    if(delBtn.dataset.confirming){ clearTimeout(delTimer); const i=C.saleItems.indexOf(item); if(i>-1)C.saleItems.splice(i,1); saleOpen.delete(item.id); markDirty(); renderSale(); }
+    else{ delBtn.dataset.confirming='1'; delBtn.textContent='Tap again to delete'; delTimer=setTimeout(()=>{ delete delBtn.dataset.confirming; delBtn.textContent='🗑 Delete item'; },2500); }
+  });
+
+  return card;
 }
 $('#addSaleItem').addEventListener('click',()=>{
   C.saleItems=C.saleItems||[];
-  C.saleItems.push({id:crypto.randomUUID(),name:'New Item',note:'',photo:'',originalPrice:5000,discountPct:20,stock:5,active:true});
+  const it={id:crypto.randomUUID(),name:'New Item',sku:'',images:[],note:'',description:'',details:[],originalPrice:5000,discountPct:20,stock:5,active:true,reviews:[]};
+  C.saleItems.push(it); saleOpen.add(it.id);
   markDirty(); renderSale();
+  setTimeout(()=>document.querySelector('.si-card.open')?.scrollIntoView({behavior:'smooth',block:'center'}),50);
 });
 $('#jumpSaleBtn').addEventListener('click',()=>{
   document.getElementById('saleSecEdit').scrollIntoView({behavior:'smooth',block:'start'});
@@ -1218,26 +1387,36 @@ $('#drawerOv').addEventListener('click',()=>openDrawer(false));
 
 /* ── Photos: crop + upload (mirrors admin.html) ─────────────── */
 function keyFromUrl(u){ const m=(u||'').match(/\/photos\/(.+)$/); return m?m[1]:null; }
-let cropper=null, cropColl=null, cropReplace=null;
+let cropper=null, cropColl=null, cropReplace=null, cropOnDone=null, cropUploadColl='sale';
+/* Generic cropper entry point — pick a file, crop, then hand the uploaded URL
+   to `onDone(url)`. Used by the sale-item editor (collections use pickPhoto). */
+function pickImageFor(onDone, coll='sale', ratio=0.8){
+  cropOnDone=onDone; cropUploadColl=coll; cropColl=null; cropReplace=null;
+  const inp=el('input'); inp.type='file'; inp.accept='image/*'; inp.style.cssText='position:fixed;left:-9999px';
+  document.body.appendChild(inp);
+  inp.onchange=()=>{ const f=inp.files[0]; inp.remove(); if(!f) return; openCropper(URL.createObjectURL(f), ratio); };
+  inp.click();
+}
 function pickPhoto(ci, ii){
-  cropColl=ci; cropReplace=ii; // ii=null → add new
+  cropColl=ci; cropReplace=ii; cropOnDone=null; // ii=null → add new
   const inp=el('input'); inp.type='file'; inp.accept='image/*'; inp.style.cssText='position:fixed;left:-9999px';
   document.body.appendChild(inp);
   inp.onchange=()=>{ const f=inp.files[0]; inp.remove(); if(!f) return; openCropper(URL.createObjectURL(f)); };
   inp.click();
 }
-function openCropper(src){
+function openCropper(src, ratio=0.8){
   if(cropper){ cropper.destroy(); cropper=null; }
   $('#cropOv').classList.add('open');
   const img=$('#cropImg'); img.src=src;
-  cropper=new Cropper(img,{viewMode:1,aspectRatio:0.8,autoCropArea:1,background:false,dragMode:'move'});
-  document.querySelectorAll('.ratio').forEach(x=>x.classList.toggle('on',x.dataset.r==='0.8'));
+  cropper=new Cropper(img,{viewMode:1,aspectRatio:ratio===0?NaN:ratio,autoCropArea:1,background:false,dragMode:'move'});
+  const rstr=String(ratio);
+  document.querySelectorAll('.ratio').forEach(x=>x.classList.toggle('on',x.dataset.r===rstr));
 }
 document.querySelectorAll('.ratio').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('.ratio').forEach(x=>x.classList.remove('on')); b.classList.add('on');
   const r=parseFloat(b.dataset.r); cropper.setAspectRatio(r===0?NaN:r);
 }));
-$('#cropCancel').addEventListener('click',()=>{ $('#cropOv').classList.remove('open'); if(cropper){cropper.destroy();cropper=null;} });
+$('#cropCancel').addEventListener('click',()=>{ $('#cropOv').classList.remove('open'); cropOnDone=null; if(cropper){cropper.destroy();cropper=null;} });
 $('#cropUpload').addEventListener('click',async()=>{
   if(!cropper){ toast('Pick a photo first.'); return; }
   const btn=$('#cropUpload'); btn.disabled=true;
@@ -1246,6 +1425,18 @@ $('#cropUpload').addEventListener('click',async()=>{
     if(!canvas){ toast('Image still loading — try again.'); return; }
     toast('Uploading…');
     const blob=await new Promise((res,rej)=>canvas.toBlob(b=>b?res(b):rej(new Error('Could not process image')),'image/jpeg',0.9));
+
+    // Callback path (sale items etc.) — upload, hand URL back, skip collection logic
+    if(cropOnDone){
+      const form=new FormData(); form.append('file',blob,'photo.jpg'); form.append('collection',cropUploadColl);
+      const { url } = await api('/photos',{method:'POST',body:form});
+      const cb=cropOnDone; cropOnDone=null;
+      $('#cropOv').classList.remove('open'); if(cropper){cropper.destroy();cropper=null;}
+      cb(url);
+      toast('Image added ✓');
+      return;
+    }
+
     const c=C.collections[cropColl];
     const form=new FormData(); form.append('file',blob,'photo.jpg'); form.append('collection',c.id);
     const { url } = await api('/photos',{method:'POST',body:form});

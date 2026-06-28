@@ -533,12 +533,14 @@ function buildSale(C){
   const items = (C.saleItems||[]).filter(i=>i.active && i.stock > 0);
   sec.classList.toggle('live', items.length > 0);
   if(!items.length){ track.innerHTML=''; return; }
+  const cover = it => (it.images && it.images[0]) || it.photo || '';
   track.innerHTML = items.map(item=>{
     const sp = Math.round(item.originalPrice * (1 - item.discountPct/100));
     const low = item.stock > 0 && item.stock <= 3;
-    return `<div class="sale-card mag" data-sale-id="${esc(item.id)}">
+    const img = cover(item);
+    return `<a class="sale-card mag" href="product.html?id=${encodeURIComponent(item.id)}" data-sale-id="${esc(item.id)}">
       <div class="sc-off">−${item.discountPct}% OFF</div>
-      <div class="sc-img">${item.photo?`<img src="${esc(item.photo)}" alt="${esc(item.name)}" loading="lazy"/>`:'<div style="height:100%"></div>'}</div>
+      <div class="sc-img">${img?`<img src="${esc(img)}" alt="${esc(item.name)}" loading="lazy"/>`:'<div style="height:100%"></div>'}</div>
       <div class="sc-body">
         <h4 class="sc-name">${esc(item.name)}</h4>
         ${item.note?`<p class="sc-note">${esc(item.note)}</p>`:''}
@@ -547,15 +549,10 @@ function buildSale(C){
           <span class="sc-sale">₹${sp.toLocaleString('en-IN')}</span>
         </div>
         ${low?`<div class="sc-stock show">Only ${item.stock} left!</div>`:''}
-        <button class="sc-btn">Reserve Now →</button>
+        <span class="sc-btn">View piece →</span>
       </div>
-    </div>`;
+    </a>`;
   }).join('');
-  track.querySelectorAll('.sale-card').forEach(card=>{
-    const id = card.dataset.saleId;
-    const item = (C.saleItems||[]).find(i=>i.id===id);
-    if(item) card.addEventListener('click', ()=>openSaleModal(item));
-  });
 }
 
 /* ============================================================

@@ -326,6 +326,7 @@ footer{position:relative;z-index:2;background:linear-gradient(180deg,var(--black
 .sale-track::-webkit-scrollbar{display:none}
 .sale-card{min-width:clamp(200px,48vw,255px);flex:0 0 auto;scroll-snap-align:start;
   position:relative;border-radius:18px;overflow:hidden;cursor:none;
+  display:block;text-decoration:none;color:inherit;
   background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);
   transition:transform .35s var(--ease),box-shadow .35s var(--ease)}
 .sale-card:hover{transform:translateY(-5px);box-shadow:0 24px 56px rgba(0,0,0,.55),0 0 0 1px rgba(216,178,94,.22)}
