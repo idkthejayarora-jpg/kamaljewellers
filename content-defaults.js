@@ -44,6 +44,8 @@ window.KAMAL_DEFAULTS = {
     {t:"Such an enjoyable shopping experience with wonderful customer service.", w:"Verified Customer"}
   ],
   saleItems:[],
+  // Welcome lead-capture popup. frequency: once | day | week | session | always
+  leadPopup:{enabled:true, delaySec:1, frequency:'once'},
   // Store photos shown in the "Visit our atelier" carousel.
   // Entries: { url, focal:{x,y}, caption }. Empty = fall back to storefront.jpg.
   storeImages:[],

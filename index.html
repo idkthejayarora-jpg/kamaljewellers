@@ -629,13 +629,35 @@ document.getElementById('enqForm').addEventListener('submit',async e=>{
 
 /* ============================================================
    WELCOME LEAD-CAPTURE POPUP
-   Shows once per visitor (localStorage). Click outside / skip to dismiss.
+   Timing + frequency are admin-controlled via Settings → Welcome popup.
    Submits into the same enquiries inbox as the Enquire form.
    ============================================================ */
-const LEAD_KEY='kj_lead_done';
+const LEAD_KEY='kj_lead_done';   // legacy "once" flag
+const LEAD_TS='kj_lead_ts';      // last-shown timestamp for day/week
 const leadOv=document.getElementById('leadOv');
+function leadCfg(){ return (CONTENT.leadPopup)||{enabled:true,delaySec:1,frequency:'once'}; }
 function leadClose(){ leadOv.classList.remove('open'); leadOv.setAttribute('aria-hidden','true'); if(window.lenis) lenis.start(); }
-function leadMarkDone(){ try{ localStorage.setItem(LEAD_KEY,'1'); }catch(e){} }
+function leadMarkSeen(){
+  const freq=leadCfg().frequency||'once';
+  try{
+    if(freq==='session') sessionStorage.setItem('kj_lead_seen','1');
+    else if(freq==='once') localStorage.setItem(LEAD_KEY,'1');
+    else if(freq==='day'||freq==='week') localStorage.setItem(LEAD_TS, String(Date.now()));
+    // 'always' records nothing
+  }catch(e){}
+}
+function leadSeenRecently(){
+  const freq=leadCfg().frequency||'once';
+  try{ if(localStorage.getItem(LEAD_KEY)==='1') return true; }catch(e){} // already converted/opted out → never again
+  if(freq==='always') return false;
+  try{
+    if(freq==='session') return sessionStorage.getItem('kj_lead_seen')==='1';
+    if(freq==='once') return localStorage.getItem(LEAD_KEY)==='1';
+    const last=parseInt(localStorage.getItem(LEAD_TS)||'0',10);
+    const span=freq==='week'?7*864e5:864e5; // day default
+    return (Date.now()-last) < span;
+  }catch(e){ return false; }
+}
 function leadOpen(){
   // fill "what are you looking for" from the live collections
   const sel=document.getElementById('leadInterest');
@@ -646,18 +668,21 @@ function leadOpen(){
       '<option value="Custom / bespoke piece">Custom / bespoke piece</option>';
   }
   leadOv.classList.add('open'); leadOv.removeAttribute('aria-hidden');
+  leadMarkSeen();  // count this view against the chosen frequency
   if(window.lenis) lenis.stop();
 }
 function maybeShowLead(){
-  let done=false; try{ done=localStorage.getItem(LEAD_KEY)==='1'; }catch(e){}
-  if(done) return;
-  setTimeout(leadOpen, 900); // small delay so the page paints first
+  const cfg=leadCfg();
+  if(cfg.enabled===false) return;
+  if(leadSeenRecently()) return;
+  const delay=Math.max(0,(cfg.delaySec!=null?cfg.delaySec:1)*1000);
+  setTimeout(leadOpen, delay);
 }
-// dismiss: click backdrop, ✕, or the "no thanks" link → remember & don't nag again
-leadOv.addEventListener('click', e=>{ if(e.target===leadOv){ leadMarkDone(); leadClose(); } });
-document.getElementById('leadSkip').addEventListener('click', ()=>{ leadMarkDone(); leadClose(); });
-document.getElementById('leadDismiss').addEventListener('click', ()=>{ leadMarkDone(); leadClose(); });
-document.addEventListener('keydown', e=>{ if(e.key==='Escape' && leadOv.classList.contains('open')){ leadMarkDone(); leadClose(); } });
+// dismiss: click backdrop, ✕, "no thanks" link, or Esc
+leadOv.addEventListener('click', e=>{ if(e.target===leadOv){ leadClose(); } });
+document.getElementById('leadSkip').addEventListener('click', leadClose);
+document.getElementById('leadDismiss').addEventListener('click', leadClose);
+document.addEventListener('keydown', e=>{ if(e.key==='Escape' && leadOv.classList.contains('open')){ leadClose(); } });
 document.getElementById('leadForm').addEventListener('submit', async e=>{
   e.preventDefault();
   const f=e.target, btn=document.getElementById('leadSubmit'), note=document.getElementById('leadNote');
@@ -675,7 +700,7 @@ document.getElementById('leadForm').addEventListener('submit', async e=>{
   try{
     const res=await fetch(API+'/enquiries',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
     if(!res.ok){ const d=await res.json().catch(()=>({})); throw new Error(d.error||res.statusText); }
-    leadMarkDone();
+    try{ localStorage.setItem(LEAD_KEY,'1'); }catch(e){}  // a converted visitor never sees it again
     document.getElementById('leadFormWrap').style.display='none';
     document.getElementById('leadDone').style.display='block';
     setTimeout(leadClose, 2200);

@@ -210,9 +210,10 @@ body{padding-top:52px}
 .fld{margin-bottom:.8rem}
 .fld:last-child{margin-bottom:0}
 .fld label{display:block;font-size:.54rem;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);margin-bottom:.4rem}
-.fld input,.fld textarea{width:100%;background:rgba(243,234,215,.04);border:1px solid rgba(216,178,94,.18);border-radius:10px;padding:.65rem .8rem;color:var(--cream);font-family:'Jost';font-size:.92rem;outline:none}
+.fld input,.fld textarea,.fld select{width:100%;background:rgba(243,234,215,.04);border:1px solid rgba(216,178,94,.18);border-radius:10px;padding:.65rem .8rem;color:var(--cream);font-family:'Jost';font-size:.92rem;outline:none}
 .fld textarea{resize:vertical;min-height:70px;line-height:1.5}
-.fld input:focus,.fld textarea:focus{border-color:var(--gold-bright)}
+.fld select option{background:#15110d}
+.fld input:focus,.fld textarea:focus,.fld select:focus{border-color:var(--gold-bright)}
 .fld .cbx{display:flex;align-items:center;gap:.6rem;color:var(--cream);font-size:.92rem}
 .fld .cbx input{width:18px;height:18px;accent-color:#d8b25e}
 .drawer .x{position:absolute;top:1.1rem;right:1.2rem;font-size:1.4rem;color:var(--gold);cursor:pointer;line-height:1}
@@ -1428,6 +1429,26 @@ function renderDrawer(){
   lbl.appendChild(box); lbl.appendChild(document.createTextNode('Show the bar on the site')); cb.appendChild(lbl); g.appendChild(cb);
   g.appendChild(dfield('Text', C.announcement,'text'));
   g.appendChild(dfield('Link when clicked (optional)', C.announcement,'link'));
+  b.appendChild(g);
+  // Welcome popup
+  if(!C.leadPopup) C.leadPopup={enabled:true,delaySec:1,frequency:'once'};
+  g=el('div','dgroup'); g.appendChild(el('h3',null,'Welcome popup'));
+  const lp=C.leadPopup;
+  const ecb=el('div','fld'); const elbl=el('label','cbx'); const ebox=el('input'); ebox.type='checkbox'; ebox.checked=lp.enabled!==false;
+  ebox.addEventListener('change',()=>{ lp.enabled=ebox.checked; markDirty(); });
+  elbl.appendChild(ebox); elbl.appendChild(document.createTextNode('Show the welcome popup')); ecb.appendChild(elbl); g.appendChild(ecb);
+  // delay
+  const df=el('div','fld'); df.appendChild(el('label',null,'Delay before it appears (seconds)'));
+  const din=el('input'); din.type='number'; din.min='0'; din.max='60'; din.step='0.5'; din.value=(lp.delaySec!=null?lp.delaySec:1);
+  din.addEventListener('input',()=>{ lp.delaySec=Math.max(0,Number(din.value)||0); markDirty(); });
+  df.appendChild(din); g.appendChild(df);
+  // frequency
+  const ff=el('div','fld'); ff.appendChild(el('label',null,'How often to show each visitor'));
+  const fsel=el('select');
+  [['once','Once per visitor (recommended)'],['day','Once per day'],['week','Once per week'],['session','Once per browsing session'],['always','Every page load']]
+    .forEach(([v,t])=>{ const o=el('option',null,t); o.value=v; if((lp.frequency||'once')===v) o.selected=true; fsel.appendChild(o); });
+  fsel.addEventListener('change',()=>{ lp.frequency=fsel.value; markDirty(); });
+  ff.appendChild(fsel); g.appendChild(ff);
   b.appendChild(g);
   // Contact
   g=el('div','dgroup'); g.appendChild(el('h3',null,'Contact & links'));
