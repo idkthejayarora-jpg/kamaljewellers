@@ -331,6 +331,36 @@ body{padding-top:52px}
   text-transform:uppercase;cursor:pointer;transition:background .2s}
 .si-del:hover{background:rgba(240,96,96,.25)}
 @media(max-width:560px){.si-grid{grid-template-columns:1fr}}
+/* store photos editor */
+.store-edit{width:100%}
+.store-gallery{display:flex;flex-direction:column;gap:.7rem;margin-top:.6rem}
+.store-row{display:flex;gap:.7rem;align-items:stretch}
+.store-thumb{position:relative;width:84px;height:112px;border-radius:10px;overflow:hidden;flex-shrink:0;
+  border:1px solid rgba(255,255,255,.12);background:#0d0b08}
+.store-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.store-thumb .st-btns{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:3px}
+.st-top{display:flex;justify-content:space-between}
+.st-bot{display:flex;justify-content:space-between;gap:3px}
+.store-thumb button{border:none;border-radius:5px;background:rgba(7,4,2,.8);color:var(--gold-bright);
+  font-size:.62rem;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
+.store-thumb .st-x{width:20px;height:20px;color:#f07878}
+.st-frame{flex:1;height:20px;letter-spacing:.06em;text-transform:uppercase;font-size:.5rem;gap:.2rem}
+.st-mv{width:20px;height:20px}
+.store-thumb button:hover{background:rgba(216,178,94,.32)}
+.store-thumb button:disabled{opacity:.25;cursor:default}
+.store-cap-col{flex:1;display:flex;flex-direction:column;justify-content:center;gap:.3rem}
+.store-cap-col label{font-size:.5rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gold)}
+.store-cap-inp{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:6px;
+  padding:.4rem .6rem;color:var(--cream);font-family:'Jost';font-size:.76rem;outline:none}
+.store-cap-inp:focus{border-color:var(--gold)}
+.store-add{width:84px;height:112px;border-radius:10px;border:1px dashed rgba(216,178,94,.4);
+  background:rgba(255,255,255,.03);color:var(--gold);font-size:.58rem;cursor:pointer;transition:border-color .2s,background .2s}
+.store-add:hover{border-color:var(--gold);background:rgba(244,215,132,.06)}
+/* framing modal stage */
+.store-frame-stage{width:min(340px,80vw);aspect-ratio:3/4;margin:0 auto;border-radius:12px;overflow:hidden;
+  position:relative;background:#0d0b08;border:1px solid rgba(216,178,94,.3);cursor:grab;touch-action:none}
+.store-frame-stage.grab{cursor:grabbing}
+.store-frame-stage img{width:100%;height:100%;object-fit:cover;display:block;user-select:none;pointer-events:none}
 </style>
 </head>
 <body>
@@ -424,9 +454,9 @@ body{padding-top:52px}
       <p style="margin-top:1rem;font-size:.72rem;color:rgba(243,234,215,.45)">Phone, Instagram &amp; map links live in <b style="color:var(--gold)">Settings</b>.</p>
     </div>
     <div class="visit-right">
-      <div class="store-card">
-        <img src="storefront.jpg" alt="Storefront" />
-        <div class="cap">Our store · Sadar Bazar</div>
+      <div class="store-edit">
+        <div class="si-sec-lbl">Store photos <small>· shown as a swipeable carousel on the home page</small></div>
+        <div class="store-gallery" id="storeGallery"></div>
       </div>
     </div>
   </section>
@@ -472,6 +502,19 @@ body{padding-top:52px}
       </div>
       <button class="ebtn ghost" id="cropCancel">Cancel</button>
       <button class="ebtn" id="cropUpload">Use photo</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== STORE PHOTO FRAMING MODAL ===== -->
+<div class="crop-ov" id="storeFrameOv">
+  <div class="crop-modal">
+    <h3>Adjust framing</h3>
+    <p class="sub">Drag the photo to choose what shows inside the 3:4 frame on the site.</p>
+    <div class="store-frame-stage" id="storeFrameStage"><img id="storeFrameImg" alt="" /></div>
+    <div class="crop-bar">
+      <button class="ebtn ghost" id="storeFrameReset">Reset to centre</button>
+      <button class="ebtn" id="storeFrameDone">Done</button>
     </div>
   </div>
 </div>
@@ -552,6 +595,14 @@ function normalizePhotos(){
          cardH:e.cardH??null, cardHm:e.cardHm??null});
   });
   normalizeSale();
+  normalizeStore();
+}
+/* Normalize store photos (carousel on the home page). */
+function normalizeStore(){
+  C.storeImages=(C.storeImages||[]).filter(x=>x&&(typeof x==='string'?x:x.url)).map(x=>{
+    if(typeof x==='string') return {url:x, focal:{x:50,y:22}, caption:''};
+    return {url:x.url, focal:{x:x.focal?.x??50, y:x.focal?.y??22}, caption:x.caption||''};
+  });
 }
 /* Upgrade sale items to the rich SKU model (multi-image, specs, reviews). */
 function normalizeSale(){
@@ -1497,8 +1548,83 @@ function move(ci,ii,dir){
   openCollection(C.collections[ci].id); renderGrid();
 }
 
+/* ── Store photos editor ────────────────────────────────────── */
+function renderStore(){
+  const gal=$('#storeGallery'); if(!gal) return;
+  C.storeImages=C.storeImages||[];
+  gal.innerHTML='';
+  C.storeImages.forEach((im,i)=>{
+    const fx=im.focal?.x??50, fy=im.focal?.y??22;
+    const row=el('div','store-row');
+    row.innerHTML=`
+      <div class="store-thumb">
+        <img src="${esc(im.url)}" alt="" style="object-position:${fx}% ${fy}%">
+        <div class="st-btns">
+          <div class="st-top">
+            <button class="st-mv st-l" title="Move up"${i===0?' disabled':''}>↑</button>
+            <button class="st-x" title="Remove">×</button>
+          </div>
+          <div class="st-bot">
+            <button class="st-mv st-r" title="Move down"${i===C.storeImages.length-1?' disabled':''}>↓</button>
+            <button class="st-frame" title="Adjust framing">⛶ Frame</button>
+          </div>
+        </div>
+      </div>
+      <div class="store-cap-col">
+        <label>Caption (optional)</label>
+        <input class="store-cap-inp" value="${esc(im.caption||'')}" placeholder="e.g. Our store · Sadar Bazar">
+      </div>`;
+    row.querySelector('.st-x').addEventListener('click',()=>{ C.storeImages.splice(i,1); markDirty(); renderStore(); });
+    row.querySelector('.st-l').addEventListener('click',()=>{ if(i>0){ [C.storeImages[i-1],C.storeImages[i]]=[C.storeImages[i],C.storeImages[i-1]]; markDirty(); renderStore(); } });
+    row.querySelector('.st-r').addEventListener('click',()=>{ if(i<C.storeImages.length-1){ [C.storeImages[i+1],C.storeImages[i]]=[C.storeImages[i],C.storeImages[i+1]]; markDirty(); renderStore(); } });
+    row.querySelector('.st-frame').addEventListener('click',()=> openStoreFrame(im));
+    row.querySelector('.store-cap-inp').addEventListener('input',e=>{ im.caption=e.target.value; markDirty(); });
+    gal.appendChild(row);
+  });
+  const add=el('button','store-add','+ Add photo');
+  add.addEventListener('click',()=> pickImageFor(url=>{ C.storeImages.push({url,focal:{x:50,y:22},caption:''}); markDirty(); renderStore(); }, 'store', 0.75));
+  gal.appendChild(add);
+}
+/* Drag-to-frame modal — sets each store photo's focal point (object-position) */
+let storeFrameItem=null;
+function openStoreFrame(im){
+  storeFrameItem=im;
+  const ov=$('#storeFrameOv'), img=$('#storeFrameImg');
+  img.src=im.url;
+  const apply=()=>{ img.style.objectPosition=`${im.focal.x}% ${im.focal.y}%`; };
+  apply();
+  ov.classList.add('open');
+}
+(function initStoreFrame(){
+  const stage=$('#storeFrameStage'), img=$('#storeFrameImg'), ov=$('#storeFrameOv');
+  if(!stage) return;
+  let dragging=false, sx, sy, fx0, fy0;
+  stage.addEventListener('pointerdown',e=>{
+    if(!storeFrameItem) return;
+    dragging=true; stage.classList.add('grab'); stage.setPointerCapture(e.pointerId);
+    sx=e.clientX; sy=e.clientY; fx0=storeFrameItem.focal.x; fy0=storeFrameItem.focal.y;
+    e.preventDefault();
+  });
+  stage.addEventListener('pointermove',e=>{
+    if(!dragging||!storeFrameItem) return;
+    const r=stage.getBoundingClientRect();
+    // drag right → reveal left of image → decrease x
+    const nx=Math.max(0,Math.min(100, fx0 - (e.clientX-sx)/r.width*100));
+    const ny=Math.max(0,Math.min(100, fy0 - (e.clientY-sy)/r.height*100));
+    storeFrameItem.focal={x:Math.round(nx),y:Math.round(ny)};
+    img.style.objectPosition=`${storeFrameItem.focal.x}% ${storeFrameItem.focal.y}%`;
+    markDirty();
+  });
+  const end=()=>{ dragging=false; stage.classList.remove('grab'); };
+  stage.addEventListener('pointerup',end);
+  stage.addEventListener('pointercancel',end);
+  $('#storeFrameReset').addEventListener('click',()=>{ if(storeFrameItem){ storeFrameItem.focal={x:50,y:50}; img.style.objectPosition='50% 50%'; markDirty(); } });
+  $('#storeFrameDone').addEventListener('click',()=>{ ov.classList.remove('open'); storeFrameItem=null; renderStore(); });
+  ov.addEventListener('click',e=>{ if(e.target===ov){ ov.classList.remove('open'); storeFrameItem=null; renderStore(); } });
+})();
+
 /* ── Boot ───────────────────────────────────────────────────── */
-function renderAll(){ renderChrome(); renderGrid(); renderReviews(); renderSale(); }
+function renderAll(){ renderChrome(); renderGrid(); renderReviews(); renderSale(); renderStore(); }
 function tokenExpired(token){
   try{
     const p=JSON.parse(atob(token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));

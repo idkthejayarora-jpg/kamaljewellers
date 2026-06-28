@@ -44,6 +44,9 @@ window.KAMAL_DEFAULTS = {
     {t:"Such an enjoyable shopping experience with wonderful customer service.", w:"Verified Customer"}
   ],
   saleItems:[],
+  // Store photos shown in the "Visit our atelier" carousel.
+  // Entries: { url, focal:{x,y}, caption }. Empty = fall back to storefront.jpg.
+  storeImages:[],
   // Each collection's `images` entries are objects: { url, title, text, side }
   // (side: "" auto-alternate | "left" | "right" — which side the text sits on).
   // Plain URL strings from older saves are still accepted and auto-upgraded.

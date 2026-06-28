@@ -133,9 +133,12 @@
         <div class="info-row"><div class="k">Follow</div><div class="v"><a id="visitInsta" href="https://linktr.ee/kamaljewellers_instagram" target="_blank" rel="noopener" data-hover>@kamaljewellers · Instagram ↗</a></div></div>
       </div>
       <div class="visit-right reveal">
-        <div class="store-card">
-          <img src="storefront.jpg" alt="Kamal Jewellers storefront, Sadar Bazar, Delhi" loading="lazy" />
-          <div class="cap">Our store · Sadar Bazar</div>
+        <div class="store-card" id="storeCard">
+          <div class="store-track" id="storeTrack"></div>
+          <button class="store-nav prev" id="storePrev" aria-label="Previous photo">‹</button>
+          <button class="store-nav next" id="storeNext" aria-label="Next photo">›</button>
+          <div class="cap" id="storeCap">Our store · Sadar Bazar</div>
+          <div class="store-dots" id="storeDots"></div>
         </div>
         <div class="map-card" id="mapCard">
           <iframe id="mapFrame"
@@ -974,11 +977,49 @@ lenis.on('scroll',({scroll})=>{ nav.classList.toggle('scrolled',scroll>40); runP
 /* ============================================================
    BOOT — resolve content (defaults ⊕ saved overrides), then build
    ============================================================ */
+function buildStore(C){
+  const track=document.getElementById('storeTrack');
+  const dotsWrap=document.getElementById('storeDots');
+  const prev=document.getElementById('storePrev');
+  const next=document.getElementById('storeNext');
+  if(!track) return;
+  let imgs=(C.storeImages||[]).filter(i=>i&&i.url);
+  if(!imgs.length) imgs=[{url:'storefront.jpg',focal:{x:50,y:22},caption:'Our store · Sadar Bazar'}];
+  track.innerHTML=imgs.map((im,i)=>{
+    const fx=im.focal?.x??50, fy=im.focal?.y??22;
+    return `<div class="store-slide"><img src="${esc(im.url)}" alt="Kamal Jewellers store photo ${i+1}" loading="lazy" style="object-position:${fx}% ${fy}%" /></div>`;
+  }).join('');
+  // dots
+  dotsWrap.innerHTML = imgs.length>1 ? imgs.map((_,i)=>`<button class="store-dot${i===0?' on':''}" data-i="${i}" aria-label="Go to photo ${i+1}"></button>`).join('') : '';
+  const multi = imgs.length>1;
+  prev.style.display = multi?'':'none';
+  next.style.display = multi?'':'none';
+  // caption follows the active slide
+  const cap=document.getElementById('storeCap');
+  const setCap=i=>{ const c=imgs[i]?.caption; if(c){ cap.textContent=c; cap.style.display=''; } else cap.style.display='none'; };
+  setCap(0);
+  // sync dots + caption on scroll
+  const slideW=()=>track.querySelector('.store-slide')?.offsetWidth||1;
+  let active=0;
+  const onScroll=()=>{
+    const i=Math.round(track.scrollLeft/slideW());
+    if(i!==active){ active=i;
+      dotsWrap.querySelectorAll('.store-dot').forEach((d,di)=>d.classList.toggle('on',di===i));
+      setCap(i);
+    }
+  };
+  track.onscroll=onScroll;
+  const go=i=>{ active=Math.max(0,Math.min(imgs.length-1,i)); track.scrollTo({left:active*slideW(),behavior:'smooth'}); };
+  dotsWrap.querySelectorAll('.store-dot').forEach(d=>d.addEventListener('click',()=>go(Number(d.dataset.i))));
+  prev.onclick=()=>go(active-1);
+  next.onclick=()=>go(active+1);
+}
 function buildAll(C){
   try{
     applyContent(C);
     initAnnouncement(C);
     buildSale(C);
+    buildStore(C);
     buildCollections(C);
     buildReviews(C);
     setupEnquiry(C);
