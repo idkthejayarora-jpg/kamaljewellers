@@ -44,6 +44,20 @@ window.KAMAL_DEFAULTS = {
     {t:"Such an enjoyable shopping experience with wonderful customer service.", w:"Verified Customer"}
   ],
   saleItems:[],
+  // Tile (collection grid card) visual style — all editable from Studio → Settings
+  tileStyle:{
+    headingFont:'Cormorant Garamond',  // 'Cormorant Garamond' | 'Jost'
+    headingWeight:300,                 // 100 200 300 400 500 600
+    headingSize:'',                    // empty = site default clamp
+    headingColor:'#f3ead7',
+    numColor:'rgba(255,255,255,0.5)',
+    enterColor:'#f4d784',
+    borderColor:'rgba(255,255,255,0.12)',
+    borderWidth:1,
+    borderRadius:20,
+    glassOpacity:0.05,                 // tile background rgba(255,255,255, X)
+    overlayStrength:0.82               // bottom gradient max opacity
+  },
   // Welcome lead-capture popup. frequency: once | day | week | session | always
   leadPopup:{enabled:true, delaySec:1, frequency:'once'},
   // Store photos shown in the "Visit our atelier" carousel.

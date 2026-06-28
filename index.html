@@ -1039,6 +1039,29 @@ function buildStore(C){
   prev.onclick=()=>go(active-1);
   next.onclick=()=>go(active+1);
 }
+function applyTileStyle(C){
+  const ts=C.tileStyle||{};
+  const hf=ts.headingFont||'Cormorant Garamond';
+  const hw=ts.headingWeight??300;
+  const hs=ts.headingSize||'clamp(1.55rem,2vw,2.2rem)';
+  const hc=ts.headingColor||'#f3ead7';
+  const nc=ts.numColor||'rgba(255,255,255,0.5)';
+  const ec=ts.enterColor||'#f4d784';
+  const bc=ts.borderColor||'rgba(255,255,255,0.12)';
+  const bw=ts.borderWidth??1;
+  const br=ts.borderRadius??20;
+  const go=ts.glassOpacity??0.05;
+  const os=ts.overlayStrength??0.82;
+  const css=
+    `.tile{background:rgba(255,255,255,${go});border:${bw}px solid ${bc};border-radius:${br}px}`+
+    `.tile::after{background:linear-gradient(0deg,rgba(0,0,0,${os}) 0%,rgba(0,0,0,${(os*.61).toFixed(2)}) 22%,rgba(0,0,0,${(os*.12).toFixed(2)}) 48%,transparent 70%)}`+
+    `.tile h4{font-family:'${hf}',serif;font-weight:${hw};font-size:${hs};color:${hc}}`+
+    `.tile .num{color:${nc}}`+
+    `.tile .enter{color:${ec}}`;
+  let s=document.getElementById('tile-dyn');
+  if(!s){s=document.createElement('style');s.id='tile-dyn';document.head.appendChild(s);}
+  s.textContent=css;
+}
 function buildAll(C){
   try{
     applyContent(C);
@@ -1048,6 +1071,7 @@ function buildAll(C){
     buildCollections(C);
     buildReviews(C);
     setupEnquiry(C);
+    applyTileStyle(C);
     if(window.lenis) window.lenis.resize();
   }catch(e){ console.warn('build failed', e); }
 }
