@@ -59,13 +59,25 @@ body{padding-top:52px}
 
 /* ---- Photo bar — always-visible at bottom of each feature panel ---- */
 .feature{cursor:default}
-.ph-bar{position:absolute;bottom:0;left:0;right:0;z-index:20;display:flex;align-items:center;gap:.4rem;
-  padding:.45rem .7rem;background:rgba(7,4,2,.88);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
-  border-top:1px solid rgba(216,178,94,.18);overflow:hidden}
+.ph-bar{position:absolute;bottom:0;left:0;right:0;z-index:20;display:flex;flex-direction:column;align-items:stretch;
+  background:rgba(7,4,2,.88);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-top:1px solid rgba(216,178,94,.18)}
+.ph-row{display:flex;align-items:center;gap:.4rem;padding:.45rem .7rem;overflow:hidden}
 .ph-bar .ph-label{font-size:.5rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);white-space:nowrap;flex-shrink:0}
 .ph-bar .ph-btns{display:flex;gap:.28rem;overflow-x:auto;-webkit-overflow-scrolling:touch;flex-shrink:1;
   scrollbar-width:none;-ms-overflow-style:none}
 .ph-bar .ph-btns::-webkit-scrollbar{display:none}
+/* Card properties row — W / H / X / Y direct inputs */
+.card-props{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;padding:.28rem .7rem .36rem;
+  border-top:1px solid rgba(255,255,255,.07)}
+.cp-label{display:inline-flex;align-items:center;gap:.18rem;font-size:.52rem;
+  color:rgba(243,234,215,.5);letter-spacing:.04em;white-space:nowrap}
+.card-props input[type=number]{width:40px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);
+  border-radius:4px;color:var(--gold-bright);padding:.14rem .2rem;font-family:'Jost';font-size:.6rem;
+  text-align:center;-webkit-appearance:none;-moz-appearance:textfield}
+.card-props input[type=number]:focus{outline:none;border-color:var(--gold-bright);background:rgba(216,178,94,.1)}
+.card-props input[type=number]::-webkit-inner-spin-button,.card-props input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none}
+.cp-div{width:1px;height:12px;background:rgba(255,255,255,.1);margin:0 .1rem}
 .ph-btn{display:inline-flex;align-items:center;gap:.2rem;padding:.36rem .58rem;border:none;border-radius:20px;
   background:rgba(255,255,255,.07);color:var(--gold-bright);font-family:'Jost';font-size:.53rem;letter-spacing:.09em;text-transform:uppercase;cursor:pointer;transition:background .18s,transform .15s;white-space:nowrap;flex-shrink:0}
 .ph-btn:hover{background:rgba(244,215,132,.22);transform:translateY(-1px)}
@@ -82,17 +94,17 @@ body{padding-top:52px}
 .drag-grip.dragging{cursor:grabbing;transform:scale(.88)}
 .feature.placing .drag-grip{display:flex}
 /* corner resize handles — grab any corner to resize freely */
-.crn{position:absolute;width:18px;height:18px;display:none;z-index:11;
-  background:rgba(216,178,94,.14);border:1.5px solid rgba(216,178,94,.55);
+.crn{position:absolute;width:22px;height:22px;display:none;z-index:11;
+  background:rgba(216,178,94,.18);border:2px solid rgba(216,178,94,.65);
   user-select:none;touch-action:none;transition:background .15s,border-color .15s,transform .15s}
-.crn:hover{background:rgba(216,178,94,.32);border-color:var(--gold-bright);transform:scale(1.25)}
-.crn.active{background:rgba(216,178,94,.48);border-color:var(--gold-bright);transform:scale(1.1)}
+.crn:hover{background:rgba(216,178,94,.38);border-color:var(--gold-bright);transform:scale(1.2)}
+.crn.active{background:rgba(216,178,94,.55);border-color:var(--gold-bright);transform:scale(1.05)}
 .feature.placing .crn{display:block}
 .feature.reframing .crn,.feature.card-repo .crn,.feature.card-hidden .crn{display:none!important}
-.crn-tl{top:-7px;left:-7px;cursor:nw-resize;border-radius:5px 2px 2px 2px}
-.crn-tr{top:-7px;right:-7px;cursor:ne-resize;border-radius:2px 5px 2px 2px}
-.crn-bl{bottom:-7px;left:-7px;cursor:sw-resize;border-radius:2px 2px 2px 5px}
-.crn-br{bottom:-7px;right:-7px;cursor:se-resize;border-radius:2px 2px 5px 2px}
+.crn-tl{top:-9px;left:-9px;cursor:nw-resize;border-radius:6px 2px 2px 2px}
+.crn-tr{top:-9px;right:-9px;cursor:ne-resize;border-radius:2px 6px 2px 2px}
+.crn-bl{bottom:-9px;left:-9px;cursor:sw-resize;border-radius:2px 2px 2px 6px}
+.crn-br{bottom:-9px;right:-9px;cursor:se-resize;border-radius:2px 2px 6px 2px}
 /* size label shown while resizing */
 .resize-coord{position:absolute;top:-2.4rem;left:50%;transform:translateX(-50%);
   padding:.26rem .6rem;background:rgba(7,4,2,.92);border:1px solid rgba(216,178,94,.35);
@@ -282,6 +294,7 @@ body{padding-top:52px}
   </div>
   <div class="spacer"></div>
   <span class="state" id="state"></span>
+  <button class="ebtn ghost" id="jumpSaleBtn">⚡ Sale</button>
   <button class="ebtn ghost" id="settingsBtn">Settings</button>
   <a class="ebtn ghost" href="admin.html" target="_blank">Inbox ↗</a>
   <a class="ebtn ghost" href="index.html" target="_blank">View ↗</a>
@@ -313,6 +326,18 @@ body{padding-top:52px}
   <!-- COLLECTION DETAIL PANELS -->
   <div id="panels"></div>
 
+  <!-- SALE EDITOR -->
+  <section class="sale-sec-edit" id="saleSecEdit">
+    <div class="head">
+      <h3>Flash Sale</h3>
+      <div class="eyebrow">Active items with stock &gt; 0 appear live on the website · Save after changes</div>
+    </div>
+    <div id="saleItemList"></div>
+    <div style="text-align:center;margin:1.5rem 0">
+      <button class="mini-ed" id="addSaleItem">+ Add sale item</button>
+    </div>
+  </section>
+
   <!-- REVIEWS -->
   <section class="reviews" id="reviews">
     <div class="center">
@@ -321,18 +346,6 @@ body{padding-top:52px}
     </div>
     <div class="review-field" id="reviewField"></div>
     <div style="text-align:center;margin-top:2rem"><button class="mini-ed" id="addReview">+ Add review</button></div>
-  </section>
-
-  <!-- SALE EDITOR -->
-  <section class="sale-sec-edit" id="saleSecEdit">
-    <div class="head">
-      <h3>Flash Sale</h3>
-      <div class="eyebrow">Active items appear on the live site under the hero · Stock = 0 hides them automatically</div>
-    </div>
-    <div id="saleItemList"></div>
-    <div style="text-align:center;margin:1.5rem 0">
-      <button class="mini-ed" id="addSaleItem">+ Add sale item</button>
-    </div>
   </section>
 
   <!-- VISIT -->
@@ -436,9 +449,12 @@ async function api(path, opts={}){
   if(TOKEN) headers['Authorization']='Bearer '+TOKEN;
   const isForm = opts.body instanceof FormData;
   if(!isForm && opts.body && typeof opts.body!=='string'){ opts={...opts, body:JSON.stringify(opts.body)}; headers['Content-Type']='application/json'; }
-  const res = await fetch(API+path, {...opts, headers});
-  const data = await res.json().catch(()=>({}));
-  if(!res.ok) throw new Error(data.error||res.statusText);
+  let res;
+  try{ res = await fetch(API+path, {...opts, headers}); }
+  catch(e){ throw new Error('Network error — cannot reach '+API+path+' ('+e.message+')'); }
+  const text = await res.text().catch(()=>'');
+  let data = {}; try{ data=JSON.parse(text); }catch{}
+  if(!res.ok) throw new Error('[HTTP '+res.status+'] '+(data.error||text.slice(0,120)||res.statusText));
   return data;
 }
 
@@ -489,8 +505,23 @@ async function enterStudio(){
 $('#saveBtn').addEventListener('click', saveContent);
 async function saveContent(){
   const btn=$('#saveBtn'); btn.disabled=true; $('#state').textContent='Saving…';
-  try{ await api('/content',{method:'POST',body:{data:C}}); dirty=false; $('#state').textContent='Saved ✓'; toast('Saved — live site updated.'); }
-  catch(e){ console.warn(e); $('#state').textContent='Save failed'; toast('Save failed: '+e.message); }
+  try{
+    await api('/content',{method:'POST',body:{data:C}});
+    dirty=false; $('#state').textContent='Saved ✓'; toast('Saved — live site updated.');
+  }catch(e){
+    console.error('Save error:', e);
+    const msg = e.message||String(e);
+    if(/401/i.test(msg)){
+      TOKEN=null; sessionStorage.removeItem('kj_token');
+      $('#state').textContent='Session expired';
+      toast('Session expired — please log in again.');
+      setTimeout(()=>{ $('#ebar').style.display='none'; $('#login').style.display=''; },1400);
+    } else {
+      $('#state').textContent='Save error';
+      // Show full error in a prompt so user can read + copy it
+      alert('Save failed:\n\n'+msg);
+    }
+  }
   btn.disabled=false;
 }
 window.addEventListener('beforeunload',e=>{ if(dirty){ e.preventDefault(); e.returnValue=''; } });
@@ -596,6 +627,7 @@ function makeFtextDraggable(panel, entry){
     grip.classList.remove('dragging');
     if(coord) coord.classList.remove('show');
     if(dirs) dirs.classList.remove('show');
+    panel._syncProps?.();
   };
   grip.addEventListener('pointerup',endDrag);
   grip.addEventListener('pointercancel',endDrag);
@@ -617,46 +649,49 @@ function makeFtextResizable(panel, entry){
   if(!ft) return;
   panel.querySelectorAll('.crn').forEach(crn=>{
     const xDir=parseInt(crn.dataset.xd), yDir=parseInt(crn.dataset.yd);
-    let dragging=false, panRect, oppX, oppY;
+    let dragging=false;
+    let oppAbsX, oppAbsY; // opposite corner in ABSOLUTE screen coords — stable across scroll
     crn.addEventListener('pointerdown',e=>{
       dragging=true; crn.classList.add('active');
       crn.setPointerCapture(e.pointerId);
-      // Capture panel rect and opposite-corner position once (stable during drag)
-      panRect=panel.getBoundingClientRect();
       const fr=ft.getBoundingClientRect();
-      const cx=fr.left+fr.width/2-panRect.left;
-      const cy=fr.top+fr.height/2-panRect.top;
-      // Opposite corner stays fixed: subtract xDir/yDir * half-size
-      oppX=cx - xDir*(fr.width/2);
-      oppY=cy - yDir*(fr.height/2);
+      const cx=fr.left+fr.width/2;
+      const cy=fr.top+fr.height/2;
+      oppAbsX=cx - xDir*(fr.width/2);
+      oppAbsY=cy - yDir*(fr.height/2);
       if(rc) rc.classList.add('show');
       e.preventDefault(); e.stopPropagation();
     });
     crn.addEventListener('pointermove',e=>{
       if(!dragging) return;
-      const panW=panRect.width, panH=panRect.height;
-      const curX=e.clientX-panRect.left, curY=e.clientY-panRect.top;
-      // Size = distance from fixed opposite corner to cursor, in the drag direction
+      const pr=panel.getBoundingClientRect(); // refresh each frame — handles scroll
+      const panW=pr.width, panH=pr.height;
+      const oppX=oppAbsX-pr.left, oppY=oppAbsY-pr.top;
+      const curX=e.clientX-pr.left, curY=e.clientY-pr.top;
       const rawW=xDir*(curX-oppX), rawH=yDir*(curY-oppY);
       const newW=Math.max(1, rawW);
       const newH=Math.max(1, rawH);
-      // New center = midpoint between opposite corner and the clamped dragged edge
       const newCX=oppX + xDir*newW/2;
       const newCY=oppY + yDir*newH/2;
       const posX=Math.round(newCX/panW*100);
       const posY=Math.round(newCY/panH*100);
-      const pctW=Math.round(newW/panW*100);
-      const pxH=Math.round(newH);
+      const pctW=Math.max(1, Math.round(newW/panW*100));
+      const pxH=Math.max(1, Math.round(newH));
       const mob=device==='mob';
       if(mob){ entry.posMobile={x:posX,y:posY}; entry.cardWm=pctW; entry.cardHm=pxH; }
       else   { entry.pos     ={x:posX,y:posY}; entry.cardW =pctW; entry.cardH =pxH; }
       ft.style.left=posX+'%'; ft.style.top=posY+'%';
       ft.style.setProperty('--fp-x',posX+'%'); ft.style.setProperty('--fp-y',posY+'%');
       ft.style.width=pctW+'%'; ft.style.minHeight=pxH+'px';
-      if(rc) rc.textContent=`${pctW}% · ${pxH}px`;
+      if(rc) rc.textContent=`${pctW}% × ${pxH}px`;
+      panel._syncProps?.();
       markDirty();
     });
-    const end=()=>{dragging=false;crn.classList.remove('active');if(rc)rc.classList.remove('show');};
+    const end=()=>{
+      dragging=false; crn.classList.remove('active');
+      if(rc) rc.classList.remove('show');
+      panel._syncProps?.();
+    };
     crn.addEventListener('pointerup',end);
     crn.addEventListener('pointercancel',end);
     crn.addEventListener('dblclick',e=>{
@@ -664,10 +699,60 @@ function makeFtextResizable(panel, entry){
       const mob=device==='mob';
       if(mob){entry.cardWm=null;entry.cardHm=null;}else{entry.cardW=null;entry.cardH=null;}
       applyFtextSize(panel,entry);
-      if(rc){rc.textContent='Reset';rc.classList.add('show');setTimeout(()=>rc.classList.remove('show'),900);}
+      panel._syncProps?.();
+      if(rc){rc.textContent='↺ auto';rc.classList.add('show');setTimeout(()=>rc.classList.remove('show'),900);}
       markDirty(); toast('Card size reset to auto');
     });
   });
+}
+
+function setupCardProps(panel, entry){
+  const wIn=panel.querySelector('.cp-w');
+  const hIn=panel.querySelector('.cp-h');
+  const xIn=panel.querySelector('.cp-x');
+  const yIn=panel.querySelector('.cp-y');
+  if(!wIn) return;
+
+  function sync(){
+    const ae=document.activeElement;
+    if(ae===wIn||ae===hIn||ae===xIn||ae===yIn) return; // don't clobber active input
+    const mob=device==='mob';
+    const w=mob?(entry.cardWm??entry.cardW):entry.cardW;
+    const h=mob?(entry.cardHm??entry.cardH):entry.cardH;
+    const p=mob?(entry.posMobile||{x:50,y:80}):(entry.pos||{x:50,y:80});
+    wIn.value=w!=null?w:''; hIn.value=h!=null?h:'';
+    xIn.value=p.x??50; yIn.value=p.y??80;
+  }
+
+  function apply(){
+    const mob=device==='mob';
+    const w=wIn.value===''?null:Math.max(1,Math.min(100,Math.round(parseFloat(wIn.value))||1));
+    const h=hIn.value===''?null:Math.max(1,Math.round(parseFloat(hIn.value))||1);
+    const xv=parseFloat(xIn.value); const yv=parseFloat(yIn.value);
+    const x=Math.max(0,Math.min(100,Math.round(isNaN(xv)?50:xv)));
+    const y=Math.max(0,Math.min(100,Math.round(isNaN(yv)?80:yv)));
+    if(mob){entry.cardWm=w;entry.cardHm=h;entry.posMobile={x,y};}
+    else   {entry.cardW =w;entry.cardH =h;entry.pos      ={x,y};}
+    applyFtextPos(panel,entry);
+    applyFtextSize(panel,entry);
+    markDirty();
+  }
+
+  [wIn,hIn,xIn,yIn].forEach(inp=>{
+    inp.addEventListener('input',apply);
+    inp.addEventListener('keydown',e=>{
+      if(e.key==='ArrowUp'||e.key==='ArrowDown'){
+        e.preventDefault();
+        const d=e.shiftKey?10:1;
+        const v=parseFloat(inp.value)||0;
+        inp.value=e.key==='ArrowUp'?v+d:Math.max(0,v-d);
+        apply();
+      }
+    });
+  });
+
+  panel._syncProps=sync;
+  sync();
 }
 
 function applyCardVisibility(panel, entry){
@@ -732,6 +817,7 @@ function exitCardRepo(panel){
     delete ft._repo;
   }
   hint(''); toast('Card repositioned — hit Save to keep it');
+  panel._syncProps?.();
 }
 function applyFocalPos(panel, entry){
   const fimg=panel.querySelector('.fimg');
@@ -829,19 +915,29 @@ function buildFeature(c, entry, idx){
       <div class="da da-e">→</div>
     </div>
     <div class="ph-bar">
-      <span class="ph-label">${device==='mob'?'📱':'🖥'} ${idx+1}</span>
-      <div class="ph-btns">
-        <button class="ph-btn" data-a="adjust">🖼 Adjust</button>
-        <button class="ph-btn" data-a="moveCard">✥ Move</button>
-        <button class="ph-btn" data-a="toggleCard">🚫 Hide</button>
-        <button class="ph-btn" data-a="toggleEy">🚫 Eyebrow</button>
-        <button class="ph-btn" data-a="toggleTx">🚫 Body</button>
-        <button class="ph-btn" data-a="resetSize">↺ Size</button>
-        <button class="ph-btn" data-a="up">↑</button>
-        <button class="ph-btn" data-a="down">↓</button>
-        <button class="ph-btn" data-a="replace">🔄 Replace</button>
-        <button class="ph-btn" data-a="link">🔗 Link</button>
-        <button class="ph-btn del" data-a="del">🗑</button>
+      <div class="ph-row">
+        <span class="ph-label">${device==='mob'?'📱':'🖥'} ${idx+1}</span>
+        <div class="ph-btns">
+          <button class="ph-btn" data-a="adjust">🖼 Adjust</button>
+          <button class="ph-btn" data-a="moveCard">✥ Move</button>
+          <button class="ph-btn" data-a="toggleCard">🚫 Hide</button>
+          <button class="ph-btn" data-a="toggleEy">🚫 Eyebrow</button>
+          <button class="ph-btn" data-a="toggleTx">🚫 Body</button>
+          <button class="ph-btn" data-a="up">↑</button>
+          <button class="ph-btn" data-a="down">↓</button>
+          <button class="ph-btn" data-a="replace">🔄 Replace</button>
+          <button class="ph-btn" data-a="link">🔗 Link</button>
+          <button class="ph-btn del" data-a="del">🗑</button>
+        </div>
+      </div>
+      <div class="card-props">
+        <label class="cp-label">W <input class="cp-w" type="number" min="1" max="100" step="1" placeholder="auto">%</label>
+        <label class="cp-label">H <input class="cp-h" type="number" min="1" max="2000" step="1" placeholder="auto">px</label>
+        <div class="cp-div"></div>
+        <label class="cp-label">X <input class="cp-x" type="number" min="0" max="100" step="1">%</label>
+        <label class="cp-label">Y <input class="cp-y" type="number" min="0" max="100" step="1">%</label>
+        <div class="cp-div"></div>
+        <button class="ph-btn" data-a="resetSize" style="padding:.2rem .4rem;font-size:.46rem">↺ auto</button>
       </div>
     </div>`;
   // editable eyebrow / heading / description
@@ -899,12 +995,13 @@ function buildFeature(c, entry, idx){
   panel.querySelector('[data-a="resetSize"]').addEventListener('click',ev=>{ ev.stopPropagation();
     const mob=device==='mob';
     if(mob){entry.cardWm=null;entry.cardHm=null;}else{entry.cardW=null;entry.cardH=null;}
-    applyFtextSize(panel,entry); markDirty(); toast('Card size reset to auto');
+    applyFtextSize(panel,entry); panel._syncProps?.(); markDirty(); toast('Card size reset to auto');
   });
   makeFtextDraggable(panel, entry);
   makeImgDraggable(panel, entry);
   makeFtextResizable(panel, entry);
-  setTimeout(()=>{ applyFtextPos(panel, entry); applyFtextSize(panel, entry); applyCardVisibility(panel, entry); applyTextVisibility(panel, entry); },0);
+  setupCardProps(panel, entry);
+  setTimeout(()=>{ applyFtextPos(panel, entry); applyFtextSize(panel, entry); applyCardVisibility(panel, entry); applyTextVisibility(panel, entry); panel._syncProps?.(); },0);
   return panel;
 }
 
@@ -1065,8 +1162,11 @@ function renderSale(){
 }
 $('#addSaleItem').addEventListener('click',()=>{
   C.saleItems=C.saleItems||[];
-  C.saleItems.push({id:crypto.randomUUID(),name:'New Item',note:'',photo:'',originalPrice:5000,discountPct:20,stock:5,active:false});
+  C.saleItems.push({id:crypto.randomUUID(),name:'New Item',note:'',photo:'',originalPrice:5000,discountPct:20,stock:5,active:true});
   markDirty(); renderSale();
+});
+$('#jumpSaleBtn').addEventListener('click',()=>{
+  document.getElementById('saleSecEdit').scrollIntoView({behavior:'smooth',block:'start'});
 });
 
 /* ── Settings drawer ────────────────────────────────────────── */
@@ -1186,8 +1286,15 @@ function move(ci,ii,dir){
 
 /* ── Boot ───────────────────────────────────────────────────── */
 function renderAll(){ renderChrome(); renderGrid(); renderReviews(); renderSale(); }
+function tokenExpired(token){
+  try{
+    const p=JSON.parse(atob(token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));
+    return p.exp < Math.floor(Date.now()/1000);
+  }catch{ return true; }
+}
 async function checkSession(){
   if(!TOKEN) return;
+  if(tokenExpired(TOKEN)){ TOKEN=null; sessionStorage.removeItem('kj_token'); return; }
   try{ await api('/content'); enterStudio(); }
   catch(e){ if(/401|unauthorized/i.test(e.message)){ TOKEN=null; sessionStorage.removeItem('kj_token'); } }
 }
