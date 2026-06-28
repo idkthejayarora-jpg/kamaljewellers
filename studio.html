@@ -253,6 +253,11 @@ body{padding-top:52px}
 .si-head-stock{font-size:.58rem;letter-spacing:.08em;text-transform:uppercase}
 .si-head-stock.low{color:#ff9966}.si-head-stock.out{color:#f07878}
 .si-head-hidden{font-size:.55rem;color:#ff9966;border:1px solid rgba(255,153,102,.4);padding:.05rem .35rem;border-radius:8px}
+.si-reorder{display:flex;flex-direction:column;gap:2px;flex-shrink:0}
+.si-mv{width:26px;height:20px;border:1px solid rgba(216,178,94,.3);border-radius:5px;background:rgba(255,255,255,.05);
+  color:var(--gold-bright);font-size:.66rem;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s}
+.si-mv:hover{background:rgba(216,178,94,.2)}
+.si-mv:disabled{opacity:.25;cursor:default}
 .si-expand{background:none;border:none;color:var(--gold-bright);font-size:.7rem;cursor:pointer;padding:.3rem .5rem;flex-shrink:0}
 /* body (hidden until open) */
 .si-body{display:none;padding:0 .9rem 1rem;border-top:1px solid rgba(216,178,94,.12)}
@@ -271,6 +276,12 @@ body{padding-top:52px}
   background:rgba(7,4,2,.8);color:#f07878;font-size:.8rem;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .si-mk-cover{position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;border:none;
   background:rgba(7,4,2,.8);color:var(--gold-bright);font-size:.7rem;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.si-img-move{position:absolute;bottom:2px;left:2px;right:2px;display:flex;justify-content:space-between;gap:2px}
+.si-img-move button{flex:1;height:18px;border:none;border-radius:4px;background:rgba(7,4,2,.78);
+  color:var(--gold-bright);font-size:.6rem;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.si-img-move button:hover{background:rgba(216,178,94,.32)}
+.si-img-move button:disabled{opacity:.25;cursor:default}
+.si-img-tile.cover .si-img-move{bottom:18px}
 .si-img-add{width:74px;height:92px;border-radius:8px;border:1px dashed rgba(216,178,94,.35);
   background:rgba(255,255,255,.03);color:var(--gold);font-size:.56rem;cursor:pointer;transition:border-color .2s,background .2s}
 .si-img-add:hover{border-color:var(--gold);background:rgba(244,215,132,.06)}
@@ -1227,18 +1238,29 @@ function buildSaleCard(item, idx){
   };
   card.querySelector('.si-head').addEventListener('click',e=>{ if(e.target.closest('a,button')&&!e.target.closest('.si-expand')) return; toggleOpen(); });
 
+  /* reorder this item within the list */
+  card.querySelector('.si-mv-up').addEventListener('click',ev=>{ ev.stopPropagation(); const i=C.saleItems.indexOf(item); if(i>0){ [C.saleItems[i-1],C.saleItems[i]]=[C.saleItems[i],C.saleItems[i-1]]; markDirty(); renderSale(); } });
+  card.querySelector('.si-mv-down').addEventListener('click',ev=>{ ev.stopPropagation(); const i=C.saleItems.indexOf(item); if(i<C.saleItems.length-1){ [C.saleItems[i+1],C.saleItems[i]]=[C.saleItems[i],C.saleItems[i+1]]; markDirty(); renderSale(); } });
+
   /* ---- gallery ---- */
   const gal=card.querySelector('.si-gallery');
   const renderGallery=()=>{
     gal.innerHTML='';
-    (item.images||[]).forEach((url,i)=>{
+    const imgs=item.images||[];
+    imgs.forEach((url,i)=>{
       const tile=el('div','si-img-tile'+(i===0?' cover':''));
       tile.innerHTML=`<img src="${esc(url)}" alt="">
         ${i===0?'<span class="si-cover-badge">Cover</span>':'<button class="si-mk-cover" title="Make cover">★</button>'}
-        <button class="si-img-x" title="Remove">×</button>`;
+        <button class="si-img-x" title="Remove">×</button>
+        <div class="si-img-move">
+          <button class="si-img-l" title="Move left"${i===0?' disabled':''}>◀</button>
+          <button class="si-img-r" title="Move right"${i===imgs.length-1?' disabled':''}>▶</button>
+        </div>`;
       tile.querySelector('.si-img-x').addEventListener('click',ev=>{ ev.stopPropagation(); item.images.splice(i,1); markDirty(); renderGallery(); refreshHead(); });
       const mk=tile.querySelector('.si-mk-cover');
       if(mk) mk.addEventListener('click',ev=>{ ev.stopPropagation(); const [m]=item.images.splice(i,1); item.images.unshift(m); markDirty(); renderGallery(); refreshHead(); });
+      tile.querySelector('.si-img-l').addEventListener('click',ev=>{ ev.stopPropagation(); if(i>0){ [item.images[i-1],item.images[i]]=[item.images[i],item.images[i-1]]; markDirty(); renderGallery(); refreshHead(); } });
+      tile.querySelector('.si-img-r').addEventListener('click',ev=>{ ev.stopPropagation(); if(i<item.images.length-1){ [item.images[i+1],item.images[i]]=[item.images[i],item.images[i+1]]; markDirty(); renderGallery(); refreshHead(); } });
       gal.appendChild(tile);
     });
     const add=el('button','si-img-add','+ Add image');
