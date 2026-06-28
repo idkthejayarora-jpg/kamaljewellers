@@ -203,6 +203,33 @@
   </div>
 </div>
 
+<!-- ===== Welcome lead-capture popup (shows once on first visit) ===== -->
+<div class="lead-ov" id="leadOv" aria-hidden="true">
+  <div class="lead-modal">
+    <button class="lead-skip" id="leadSkip" aria-label="Close" title="Tap outside or here to skip">✕</button>
+    <div id="leadFormWrap">
+      <div class="eyebrow">Welcome to Kamal Jewellers</div>
+      <h4>Get our <em>latest looks &amp; offers</em></h4>
+      <p class="lead-intro">Leave your details and we'll send you new arrivals, viral pieces and sale alerts first. Takes 10 seconds.</p>
+      <form id="leadForm">
+        <div class="field"><label>Your name</label><input name="name" required maxlength="80" autocomplete="name" placeholder="e.g. Aarti Sharma" /></div>
+        <div class="field"><label>Email or phone</label><input name="contact" required maxlength="120" autocomplete="email" placeholder="you@email.com or +91…" /></div>
+        <div class="field"><label>What are you looking for?</label>
+          <select name="interest" id="leadInterest"><option value="Just browsing">Just browsing</option></select>
+        </div>
+        <button class="enq-submit mag" type="submit" id="leadSubmit">Keep me posted</button>
+        <div class="enq-note" id="leadNote"></div>
+        <div class="lead-dismiss" id="leadDismiss">No thanks, just let me browse</div>
+      </form>
+    </div>
+    <div class="enq-done" id="leadDone" style="display:none">
+      <div class="tick">✦</div>
+      <p>You're on the list — thank you!</p>
+      <small>We'll be in touch with the good stuff. Enjoy browsing.</small>
+    </div>
+  </div>
+</div>
+
 <!-- ===== Sale item modal ===== -->
 <div class="sale-ov" id="saleOv" aria-hidden="true">
   <div class="sale-modal">
@@ -598,6 +625,65 @@ document.getElementById('enqForm').addEventListener('submit',async e=>{
 });
 
 /* ============================================================
+   WELCOME LEAD-CAPTURE POPUP
+   Shows once per visitor (localStorage). Click outside / skip to dismiss.
+   Submits into the same enquiries inbox as the Enquire form.
+   ============================================================ */
+const LEAD_KEY='kj_lead_done';
+const leadOv=document.getElementById('leadOv');
+function leadClose(){ leadOv.classList.remove('open'); leadOv.setAttribute('aria-hidden','true'); if(window.lenis) lenis.start(); }
+function leadMarkDone(){ try{ localStorage.setItem(LEAD_KEY,'1'); }catch(e){} }
+function leadOpen(){
+  // fill "what are you looking for" from the live collections
+  const sel=document.getElementById('leadInterest');
+  if(sel && CONTENT.collections){
+    sel.innerHTML='<option value="Just browsing">Just browsing</option>'+
+      CONTENT.collections.map(c=>`<option value="${esc(c.name)}">${esc(c.name)}</option>`).join('')+
+      '<option value="A piece on sale">A piece on sale</option>'+
+      '<option value="Custom / bespoke piece">Custom / bespoke piece</option>';
+  }
+  leadOv.classList.add('open'); leadOv.removeAttribute('aria-hidden');
+  if(window.lenis) lenis.stop();
+}
+function maybeShowLead(){
+  let done=false; try{ done=localStorage.getItem(LEAD_KEY)==='1'; }catch(e){}
+  if(done) return;
+  setTimeout(leadOpen, 900); // small delay so the page paints first
+}
+// dismiss: click backdrop, ✕, or the "no thanks" link → remember & don't nag again
+leadOv.addEventListener('click', e=>{ if(e.target===leadOv){ leadMarkDone(); leadClose(); } });
+document.getElementById('leadSkip').addEventListener('click', ()=>{ leadMarkDone(); leadClose(); });
+document.getElementById('leadDismiss').addEventListener('click', ()=>{ leadMarkDone(); leadClose(); });
+document.addEventListener('keydown', e=>{ if(e.key==='Escape' && leadOv.classList.contains('open')){ leadMarkDone(); leadClose(); } });
+document.getElementById('leadForm').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const f=e.target, btn=document.getElementById('leadSubmit'), note=document.getElementById('leadNote');
+  const name=f.name.value.trim(), contact=f.contact.value.trim(), interest=f.interest.value;
+  if(!name||!contact){ note.textContent='Please add your name and an email or phone.'; return; }
+  const isEmail=/@/.test(contact);
+  const payload={
+    name,
+    phone:contact,                 // endpoint requires a phone field — store the contact here
+    email:isEmail?contact:null,
+    interest:'Welcome popup · '+interest,
+    message:`New lead from the welcome popup. Looking for: ${interest}. Reach them at: ${contact}.`
+  };
+  btn.disabled=true; note.textContent='Saving…';
+  try{
+    const res=await fetch(API+'/enquiries',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    if(!res.ok){ const d=await res.json().catch(()=>({})); throw new Error(d.error||res.statusText); }
+    leadMarkDone();
+    document.getElementById('leadFormWrap').style.display='none';
+    document.getElementById('leadDone').style.display='block';
+    setTimeout(leadClose, 2200);
+  }catch(err){
+    console.warn('lead failed', err);
+    note.textContent='Could not save right now — please try again.';
+    btn.disabled=false;
+  }
+});
+
+/* ============================================================
    LENIS SMOOTH (liquid momentum) SCROLL
    ============================================================ */
 const lenis = new Lenis({
@@ -915,6 +1001,7 @@ function boot(){
       bindMagnets();
       setupReviewFloat();
       document.querySelectorAll('.hero .reveal').forEach((el,i)=>setTimeout(()=>el.classList.add('in'),i*180));
+      maybeShowLead();
     },480);
   },wait);
 }
