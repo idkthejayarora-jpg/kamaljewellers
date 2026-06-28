@@ -166,6 +166,7 @@ body.theme-emerald .tp-inner{border-color:rgba(50,160,100,.45)}
 .collection.active{display:block}
 /* when immersed in a collection, hide the main flow so the panel sits at the top */
 body.viewing .hero,body.viewing #collections,
+body.viewing .sale-sec,body.viewing .sale-sec-edit,
 body.viewing .reviews,body.viewing .visit,body.viewing footer{display:none}
 .collection .topline{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:2.4rem;flex-wrap:wrap}
 .back{display:inline-flex;align-items:center;gap:.8rem;font-size:.62rem;letter-spacing:.35em;text-transform:uppercase;color:var(--gold);transition:gap .4s var(--ease)}
