@@ -460,9 +460,12 @@ $('#logoutBtn').addEventListener('click',()=>{
 function normalizePhotos(){
   (C.collections||[]).forEach(c=>{
     c.images=(c.images||[]).map(e=> typeof e==='string'
-      ? {url:e,title:'',text:'',side:'',link:'',eyebrow:'',showCard:true,pos:{x:50,y:80},posMobile:{x:50,y:80},focal:{x:50,y:50},focalMobile:{x:50,y:50},cardW:null,cardWm:null}
+      ? {url:e,title:'',text:'',side:'',link:'',eyebrow:'',showCard:true,showEyebrow:true,showText:true,
+         pos:{x:50,y:80},posMobile:{x:50,y:80},focal:{x:50,y:50},focalMobile:{x:50,y:50},
+         cardW:null,cardWm:null,cardH:null,cardHm:null}
       : {url:e.url,title:e.title||'',text:e.text||'',side:e.side||'',link:e.link||'',
          eyebrow:e.eyebrow||'',showCard:e.showCard!==false,
+         showEyebrow:e.showEyebrow!==false, showText:e.showText!==false,
          pos:e.pos||{x:50,y:80}, posMobile:e.posMobile||{x:50,y:80},
          focal:e.focal||{x:50,y:50}, focalMobile:e.focalMobile||{x:50,y:50},
          cardW:e.cardW??null, cardWm:e.cardWm??null,
@@ -635,8 +638,8 @@ function makeFtextResizable(panel, entry){
       const curX=e.clientX-panRect.left, curY=e.clientY-panRect.top;
       // Size = distance from fixed opposite corner to cursor, in the drag direction
       const rawW=xDir*(curX-oppX), rawH=yDir*(curY-oppY);
-      const newW=Math.max(60, rawW);   // allow very small — full Canva control
-      const newH=Math.max(36, rawH);
+      const newW=Math.max(1, rawW);
+      const newH=Math.max(1, rawH);
       // New center = midpoint between opposite corner and the clamped dragged edge
       const newCX=oppX + xDir*newW/2;
       const newCY=oppY + yDir*newH/2;
@@ -672,6 +675,16 @@ function applyCardVisibility(panel, entry){
   panel.classList.toggle('card-hidden', hidden);
   const btn = panel.querySelector('[data-a="toggleCard"]');
   if(btn) btn.textContent = hidden ? '👁 Show' : '🚫 Hide';
+}
+function applyTextVisibility(panel, entry){
+  const eyEl=panel.querySelector('.ft-eyebrow');
+  const txEl=panel.querySelector('.ft-p');
+  if(eyEl) eyEl.style.display = entry.showEyebrow===false ? 'none' : '';
+  if(txEl) txEl.style.display = entry.showText===false ? 'none' : '';
+  const eyBtn=panel.querySelector('[data-a="toggleEy"]');
+  const txBtn=panel.querySelector('[data-a="toggleTx"]');
+  if(eyBtn) eyBtn.textContent = entry.showEyebrow===false ? '👁 Eyebrow' : '🚫 Eyebrow';
+  if(txBtn) txBtn.textContent = entry.showText===false ? '👁 Body' : '🚫 Body';
 }
 function enterCardRepo(panel, entry){
   panel.classList.add('card-repo');
@@ -821,6 +834,8 @@ function buildFeature(c, entry, idx){
         <button class="ph-btn" data-a="adjust">🖼 Adjust</button>
         <button class="ph-btn" data-a="moveCard">✥ Move</button>
         <button class="ph-btn" data-a="toggleCard">🚫 Hide</button>
+        <button class="ph-btn" data-a="toggleEy">🚫 Eyebrow</button>
+        <button class="ph-btn" data-a="toggleTx">🚫 Body</button>
         <button class="ph-btn" data-a="resetSize">↺ Size</button>
         <button class="ph-btn" data-a="up">↑</button>
         <button class="ph-btn" data-a="down">↓</button>
@@ -869,6 +884,18 @@ function buildFeature(c, entry, idx){
     markDirty();
     toast(entry.showCard === false ? 'Card hidden on live site' : 'Card visible on live site');
   });
+  panel.querySelector('[data-a="toggleEy"]').addEventListener('click',ev=>{
+    ev.stopPropagation();
+    entry.showEyebrow = entry.showEyebrow === false ? true : false;
+    applyTextVisibility(panel, entry); markDirty();
+    toast(entry.showEyebrow === false ? 'Eyebrow hidden' : 'Eyebrow visible');
+  });
+  panel.querySelector('[data-a="toggleTx"]').addEventListener('click',ev=>{
+    ev.stopPropagation();
+    entry.showText = entry.showText === false ? true : false;
+    applyTextVisibility(panel, entry); markDirty();
+    toast(entry.showText === false ? 'Body text hidden' : 'Body text visible');
+  });
   panel.querySelector('[data-a="resetSize"]').addEventListener('click',ev=>{ ev.stopPropagation();
     const mob=device==='mob';
     if(mob){entry.cardWm=null;entry.cardHm=null;}else{entry.cardW=null;entry.cardH=null;}
@@ -877,7 +904,7 @@ function buildFeature(c, entry, idx){
   makeFtextDraggable(panel, entry);
   makeImgDraggable(panel, entry);
   makeFtextResizable(panel, entry);
-  setTimeout(()=>{ applyFtextPos(panel, entry); applyFtextSize(panel, entry); applyCardVisibility(panel, entry); },0);
+  setTimeout(()=>{ applyFtextPos(panel, entry); applyFtextSize(panel, entry); applyCardVisibility(panel, entry); applyTextVisibility(panel, entry); },0);
   return panel;
 }
 
@@ -1124,7 +1151,7 @@ $('#cropUpload').addEventListener('click',async()=>{
     const { url } = await api('/photos',{method:'POST',body:form});
     c.images=c.images||[];
     if(cropReplace!=null && c.images[cropReplace]){ c.images[cropReplace].url=url; }
-    else { c.images.push({url,title:'',text:'',side:'',link:'',eyebrow:'',showCard:true,pos:{x:50,y:80},posMobile:{x:50,y:80},focal:{x:50,y:50},focalMobile:{x:50,y:50},cardW:null,cardWm:null,cardH:null,cardHm:null}); }
+    else { c.images.push({url,title:'',text:'',side:'',link:'',eyebrow:'',showCard:true,showEyebrow:true,showText:true,pos:{x:50,y:80},posMobile:{x:50,y:80},focal:{x:50,y:50},focalMobile:{x:50,y:50},cardW:null,cardWm:null,cardH:null,cardHm:null}); }
     $('#cropOv').classList.remove('open'); if(cropper){cropper.destroy();cropper=null;}
     markDirty();
     if(openId===c.id) openCollection(c.id);

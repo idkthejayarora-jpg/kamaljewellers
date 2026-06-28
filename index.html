@@ -445,13 +445,15 @@ function buildCollections(C){
       const fsh=meta.cardH!=null?`--fs-h:${meta.cardH}px;`:'';
       const fshm=meta.cardHm!=null?`--fs-hm:${meta.cardHm}px;`:'';
       const showCard = meta.showCard !== false;
+      const showEyebrow = meta.showEyebrow !== false;
+      const showText = meta.showText !== false;
       if(s>0) features+=`<div class="seam-blur" aria-hidden="true"></div>`;
       features+=`<${ftag} class="feature reveal"${fattr}>
         <div class="fimg" style="${bg};--fi-x:${fx}%;--fi-y:${fy}%;--fi-xm:${fxm}%;--fi-ym:${fym}%"><span class="veil"></span></div>
         ${showCard?`<div class="ftext" style="--fp-x:${px}%;--fp-y:${py}%;--fp-xm:${pxm}%;--fp-ym:${pym}%;${fsw}${fswm}${fsh}${fshm}">
-          <div class="eyebrow">${eyebrow}</div>
+          ${showEyebrow?`<div class="eyebrow">${eyebrow}</div>`:''}
           <h3>${title}</h3>
-          ${text?`<p>${text}</p>`:''}
+          ${(text&&showText)?`<p>${text}</p>`:''}
           ${lnk?`<span class="feat-link-cue">View →</span>`:''}
         </div>`:''}
       </${ftag}>`;
