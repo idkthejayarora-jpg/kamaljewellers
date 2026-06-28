@@ -324,13 +324,13 @@ footer{position:relative;z-index:2;background:linear-gradient(180deg,var(--black
   overflow-x:auto;-webkit-overflow-scrolling:touch;scroll-snap-type:x mandatory;
   scrollbar-width:none;-ms-overflow-style:none}
 .sale-track::-webkit-scrollbar{display:none}
-.sale-card{min-width:clamp(200px,48vw,255px);flex:0 0 auto;scroll-snap-align:start;
+.sale-card{width:clamp(200px,48vw,255px);max-width:255px;min-width:0;flex:0 0 auto;scroll-snap-align:start;
   position:relative;border-radius:18px;overflow:hidden;cursor:none;
   display:block;text-decoration:none;color:inherit;
   background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);
   transition:transform .35s var(--ease),box-shadow .35s var(--ease)}
 .sale-card:hover{transform:translateY(-5px);box-shadow:0 24px 56px rgba(0,0,0,.55),0 0 0 1px rgba(216,178,94,.22)}
-.sc-img{aspect-ratio:3/4;overflow:hidden;background:#0d0b08}
+.sc-img{width:100%;aspect-ratio:3/4;overflow:hidden;background:#0d0b08}
 .sc-img img{width:100%;height:100%;object-fit:cover;transition:transform .7s var(--ease);display:block}
 .sale-card:hover .sc-img img{transform:scale(1.07)}
 .sc-off{position:absolute;top:.75rem;left:.75rem;background:#b82e2e;color:#fff;
