@@ -453,3 +453,20 @@ footer{position:relative;z-index:2;background:linear-gradient(180deg,var(--black
   .sm-img{max-height:220px}
   .sm-img img{height:100%;object-fit:cover}
 }
+
+/* ── Mobile performance: reduce GPU-heavy effects on touch devices ── */
+@media(hover:none){
+  /* Lighter blur on every glass surface — halves compositor work */
+  .tile{backdrop-filter:blur(8px) saturate(110%);-webkit-backdrop-filter:blur(8px) saturate(110%)}
+  .gcard{backdrop-filter:blur(8px) saturate(120%);-webkit-backdrop-filter:blur(8px) saturate(120%)}
+  .feature .ftext{backdrop-filter:blur(10px) saturate(140%);-webkit-backdrop-filter:blur(10px) saturate(140%)}
+  nav.scrolled{backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+  #srchInput{backdrop-filter:blur(12px) saturate(130%);-webkit-backdrop-filter:blur(12px) saturate(130%)}
+  .srch-drop{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(14,10,6,.97)}
+  /* Tighter hero gap on small screens */
+  .hero .sub{margin-top:1.1rem}
+  .srch-wrap{margin-top:1.2rem}
+  .srch-drop{max-height:260px}
+  /* No custom cursor elements needed on touch */
+  .cursor,.cursor-dot{display:none!important}
+}

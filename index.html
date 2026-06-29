@@ -721,20 +721,20 @@ document.getElementById('leadForm').addEventListener('submit', async e=>{
 /* ============================================================
    LENIS SMOOTH (liquid momentum) SCROLL
    ============================================================ */
-const lenis = new Lenis({
-  duration:1.5,
-  easing:t=>Math.min(1,1.001-Math.pow(2,-10*t)),
-  smoothWheel:true,
-  wheelMultiplier:0.95,
-  touchMultiplier:1.4
-});
-function raf(t){ lenis.raf(t); requestAnimationFrame(raf); }
-requestAnimationFrame(raf);
-window.lenis = lenis; // exposed for control
-
-/* scroll-velocity → warp the page imagery like water */
 let vel=0;
-lenis.on('scroll',({velocity})=>{ vel=velocity; });
+(function initScroll(){
+  if(matchMedia('(hover:none)').matches) return; // mobile: native scroll is faster
+  const lenis=new Lenis({
+    duration:1.5,
+    easing:t=>Math.min(1,1.001-Math.pow(2,-10*t)),
+    smoothWheel:true,
+    wheelMultiplier:0.95
+  });
+  function raf(t){ lenis.raf(t); requestAnimationFrame(raf); }
+  requestAnimationFrame(raf);
+  window.lenis=lenis;
+  lenis.on('scroll',({velocity})=>{ vel=velocity; });
+})();
 
 /* ============================================================
    WEBGL — molten gold caustic water (hero background)
@@ -798,7 +798,7 @@ lenis.on('scroll',({velocity})=>{ vel=velocity; });
   const uV=gl.getUniformLocation(prog,'V');
 
   function size(){
-    const dpr=Math.min(devicePixelRatio||1,1.0); // cap at 1× — hero looks fine, saves GPU
+    const dpr=matchMedia('(hover:none)').matches?Math.min(devicePixelRatio||1,.6):Math.min(devicePixelRatio||1,1.0);
     cv.width=innerWidth*dpr; cv.height=innerHeight*dpr;
     gl.viewport(0,0,cv.width,cv.height);
   }
@@ -1100,16 +1100,15 @@ function buildSearch(C){
     input.value=''; hideDrop(); input.blur();
   }
 
-  input.addEventListener('focus',()=>renderDrop(cols));
   input.addEventListener('input',()=>{
     const q=input.value.trim().toLowerCase();
-    if(!q){ renderDrop(cols); return; }
+    if(!q){ hideDrop(); return; }
     renderDrop(cols.filter(c=>
       c.name.toLowerCase().includes(q)||
       (c.tag||'').toLowerCase().includes(q)||
       (c.desc||'').toLowerCase().includes(q)||
       (c.lede||'').toLowerCase().includes(q)
-    ));
+    ).slice(0,6));
   });
 
   input.addEventListener('keydown',e=>{
