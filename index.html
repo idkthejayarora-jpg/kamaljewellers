@@ -721,10 +721,10 @@ document.getElementById('leadForm').addEventListener('submit', async e=>{
 /* ============================================================
    LENIS SMOOTH (liquid momentum) SCROLL
    ============================================================ */
-let vel=0;
+let vel=0, lenis;
 (function initScroll(){
   if(matchMedia('(hover:none)').matches) return; // mobile: native scroll is faster
-  const lenis=new Lenis({
+  lenis=new Lenis({
     duration:1.5,
     easing:t=>Math.min(1,1.001-Math.pow(2,-10*t)),
     smoothWheel:true,
@@ -870,7 +870,7 @@ const navToggle=document.getElementById('navToggle');
 const menu=document.getElementById('menu');
 function toggleMenu(open){
   document.body.classList.toggle('menu-open',open);
-  open?lenis.stop():lenis.start();
+  if(lenis){ open?lenis.stop():lenis.start(); }
 }
 navToggle.addEventListener('click',()=>toggleMenu(!document.body.classList.contains('menu-open')));
 
@@ -899,13 +899,13 @@ function runParallax(){
 
 function openCollection(id){
   if(document.body.classList.contains('menu-open')) toggleMenu(false);
-  lastScroll=lenis.scroll;
+  lastScroll=lenis?lenis.scroll:window.scrollY;
   document.querySelectorAll('.collection').forEach(s=>s.classList.remove('active'));
   const sec=document.getElementById('c-'+id);
   sec.classList.add('active');
   document.body.classList.add('viewing');
-  lenis.resize();
-  lenis.scrollTo(0,{immediate:true});
+  if(lenis){ lenis.resize(); lenis.scrollTo(0,{immediate:true}); }
+  else window.scrollTo({top:0,behavior:'instant'});
   watchReveals(sec);   // features fade in on scroll via IntersectionObserver
   bindMagnets();
   setupParallax(sec);
@@ -916,8 +916,8 @@ function closeCollection(){
   document.querySelectorAll('.collection').forEach(s=>s.classList.remove('active'));
   document.body.classList.remove('viewing');
   activeFimgs=[];
-  lenis.resize();
-  lenis.scrollTo(lastScroll,{immediate:true});
+  if(lenis){ lenis.resize(); lenis.scrollTo(lastScroll,{immediate:true}); }
+  else window.scrollTo({top:lastScroll,behavior:'instant'});
 }
 
 /* Single-tap intro: tile → themed loading card (3s) → blends into the collection */
@@ -987,8 +987,8 @@ document.addEventListener('click',e=>{
   }
   if(backEl){ e.preventDefault(); closeCollection(); return; }
   if(linkEl){ e.preventDefault();
-    if(document.querySelector('.collection.active')){ closeCollection(); lenis.scrollTo(0); }
-    else lenis.scrollTo(0);
+    if(document.querySelector('.collection.active')){ closeCollection(); }
+    if(lenis) lenis.scrollTo(0); else window.scrollTo({top:0,behavior:'smooth'});
     return;
   }
 });
@@ -996,8 +996,12 @@ document.addEventListener('click',e=>{
 document.getElementById('tpEnter').addEventListener('click',enterIntro);   // skip the wait
 document.getElementById('tpClose').addEventListener('click',clearTileTheme);
 
-/* nav bg on scroll + feature parallax */
-lenis.on('scroll',({scroll})=>{ nav.classList.toggle('scrolled',scroll>40); runParallax(); });
+/* nav bg on scroll + feature parallax — works with Lenis (desktop) and native scroll (mobile) */
+if(lenis){
+  lenis.on('scroll',({scroll})=>{ nav.classList.toggle('scrolled',scroll>40); runParallax(); });
+} else {
+  window.addEventListener('scroll',()=>{ nav.classList.toggle('scrolled',window.scrollY>40); runParallax(); },{passive:true});
+}
 
 /* ============================================================
    LOADER
