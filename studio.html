@@ -362,6 +362,13 @@ body{padding-top:52px}
 .store-add{width:84px;height:112px;border-radius:10px;border:1px dashed rgba(216,178,94,.4);
   background:rgba(255,255,255,.03);color:var(--gold);font-size:.58rem;cursor:pointer;transition:border-color .2s,background .2s}
 .store-add:hover{border-color:var(--gold);background:rgba(244,215,132,.06)}
+/* collection meta row: colour pickers + delete */
+.coll-meta{display:flex;align-items:center;gap:1rem;margin:.5rem 0 2.2rem;flex-wrap:wrap}
+.coll-clr{display:inline-flex;align-items:center;gap:.45rem;font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gold)}
+.coll-clr input[type=color]{width:34px;height:26px;border:1px solid rgba(216,178,94,.3);border-radius:6px;background:none;cursor:pointer;padding:2px}
+.coll-del{margin-left:auto;background:rgba(240,96,96,.1);border:1px solid rgba(240,120,120,.35);color:#f07878;border-radius:20px;padding:.38rem .85rem;font-family:'Jost';font-size:.56rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:background .2s}
+.coll-del:hover{background:rgba(240,96,96,.28)}
+
 /* framing modal stage */
 .store-frame-stage{width:min(340px,80vw);aspect-ratio:3/4;margin:0 auto;border-radius:12px;overflow:hidden;
   position:relative;background:#0d0b08;border:1px solid rgba(216,178,94,.3);cursor:grab;touch-action:none}
@@ -421,6 +428,9 @@ body{padding-top:52px}
       <div class="eyebrow">Tap a collection to edit its photos &amp; story</div>
     </div>
     <div class="grid" id="grid"></div>
+    <div style="text-align:center;margin:1.5rem 0">
+      <button class="mini-ed" id="addCollectionBtn">+ Add collection</button>
+    </div>
   </section>
 
   <!-- COLLECTION DETAIL PANELS -->
@@ -1158,17 +1168,41 @@ function openCollection(id){
   sec.innerHTML=`
     <div class="topline">
       <a class="back" id="backBtn">← All collections</a>
+      <button class="coll-del" id="collDelBtn">🗑 Delete collection</button>
       <span class="eyebrow">${n} / ${C.collections.length}</span>
     </div>
     <div class="eyebrow" data-ed id="cTag"></div>
     <h2 data-ed id="cName"></h2>
     <p class="lede" data-ed id="cLede"></p>
+    <div class="coll-meta">
+      <span class="coll-clr">Panel gradient top<input type="color" id="cClr1" value="${c.c1||'#2a2217'}"></span>
+      <span class="coll-clr">Bottom<input type="color" id="cClr2" value="${c.c2||'#0d0907'}"></span>
+    </div>
     <div class="showcase-stack studio-stack" id="stack"></div>`;
   panels.appendChild(sec);
   bindText(sec.querySelector('#cTag'),  c,'tag');
-  bindText(sec.querySelector('#cName'), c,'name');
+  bindText(sec.querySelector('#cName'), c,'name',{hint:'Collection name — shown on the tile and as the heading'});
   bindText(sec.querySelector('#cLede'), c,'lede',{multiline:true});
   sec.querySelector('#backBtn').addEventListener('click',closeCollection);
+
+  // gradient colour pickers
+  const clr1=sec.querySelector('#cClr1'), clr2=sec.querySelector('#cClr2');
+  clr1.addEventListener('input',()=>{ c.c1=clr1.value; markDirty(); });
+  clr2.addEventListener('input',()=>{ c.c2=clr2.value; markDirty(); });
+
+  // delete (two-tap confirm)
+  const delBtn=sec.querySelector('#collDelBtn'); let delTimer;
+  delBtn.addEventListener('click',()=>{
+    if(delBtn.dataset.confirm){
+      clearTimeout(delTimer);
+      C.collections=C.collections.filter(x=>x.id!==id);
+      markDirty(); closeCollection(); renderGrid();
+      toast('Collection deleted');
+    } else {
+      delBtn.dataset.confirm='1'; delBtn.textContent='Tap again to confirm delete';
+      delTimer=setTimeout(()=>{ delete delBtn.dataset.confirm; delBtn.textContent='🗑 Delete collection'; },2500);
+    }
+  });
 
   const stack=sec.querySelector('#stack');
   stack.classList.toggle('mob', device==='mob');
@@ -1207,6 +1241,18 @@ function renderReviews(){
   });
 }
 $('#addReview').addEventListener('click',()=>{ C.reviews=C.reviews||[]; C.reviews.push({t:'A lovely new review…',w:'Verified Customer'}); markDirty(); renderReviews(); });
+
+$('#addCollectionBtn').addEventListener('click',()=>{
+  const id='coll-'+Date.now();
+  const n=C.collections.length+1;
+  C.collections.push({
+    id, name:'New Collection '+n, tag:'Your tagline here',
+    desc:'', lede:'New collection description.',
+    c1:'#2a2217', c2:'#0d0907', images:[]
+  });
+  normalizePhotos(); markDirty(); renderGrid();
+  openCollection(id);
+});
 
 /* ── Sale editor (Shopify-style SKU cards) ──────────────────── */
 const saleOpen=new Set(); // ids of expanded cards (preserved across re-render)
