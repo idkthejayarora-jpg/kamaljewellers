@@ -83,6 +83,13 @@
     <div class="eyebrow reveal" id="heroEyebrow">Est. in the heart of Old Delhi</div>
     <h1 class="reveal"><span id="heroTitle">Worn like water,</span><em id="heroTitleEm">treasured like time.</em></h1>
     <p class="sub reveal" id="heroSub">Handcrafted bridal, kundan & polki, and the pieces breaking the internet — each one made to bring out your inner radiance.</p>
+    <div class="srch-wrap reveal" id="srchWrap">
+      <div class="srch-bar" id="srchBar">
+        <svg class="srch-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" id="srchInput" placeholder="Search collections — bridal, earrings, viral…" autocomplete="off" spellcheck="false" />
+        <div class="srch-drop" id="srchDrop" aria-hidden="true"></div>
+      </div>
+    </div>
     <div class="scroll-cue"><span>Scroll</span><span class="line"></span></div>
   </header>
 
@@ -970,12 +977,12 @@ document.addEventListener('click',e=>{
   const linkEl=e.target.closest('[data-link]');
   if(openEl){
     e.preventDefault();
-    // Only tiles on the grid have data-theme (not menu/footer links)
     if(openEl.dataset.theme!==undefined){
-      startIntro(openEl);              // tap → themed loading card → auto-blends in
-    } else {
-      openCollection(openEl.dataset.open);
+      const th=openEl.dataset.theme||'gold';
+      document.body.classList.remove('theme-gold','theme-ruby','theme-emerald');
+      document.body.classList.add('theme-'+th);
     }
+    openCollection(openEl.dataset.open);
     return;
   }
   if(backEl){ e.preventDefault(); closeCollection(); return; }
@@ -983,10 +990,6 @@ document.addEventListener('click',e=>{
     if(document.querySelector('.collection.active')){ closeCollection(); lenis.scrollTo(0); }
     else lenis.scrollTo(0);
     return;
-  }
-  // Tap outside the card during the intro → cancel
-  if(introId && !e.target.closest('.tile') && !e.target.closest('.tp-inner')){
-    clearTileTheme();
   }
 });
 
@@ -1062,6 +1065,66 @@ function applyTileStyle(C){
   if(!s){s=document.createElement('style');s.id='tile-dyn';document.head.appendChild(s);}
   s.textContent=css;
 }
+function buildSearch(C){
+  const input=document.getElementById('srchInput');
+  const drop=document.getElementById('srchDrop');
+  if(!input||!drop) return;
+  const cols=C.collections||[];
+  let activeIdx=-1;
+
+  function renderDrop(items){
+    activeIdx=-1;
+    if(!items.length){
+      drop.innerHTML='<div class="srch-empty">No collections found</div>';
+    } else {
+      drop.innerHTML=items.map(c=>{
+        const cover=(c.images&&c.images.length)?imgUrl(c.images[0]):null;
+        return `<div class="srch-item" data-id="${esc(c.id)}">
+          <div class="srch-thumb">${cover?`<img src="${esc(cover)}" alt="" loading="lazy">`:''}
+          </div>
+          <div class="srch-info">
+            <div class="srch-name">${esc(c.name)}</div>
+            <div class="srch-tag">${esc(c.tag)}</div>
+          </div>
+          <span class="srch-arr">→</span>
+        </div>`;
+      }).join('');
+    }
+    drop.classList.add('open'); drop.removeAttribute('aria-hidden');
+  }
+
+  function hideDrop(){ drop.classList.remove('open'); drop.setAttribute('aria-hidden','true'); activeIdx=-1; }
+
+  function goTo(id){
+    openCollection(id);
+    input.value=''; hideDrop(); input.blur();
+  }
+
+  input.addEventListener('focus',()=>renderDrop(cols));
+  input.addEventListener('input',()=>{
+    const q=input.value.trim().toLowerCase();
+    if(!q){ renderDrop(cols); return; }
+    renderDrop(cols.filter(c=>
+      c.name.toLowerCase().includes(q)||
+      (c.tag||'').toLowerCase().includes(q)||
+      (c.desc||'').toLowerCase().includes(q)||
+      (c.lede||'').toLowerCase().includes(q)
+    ));
+  });
+
+  input.addEventListener('keydown',e=>{
+    const items=[...drop.querySelectorAll('.srch-item')];
+    if(!items.length) return;
+    if(e.key==='ArrowDown'){ e.preventDefault(); activeIdx=Math.min(activeIdx+1,items.length-1); items.forEach((el,i)=>el.classList.toggle('sr-active',i===activeIdx)); }
+    else if(e.key==='ArrowUp'){ e.preventDefault(); activeIdx=Math.max(activeIdx-1,0); items.forEach((el,i)=>el.classList.toggle('sr-active',i===activeIdx)); }
+    else if(e.key==='Enter'){ e.preventDefault(); const t=activeIdx>=0?items[activeIdx]:items[0]; if(t) goTo(t.dataset.id); }
+    else if(e.key==='Escape'){ hideDrop(); input.blur(); }
+  });
+
+  drop.addEventListener('click',e=>{ const t=e.target.closest('.srch-item'); if(t) goTo(t.dataset.id); });
+  document.addEventListener('click',e=>{ if(!e.target.closest('#srchBar')) hideDrop(); },{passive:true});
+}
+
 function buildAll(C){
   try{
     applyContent(C);
@@ -1072,6 +1135,7 @@ function buildAll(C){
     buildReviews(C);
     setupEnquiry(C);
     applyTileStyle(C);
+    buildSearch(C);
     if(window.lenis) window.lenis.resize();
   }catch(e){ console.warn('build failed', e); }
 }

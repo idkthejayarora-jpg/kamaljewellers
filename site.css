@@ -105,6 +105,33 @@ section{position:relative}
 .scroll-cue .line::after{content:"";position:absolute;top:-50%;left:0;width:100%;height:50%;background:var(--gold-bright);animation:drip 2.2s var(--ease) infinite}
 @keyframes drip{0%{top:-50%}60%,100%{top:120%}}
 
+/* ---------- Search bar (hero) ---------- */
+.srch-wrap{margin-top:2rem;position:relative;z-index:10}
+.srch-bar{position:relative;width:min(540px,88vw);margin:0 auto}
+.srch-ico{position:absolute;left:1.1rem;top:50%;transform:translateY(-50%);width:17px;height:17px;color:var(--gold);pointer-events:none;z-index:1}
+#srchInput{display:block;width:100%;background:rgba(255,255,255,.09);backdrop-filter:blur(24px) saturate(160%);-webkit-backdrop-filter:blur(24px) saturate(160%);border:1px solid rgba(216,178,94,.35);border-radius:40px;padding:.85rem 1.4rem .85rem 3rem;color:var(--cream);font-family:'Jost';font-size:.9rem;letter-spacing:.02em;outline:none;transition:border-color .3s,background .3s;-webkit-appearance:none;appearance:none}
+#srchInput::placeholder{color:rgba(243,234,215,.4)}
+#srchInput:focus{border-color:rgba(216,178,94,.7);background:rgba(255,255,255,.13)}
+#srchInput::-webkit-search-cancel-button{display:none}
+.srch-drop{position:absolute;top:calc(100% + .55rem);left:0;right:0;
+  background:linear-gradient(155deg,rgba(18,13,8,.97),rgba(9,7,5,.98));
+  border:1px solid rgba(216,178,94,.28);border-radius:18px;overflow:hidden;
+  opacity:0;visibility:hidden;transform:translateY(-8px);
+  transition:opacity .22s var(--ease),transform .22s var(--ease),visibility .22s;
+  z-index:60;max-height:360px;overflow-y:auto;
+  scrollbar-width:thin;scrollbar-color:rgba(216,178,94,.2) transparent}
+.srch-drop.open{opacity:1;visibility:visible;transform:none}
+.srch-item{display:flex;align-items:center;gap:.85rem;padding:.65rem 1rem;cursor:pointer;transition:background .15s;border-bottom:1px solid rgba(255,255,255,.05)}
+.srch-item:last-child{border-bottom:none}
+.srch-item:hover,.srch-item.sr-active{background:rgba(216,178,94,.1)}
+.srch-thumb{width:38px;height:48px;border-radius:7px;overflow:hidden;flex-shrink:0;background:#0d0f12}
+.srch-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.srch-info{flex:1;min-width:0}
+.srch-name{font-family:'Cormorant Garamond';font-size:1.08rem;color:var(--cream);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.srch-tag{font-size:.54rem;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);margin-top:.12rem}
+.srch-arr{color:rgba(216,178,94,.5);font-size:.75rem;flex-shrink:0}
+.srch-empty{padding:1.1rem;text-align:center;font-size:.78rem;color:rgba(243,234,215,.4);letter-spacing:.04em}
+
 /* ---------- Section shell over solid bg ---------- */
 .solid{background:linear-gradient(180deg,transparent,var(--black) 12%);position:relative;z-index:2;transition:background .85s var(--ease)}
 
