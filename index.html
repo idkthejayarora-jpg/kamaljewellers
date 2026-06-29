@@ -501,7 +501,7 @@ function buildCollections(C){
     sec.innerHTML=`
       <div class="topline">
         <a class="back mag" data-back>← All collections</a>
-        <a class="catalogue-pill" href="${C.instagram}" target="_blank" rel="noopener">✦ Check Catalogue</a>
+        <a class="catalogue-pill" href="${c.catalogueUrl||C.instagram}" target="_blank" rel="noopener">✦ ${c.catalogueCta||'Check Catalogue'}</a>
         <span class="eyebrow">${n} / 10</span>
       </div>
       <div class="eyebrow">${esc(c.tag)}</div>

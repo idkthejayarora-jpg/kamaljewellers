@@ -176,8 +176,9 @@ body.theme-emerald .tp-inner{border-color:rgba(50,160,100,.45)}
 .directory{padding:0 clamp(1.2rem,5vw,5rem) 12vh;position:relative;z-index:2}
 .directory .head{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:1rem;margin-bottom:3rem;border-bottom:1px solid rgba(216,178,94,.15);padding-bottom:1.4rem}
 .directory .head h3{font-family:'Cormorant Garamond';font-weight:300;font-size:clamp(1.6rem,3.6vw,2.8rem)}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px;padding:10px}
-.tile{position:relative;background:rgba(255,255,255,.05);backdrop-filter:blur(16px) saturate(120%);-webkit-backdrop-filter:blur(16px) saturate(120%);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:2.8rem 2rem;min-height:clamp(260px,28vw,380px);display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.1);transition:transform .5s var(--ease),box-shadow .5s var(--ease)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr));gap:10px;padding:10px}
+@media(max-width:540px){.grid{gap:8px;padding:4px 0}}
+.tile{position:relative;background:rgba(255,255,255,.05);backdrop-filter:blur(16px) saturate(120%);-webkit-backdrop-filter:blur(16px) saturate(120%);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:2.8rem 2rem;min-height:clamp(260px,28vw,380px);display:flex;flex-direction:column;align-items:center;justify-content:flex-end;text-align:center;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.1);transition:transform .5s var(--ease),box-shadow .5s var(--ease)}
 .tile:hover{transform:translateY(-3px);box-shadow:0 16px 48px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.14)}
 .tile::after{content:'';position:absolute;inset:0;background:linear-gradient(0deg,rgba(0,0,0,.82) 0%,rgba(0,0,0,.5) 22%,rgba(0,0,0,.1) 48%,transparent 70%);pointer-events:none;z-index:1}
 .tile .num{position:absolute;top:1.4rem;right:1.6rem;font-size:.62rem;letter-spacing:.25em;color:rgba(255,255,255,.5);z-index:2}
