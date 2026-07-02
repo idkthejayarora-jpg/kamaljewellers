@@ -99,8 +99,8 @@
     <!-- FLASH SALE (shown only when admin has active sale items) -->
     <section class="sale-sec" id="saleSec">
       <div class="sale-head reveal">
-        <span class="eyebrow">Limited pieces · While stocks last</span>
-        <h2>Sale <em>now on</em></h2>
+        <span class="eyebrow" id="saleEyebrow">Limited pieces · While stocks last</span>
+        <h2 id="saleTitle">Sale <em>now on</em></h2>
       </div>
       <div class="sale-track" id="saleGrid"></div>
     </section>
@@ -218,9 +218,9 @@
   <div class="lead-modal">
     <button class="lead-skip" id="leadSkip" aria-label="Close" title="Tap outside or here to skip">✕</button>
     <div id="leadFormWrap">
-      <div class="eyebrow">Welcome to Kamal Jewellers</div>
-      <h4>Get our <em>latest looks &amp; offers</em></h4>
-      <p class="lead-intro">Leave your details and we'll send you new arrivals, viral pieces and sale alerts first. Takes 10 seconds.</p>
+      <div class="eyebrow" id="leadEyebrow">Welcome to Kamal Jewellers</div>
+      <h4 id="leadHeading">Get our <em>latest looks &amp; offers</em></h4>
+      <p class="lead-intro" id="leadIntroTxt">Leave your details and we'll send you new arrivals, viral pieces and sale alerts first. Takes 10 seconds.</p>
       <form id="leadForm">
         <div class="field"><label>Your name</label><input name="name" required maxlength="80" autocomplete="name" placeholder="e.g. Aarti Sharma" /></div>
         <div class="field"><label>Email or phone</label><input name="contact" required maxlength="120" autocomplete="email" placeholder="you@email.com or +91…" /></div>
@@ -359,7 +359,13 @@ function applyContent(C){
   const fp=document.getElementById('footPhones'); if(fp) fp.innerHTML=phoneLinks('');
   const fad=document.getElementById('footAddress'); if(fad) fad.textContent=addr;
   const fi=document.getElementById('footInsta'); if(fi) fi.href=C.instagram;
-  const dl=document.getElementById('dirCatalogueLink'); if(dl) dl.href=C.instagram;
+  const dl=document.getElementById('dirCatalogueLink');
+  if(dl){ dl.href=C.catalogueUrl||C.instagram; dl.textContent='✦ '+(C.catalogueLabel||'See Catalogue'); }
+  // Sale section heading
+  if(C.saleHead){
+    const se=document.getElementById('saleEyebrow'); if(se&&C.saleHead.eyebrow) se.textContent=C.saleHead.eyebrow;
+    const st=document.getElementById('saleTitle'); if(st&&C.saleHead.title) st.innerHTML=nameWithEm(C.saleHead.title);
+  }
   setText('enqDonePhone',C.contact.phone1);
 
   // WhatsApp floating button
@@ -666,6 +672,12 @@ function leadSeenRecently(){
   }catch(e){ return false; }
 }
 function leadOpen(){
+  // apply editable copy from Studio
+  const cfg=leadCfg();
+  if(cfg.eyebrow)  document.getElementById('leadEyebrow').textContent=cfg.eyebrow;
+  if(cfg.heading)  document.getElementById('leadHeading').innerHTML=nameWithEm(cfg.heading);
+  if(cfg.intro)    document.getElementById('leadIntroTxt').textContent=cfg.intro;
+  if(cfg.btnLabel) document.getElementById('leadSubmit').textContent=cfg.btnLabel;
   // fill "what are you looking for" from the live collections
   const sel=document.getElementById('leadInterest');
   if(sel && CONTENT.collections){

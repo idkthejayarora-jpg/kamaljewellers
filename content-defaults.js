@@ -44,6 +44,11 @@ window.KAMAL_DEFAULTS = {
     {t:"Such an enjoyable shopping experience with wonderful customer service.", w:"Verified Customer"}
   ],
   saleItems:[],
+  // Flash sale section heading (shown only when there are active sale items)
+  saleHead:{eyebrow:"Limited pieces · While stocks last", title:"Sale now on"},
+  // Global "See Catalogue" pill above The Collections; per-collection overrides in each collection
+  catalogueLabel:"See Catalogue",
+  catalogueUrl:"",
   // Tile (collection grid card) visual style — all editable from Studio → Settings
   tileStyle:{
     headingFont:'Cormorant Garamond',  // 'Cormorant Garamond' | 'Jost'
@@ -59,7 +64,13 @@ window.KAMAL_DEFAULTS = {
     overlayStrength:0.82               // bottom gradient max opacity
   },
   // Welcome lead-capture popup. frequency: once | day | week | session | always
-  leadPopup:{enabled:true, delaySec:1, frequency:'once'},
+  leadPopup:{
+    enabled:true, delaySec:1, frequency:'once',
+    eyebrow:"Welcome to Kamal Jewellers",
+    heading:"Get our latest looks & offers",
+    intro:"Leave your details and we'll send you new arrivals, viral pieces and sale alerts first. Takes 10 seconds.",
+    btnLabel:"Keep me posted"
+  },
   // Store photos shown in the "Visit our atelier" carousel.
   // Entries: { url, focal:{x,y}, caption }. Empty = fall back to storefront.jpg.
   storeImages:[],

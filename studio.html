@@ -373,6 +373,39 @@ body{padding-top:52px}
 .coll-cta-inp{background:rgba(255,255,255,.05);border:1px solid rgba(216,178,94,.22);border-radius:8px;padding:.5rem .8rem;color:var(--cream);font-family:'Jost';font-size:.78rem;outline:none;transition:border-color .2s}
 .coll-cta-inp:focus{border-color:rgba(216,178,94,.55)}
 
+/* ---- Leads inbox ---- */
+.leads-badge{display:inline-flex;align-items:center;justify-content:center;min-width:17px;height:17px;margin-left:.4rem;padding:0 .3rem;border-radius:10px;background:#d84a4a;color:#fff;font-size:.6rem;font-weight:600}
+.leads-loading{font-size:.8rem;color:rgba(243,234,215,.5);text-align:center;padding:2rem 0}
+.lead-card{border:1px solid rgba(216,178,94,.22);border-radius:12px;background:rgba(255,255,255,.05);padding:.9rem 1rem;margin-bottom:.75rem}
+.lead-card.done{opacity:.45}
+.lead-top{display:flex;align-items:baseline;gap:.6rem;flex-wrap:wrap}
+.lead-name{font-family:'Cormorant Garamond';font-size:1.15rem;color:var(--cream)}
+.lead-date{font-size:.6rem;color:rgba(243,234,215,.4);letter-spacing:.06em;margin-left:auto}
+.lead-int{font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin:.25rem 0 .4rem}
+.lead-msg{font-size:.76rem;color:rgba(243,234,215,.66);line-height:1.5;margin-bottom:.6rem;word-break:break-word}
+.lead-acts{display:flex;gap:.5rem;flex-wrap:wrap}
+.lead-acts a,.lead-acts button{display:inline-flex;align-items:center;gap:.35rem;padding:.42rem .8rem;border-radius:20px;font-family:'Jost';font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;text-decoration:none;cursor:pointer;border:1px solid rgba(216,178,94,.3);background:rgba(255,255,255,.05);color:var(--cream);transition:background .2s}
+.lead-acts a:hover,.lead-acts button:hover{background:rgba(255,255,255,.12)}
+.lead-acts .lead-call{border-color:rgba(216,178,94,.5);color:var(--gold-bright)}
+.lead-acts .lead-wa{border-color:rgba(37,211,102,.4);color:#25d366}
+.lead-acts .lead-done-btn{margin-left:auto}
+.lead-acts .lead-del{border-color:rgba(240,120,120,.35);color:#f07878}
+.leads-empty{text-align:center;padding:2.4rem 1rem;color:rgba(243,234,215,.45);font-size:.8rem;line-height:1.7}
+
+/* ---- Phone-friendly Studio ---- */
+@media(max-width:700px){
+  /* top bar scrolls sideways instead of overflowing off-screen */
+  .ebar{overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .ebar::-webkit-scrollbar{display:none}
+  .ebtn{padding:.55rem .95rem;font-size:.6rem}
+  .seg button{padding:.5rem .85rem}
+  /* 16px stops mobile browsers auto-zooming into form fields */
+  .drawer input,.drawer textarea,.drawer select,.coll-cta-inp,.si-card input,.si-card textarea{font-size:16px}
+  .lead-acts a,.lead-acts button{padding:.55rem 1rem;font-size:.66rem}
+  .coll-meta{gap:.7rem}
+  .coll-del{margin-left:0;width:100%;text-align:center;padding:.55rem}
+}
+
 /* framing modal stage */
 .store-frame-stage{width:min(340px,80vw);aspect-ratio:3/4;margin:0 auto;border-radius:12px;overflow:hidden;
   position:relative;background:#0d0b08;border:1px solid rgba(216,178,94,.3);cursor:grab;touch-action:none}
@@ -407,7 +440,7 @@ body{padding-top:52px}
   <span class="state" id="state"></span>
   <button class="ebtn ghost" id="jumpSaleBtn">⚡ Sale</button>
   <button class="ebtn ghost" id="settingsBtn">Settings</button>
-  <a class="ebtn ghost" href="admin.html" target="_blank">Inbox ↗</a>
+  <button class="ebtn ghost" id="leadsBtn">📥 Leads<span class="leads-badge" id="leadsBadge" style="display:none"></span></button>
   <a class="ebtn ghost" href="index.html" target="_blank">View ↗</a>
   <button class="ebtn" id="saveBtn">Save</button>
   <button class="ebtn ghost" id="logoutBtn">Log out</button>
@@ -445,6 +478,11 @@ body{padding-top:52px}
     <div class="head">
       <h3>Flash Sale</h3>
       <div class="eyebrow">Active items with stock &gt; 0 appear live on the website · Save after changes</div>
+      <div class="sale-head-edit" style="margin-top:.8rem">
+        <div class="eyebrow" style="opacity:.6;margin-bottom:.2rem">Live section heading (tap to edit)</div>
+        <span class="eyebrow" data-ed id="saleEbEd"></span>
+        <h2 data-ed id="saleTitleEd" style="font-family:'Cormorant Garamond';font-weight:300"></h2>
+      </div>
     </div>
     <div id="saleItemList"></div>
     <div style="text-align:center;margin:1.5rem 0">
@@ -505,6 +543,15 @@ body{padding-top:52px}
   <h2>Settings</h2>
   <div class="dsub">Links, SEO and the announcement bar — the bits that don't show as plain text on the page.</div>
   <div id="drawerBody"></div>
+</div>
+
+<!-- ===== LEADS INBOX ===== -->
+<div class="drawer-ov" id="leadsOv"></div>
+<div class="drawer" id="leadsDrawer">
+  <div class="x" id="leadsClose">✕</div>
+  <h2>Leads &amp; enquiries</h2>
+  <div class="dsub">Everyone who left their number — from the welcome popup and the enquiry form. Tap to call or WhatsApp them directly.</div>
+  <div id="leadsBody"><p class="leads-loading">Loading…</p></div>
 </div>
 
 <!-- ===== CROP MODAL ===== -->
@@ -654,6 +701,7 @@ async function enterStudio(){
   $('#ebar').style.display='flex';
   await loadContent();
   renderAll();
+  refreshLeadsBadge();
 }
 
 /* ── Save ───────────────────────────────────────────────────── */
@@ -702,6 +750,11 @@ function renderChrome(){
   bindText($('#heroTitle'),   C.hero,'title');
   bindText($('#heroTitleEm'), C.hero,'titleEm');
   bindText($('#heroSub'),     C.hero,'sub',{multiline:true});
+
+  // Flash sale live heading
+  if(!C.saleHead) C.saleHead={eyebrow:'Limited pieces · While stocks last', title:'Sale now on'};
+  bindText($('#saleEbEd'),    C.saleHead,'eyebrow');
+  bindText($('#saleTitleEd'), C.saleHead,'title');
 
   // Visit (address rendered with <br> → editable as plain text, store back with <br/>)
   const va=$('#visitAddress');
@@ -1515,6 +1568,10 @@ function renderDrawer(){
     .forEach(([v,t])=>{ const o=el('option',null,t); o.value=v; if((lp.frequency||'once')===v) o.selected=true; fsel.appendChild(o); });
   fsel.addEventListener('change',()=>{ lp.frequency=fsel.value; markDirty(); });
   ff.appendChild(fsel); g.appendChild(ff);
+  g.appendChild(dfield('Eyebrow (small line at top)', lp,'eyebrow'));
+  g.appendChild(dfield('Heading', lp,'heading'));
+  g.appendChild(dfield('Intro text', lp,'intro',true));
+  g.appendChild(dfield('Button label', lp,'btnLabel'));
   b.appendChild(g);
   // ── Collection tiles ───────────────────────────────────────
   if(!C.tileStyle) C.tileStyle={};
@@ -1607,6 +1664,8 @@ function renderDrawer(){
   g.appendChild(dfield('Instagram / Linktree', C,'instagram'));
   g.appendChild(dfield('Instagram label', C.contact,'instaLabel'));
   g.appendChild(dfield('Google Maps link', C.contact,'mapUrl'));
+  g.appendChild(dfield('"See Catalogue" button label', C,'catalogueLabel'));
+  g.appendChild(dfield('"See Catalogue" URL (blank = Instagram link)', C,'catalogueUrl'));
   b.appendChild(g);
   // SEO
   if(!C.seo) C.seo={title:'',description:''};
@@ -1627,6 +1686,80 @@ function openDrawer(v){ $('#drawer').classList.toggle('open',v); $('#drawerOv').
 $('#settingsBtn').addEventListener('click',()=>openDrawer(true));
 $('#drawerClose').addEventListener('click',()=>openDrawer(false));
 $('#drawerOv').addEventListener('click',()=>openDrawer(false));
+
+/* ── Leads inbox ────────────────────────────────────────────── */
+function waLink(phone){
+  const digits=String(phone||'').replace(/[^\d]/g,'');
+  if(!digits) return null;
+  return 'https://wa.me/'+(digits.length===10?'91'+digits:digits);
+}
+function leadDate(iso){
+  const d=new Date(iso); if(isNaN(d)) return '';
+  const days=Math.floor((Date.now()-d)/864e5);
+  if(days===0) return 'Today '+d.toLocaleTimeString('en-IN',{hour:'numeric',minute:'2-digit'});
+  if(days===1) return 'Yesterday';
+  if(days<7) return days+' days ago';
+  return d.toLocaleDateString('en-IN',{day:'numeric',month:'short'});
+}
+async function renderLeads(){
+  const body=$('#leadsBody');
+  body.innerHTML='<p class="leads-loading">Loading…</p>';
+  let rows;
+  try{ ({data:rows}=await api('/enquiries')); }
+  catch(e){ body.innerHTML='<p class="leads-empty">Could not load leads — '+esc(e.message)+'</p>'; return; }
+  if(!rows||!rows.length){
+    body.innerHTML='<p class="leads-empty">No leads yet.<br>They\'ll appear here when someone fills the welcome popup or enquiry form.</p>';
+    updateLeadsBadge(0); return;
+  }
+  updateLeadsBadge(rows.filter(r=>r.status!=='done').length);
+  body.innerHTML='';
+  rows.forEach(r=>{
+    const card=el('div','lead-card'+(r.status==='done'?' done':''));
+    const phone=r.phone||''; const wa=waLink(phone);
+    const isPhone=/^[+\d\s()-]{7,}$/.test(phone);
+    card.innerHTML=`
+      <div class="lead-top"><span class="lead-name">${esc(r.name||'—')}</span><span class="lead-date">${leadDate(r.created_at)}</span></div>
+      ${r.interest?`<div class="lead-int">${esc(r.interest)}</div>`:''}
+      <div class="lead-msg">${esc(r.message||'')}</div>
+      <div class="lead-acts">
+        ${isPhone?`<a class="lead-call" href="tel:${esc(phone.replace(/\s/g,''))}">📞 Call</a>`:''}
+        ${(isPhone&&wa)?`<a class="lead-wa" href="${wa}" target="_blank" rel="noopener">WhatsApp</a>`:''}
+        ${(!isPhone&&phone)?`<a class="lead-call" href="mailto:${esc(phone)}">✉️ Email</a>`:''}
+        <button class="lead-done-btn">${r.status==='done'?'↩ Reopen':'✓ Done'}</button>
+        <button class="lead-del">🗑</button>
+      </div>`;
+    card.querySelector('.lead-done-btn').addEventListener('click',async()=>{
+      try{ await api('/enquiries/'+r.id,{method:'PATCH',body:{status:r.status==='done'?'new':'done'}}); renderLeads(); }
+      catch(e){ toast('Could not update — '+e.message); }
+    });
+    const del=card.querySelector('.lead-del'); let delT;
+    del.addEventListener('click',async()=>{
+      if(del.dataset.c){ clearTimeout(delT);
+        try{ await api('/enquiries/'+r.id,{method:'DELETE'}); renderLeads(); toast('Lead deleted'); }
+        catch(e){ toast('Could not delete — '+e.message); }
+      } else { del.dataset.c='1'; del.textContent='Sure?'; delT=setTimeout(()=>{ delete del.dataset.c; del.textContent='🗑'; },2200); }
+    });
+    body.appendChild(card);
+  });
+}
+function updateLeadsBadge(n){
+  const b=$('#leadsBadge');
+  if(n>0){ b.textContent=n>99?'99+':n; b.style.display='inline-flex'; }
+  else b.style.display='none';
+}
+function openLeads(v){
+  $('#leadsDrawer').classList.toggle('open',v);
+  $('#leadsOv').classList.toggle('open',v);
+  if(v) renderLeads();
+}
+$('#leadsBtn').addEventListener('click',()=>openLeads(true));
+$('#leadsClose').addEventListener('click',()=>openLeads(false));
+$('#leadsOv').addEventListener('click',()=>openLeads(false));
+// badge count on entry
+async function refreshLeadsBadge(){
+  try{ const {data}=await api('/enquiries'); updateLeadsBadge((data||[]).filter(r=>r.status!=='done').length); }
+  catch(e){ /* silent — badge is a nicety */ }
+}
 
 /* ── Photos: crop + upload (mirrors admin.html) ─────────────── */
 function keyFromUrl(u){ const m=(u||'').match(/\/photos\/(.+)$/); return m?m[1]:null; }
