@@ -27,25 +27,66 @@
 <style>
   html,body{margin:0}
   .lt-body{background:var(--black);min-height:100vh;min-height:100svh;position:relative;overflow-x:hidden}
+  /* Two layered glows: a broad ambient wash that slowly breathes, plus a
+     tighter spotlight directly behind the crest — more "boutique window
+     display" than a flat page tint. */
   .lt-body::before{content:'';position:fixed;inset:-20%;z-index:0;pointer-events:none;
-    background:radial-gradient(ellipse 60% 45% at 50% 8%,rgba(255,217,102,.26),transparent 60%),
-               radial-gradient(ellipse 50% 40% at 50% 100%,rgba(161,27,63,.18),transparent 60%)}
+    background:radial-gradient(ellipse 70% 50% at 50% 6%,rgba(255,217,102,.34),transparent 62%),
+               radial-gradient(ellipse 55% 42% at 50% 100%,rgba(161,27,63,.22),transparent 60%);
+    animation:ltGlowBreathe 9s ease-in-out infinite}
+  .lt-body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+    background:radial-gradient(ellipse 40% 26% at 50% 15%,rgba(255,231,150,.16),transparent 70%),
+               radial-gradient(ellipse 120% 60% at 50% 100%,rgba(0,0,0,.55),transparent 60%)}
+  @keyframes ltGlowBreathe{0%,100%{opacity:.88;transform:scale(1)}50%{opacity:1;transform:scale(1.05)}}
+  @media(prefers-reduced-motion:reduce){.lt-body::before{animation:none}}
   .lt-wrap{position:relative;z-index:1;max-width:680px;margin:0 auto;padding:clamp(2.6rem,8vh,4rem) 1rem 3rem;
     display:flex;flex-direction:column;align-items:center;text-align:center;
     animation:ltIn .6s cubic-bezier(.22,1,.36,1) both}
   @keyframes ltIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
   .lt-home{display:flex;flex-direction:column;align-items:center;text-decoration:none;cursor:pointer;transition:opacity .3s}
-  .lt-home:hover{opacity:.82}
-  .lt-logo{width:58px;height:58px;border-radius:50%;border:1px solid rgba(216,178,94,.4);box-shadow:0 0 30px rgba(216,178,94,.25);margin-bottom:1rem}
-  .lt-name{font-family:'Cormorant Garamond',serif;font-weight:400;font-size:clamp(1.55rem,7vw,1.9rem);color:var(--cream);letter-spacing:.03em;margin:0}
-  .lt-sub{font-size:.58rem;letter-spacing:.28em;text-transform:uppercase;color:var(--gold);margin-top:.4rem}
-  .lt-tag{font-size:.78rem;color:rgba(243,234,215,.55);max-width:34ch;margin:1.2rem 0 .4rem;line-height:1.55}
-  .lt-grid-wrap{width:100%;margin-top:1.3rem}
+  .lt-home:hover{opacity:.85}
+  .lt-logo{width:68px;height:68px;border-radius:50%;border:1px solid rgba(255,217,102,.55);
+    box-shadow:0 0 0 5px rgba(255,217,102,.06),0 0 34px rgba(255,217,102,.4),0 0 70px rgba(255,217,102,.16);
+    margin-bottom:1.1rem;animation:ltLogoPulse 4.5s ease-in-out infinite}
+  @keyframes ltLogoPulse{0%,100%{box-shadow:0 0 0 5px rgba(255,217,102,.06),0 0 34px rgba(255,217,102,.4),0 0 70px rgba(255,217,102,.16)}50%{box-shadow:0 0 0 8px rgba(255,217,102,.1),0 0 46px rgba(255,217,102,.55),0 0 96px rgba(255,217,102,.24)}}
+  @media(prefers-reduced-motion:reduce){.lt-logo{animation:none}}
+  .lt-name-row{display:flex;align-items:center;gap:.85rem}
+  .lt-name-row .fl{color:var(--gold);font-size:.62rem;opacity:.75;flex-shrink:0}
+  .lt-name{font-family:'Cormorant Garamond',serif;font-weight:400;font-size:clamp(1.7rem,7.5vw,2.15rem);color:var(--cream);letter-spacing:.045em;margin:0}
+  .lt-sub{font-size:.6rem;letter-spacing:.4em;text-transform:uppercase;color:var(--gold);margin-top:.55rem}
+  /* Ornamental rule — slim gold line with a centred diamond, invitation-card style */
+  .lt-divider{display:flex;align-items:center;gap:.9rem;width:100%;max-width:220px;margin:1.3rem auto 0}
+  .lt-divider::before,.lt-divider::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(255,217,102,.55))}
+  .lt-divider::after{background:linear-gradient(90deg,rgba(255,217,102,.55),transparent)}
+  .lt-divider span{color:var(--gold-bright);font-size:.55rem;flex-shrink:0;transform:rotate(45deg);display:inline-block}
+  .lt-tag{font-size:.8rem;color:rgba(243,234,215,.6);max-width:34ch;margin:1.3rem 0 .3rem;line-height:1.6}
+  .lt-grid-wrap{width:100%;margin-top:1.5rem}
   .lt-empty{color:rgba(243,234,215,.4);font-size:.82rem;padding:2.5rem 0;grid-column:1/-1}
-  .lt-foot{margin-top:2.4rem;font-size:.54rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(243,234,215,.3)}
+  .lt-foot{margin-top:1.6rem;font-size:.54rem;letter-spacing:.22em;text-transform:uppercase;color:rgba(243,234,215,.35)}
   /* .tile is a <button> on the homepage; here each tile IS the link, so it's an <a> —
-     same classes, same look, just a different tag underneath. */
+     same classes, same look, just a different tag underneath. Framed like a
+     jewellery display case: outer gold edge + a fine inset hairline, richer
+     glow on touch/hover than the plain homepage tile. */
   a.tile{text-decoration:none;cursor:pointer}
+  #ltGrid .tile{
+    border:1px solid rgba(255,217,102,.45);
+    box-shadow:0 10px 36px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.1),0 0 22px rgba(255,217,102,.1);
+  }
+  #ltGrid .tile:hover,#ltGrid .tile:active{
+    border-color:rgba(255,217,102,.75);
+    box-shadow:0 18px 48px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.14),0 0 36px rgba(255,217,102,.28);
+  }
+  #ltGrid .tile::before{
+    content:'';position:absolute;inset:7px;border:1px solid rgba(255,217,102,.24);
+    border-radius:14px;pointer-events:none;z-index:2;
+  }
+  /* Numbered medallion instead of a plain corner label */
+  #ltGrid .tile .num{
+    top:.9rem;right:.9rem;width:26px;height:26px;display:flex;align-items:center;justify-content:center;
+    border:1px solid rgba(255,217,102,.5);border-radius:50%;background:rgba(8,6,4,.45);
+    backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+    font-family:'Cormorant Garamond',serif;font-size:.72rem;letter-spacing:0;color:var(--gold-bright);
+  }
   @media(max-width:420px){
     .lt-wrap{padding:2.2rem .8rem 2.4rem}
     .tile{padding:2.2rem 1.5rem;min-height:220px}
@@ -57,20 +98,51 @@
   /* Multi-photo tiles: slower, dissolve-like crossfade than the homepage's
      hover-driven .6s — this one runs continuously and unprompted. */
   #ltGrid .tile .swatch{transition:opacity 1.6s ease,transform 1.1s var(--ease)}
+
+  /* ── Velvet box reveal — page opens like a ring box lid parting ──────
+     Two velvet-lined halves cover the screen, sit still for a beat, then
+     part with a gold glint at the seam. Plays once per session; skipped
+     entirely for prefers-reduced-motion. */
+  .box-reveal{position:fixed;inset:0;z-index:9000;pointer-events:none}
+  .box-reveal.hide{display:none}
+  .box-lid{position:absolute;left:0;width:100%;height:50%;
+    background:
+      radial-gradient(ellipse 160% 130% at 50% 0%,rgba(255,217,102,.07),transparent 45%),
+      repeating-linear-gradient(115deg,rgba(255,255,255,.02) 0px,rgba(255,255,255,.02) 1px,transparent 1px,transparent 3px),
+      linear-gradient(180deg,#23070f 0%,#12030a 45%,#070203 100%)}
+  .box-lid-top{top:0;box-shadow:inset 0 -1px 0 rgba(255,217,102,.4)}
+  .box-lid-bottom{bottom:0;box-shadow:inset 0 1px 0 rgba(255,217,102,.4)}
+  .box-seam{position:absolute;left:6%;right:6%;top:50%;height:1px;transform:translateY(-.5px);
+    background:linear-gradient(90deg,transparent,rgba(255,217,102,.95) 22%,#fff 50%,rgba(255,217,102,.95) 78%,transparent);
+    box-shadow:0 0 26px 3px rgba(255,217,102,.75);opacity:0}
+  .box-reveal.opening .box-seam{animation:boxSeamFlash .55s ease-out .3s both}
+  .box-reveal.opening .box-lid-top{animation:boxLiftTop .85s cubic-bezier(.65,0,.35,1) .48s both}
+  .box-reveal.opening .box-lid-bottom{animation:boxLiftBottom .85s cubic-bezier(.65,0,.35,1) .48s both}
+  @keyframes boxSeamFlash{0%{opacity:0;transform:translateY(-.5px) scaleX(.25)}55%{opacity:1;transform:translateY(-.5px) scaleX(1)}100%{opacity:0;transform:translateY(-.5px) scaleX(1)}}
+  @keyframes boxLiftTop{to{transform:translateY(-100%)}}
+  @keyframes boxLiftBottom{to{transform:translateY(100%)}}
 </style>
 </head>
 <body class="lt-body">
 
+  <div class="box-reveal" id="boxReveal" aria-hidden="true">
+    <div class="box-lid box-lid-top"></div>
+    <div class="box-lid box-lid-bottom"></div>
+    <div class="box-seam"></div>
+  </div>
+
   <div class="lt-wrap">
     <a class="lt-home" href="https://kamaljewellers.shop" aria-label="Back to the main Kamal Jewellers site">
       <img class="lt-logo" src="../logo.png" alt="Kamal Jewellers" />
-      <h1 class="lt-name">Kamal Jewellers</h1>
+      <div class="lt-name-row"><span class="fl">✦</span><h1 class="lt-name">Kamal Jewellers</h1><span class="fl">✦</span></div>
       <div class="lt-sub">Sadar Bazar · Delhi</div>
+      <div class="lt-divider" aria-hidden="true"><span>◆</span></div>
     </a>
     <p class="lt-tag">All our collections, catalogue &amp; more — tap a photo to open it</p>
     <div class="lt-grid-wrap">
       <div class="grid" id="ltGrid"><p class="lt-empty">Loading…</p></div>
     </div>
+    <div class="lt-divider" aria-hidden="true"><span>◆</span></div>
     <div class="lt-foot">© <span id="ltYr"></span> Kamal Jewellers</div>
   </div>
 
@@ -261,6 +333,22 @@
   });
 
   (async()=>{ await loadContent(); render(); maybeShowLead(); })();
+
+  // Velvet box reveal — plays once per browser session so repeat visits
+  // (tapping back in from a collection, re-opening the tab) aren't slowed
+  // down by the same intro every time.
+  (function boxReveal(){
+    const el = document.getElementById('boxReveal');
+    if(!el) return;
+    let seen = false;
+    try{ seen = sessionStorage.getItem('kj_box_seen') === '1'; }catch(e){}
+    if(matchMedia('(prefers-reduced-motion: reduce)').matches || seen){ el.classList.add('hide'); return; }
+    requestAnimationFrame(()=>el.classList.add('opening'));
+    setTimeout(()=>{
+      el.classList.add('hide');
+      try{ sessionStorage.setItem('kj_box_seen','1'); }catch(e){}
+    }, 1500);
+  })();
 </script>
 </body>
 </html>
