@@ -71,6 +71,18 @@ window.KAMAL_DEFAULTS = {
     intro:"Leave your details and we'll send you new arrivals, viral pieces and sale alerts first. Takes 10 seconds.",
     btnLabel:"Keep me posted"
   },
+  // Standalone link-in-bio page, live at kamaljewellers.shop/catalogue — put this
+  // URL in your Instagram bio. Renders as a photo tile grid (same look as the
+  // homepage collections grid); tapping a tile opens that link's url directly.
+  // Fully editable from Studio → Link Page — each tile gets its own photo.
+  linkTree:{
+    links:[
+      {id:"lt-collections", label:"Explore All Collections", url:"https://kamaljewellers.shop", image:""},
+      {id:"lt-catalogue",   label:"Full Catalogue",           url:"https://linktr.ee/kamaljewellers_instagram", image:""},
+      {id:"lt-whatsapp",    label:"WhatsApp Us",               url:"https://wa.me/919999925670", image:""},
+      {id:"lt-visit",       label:"Visit Our Store",           url:"https://www.google.com/maps/place/Kamal+Jewellers/@28.6578042,77.2151573,17z", image:""}
+    ]
+  },
   // Store photos shown in the "Visit our atelier" carousel.
   // Entries: { url, focal:{x,y}, caption }. Empty = fall back to storefront.jpg.
   storeImages:[],

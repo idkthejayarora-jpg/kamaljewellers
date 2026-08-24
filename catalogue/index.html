@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#0a0807" />
+<title>Kamal Jewellers — Links</title>
+<meta name="description" content="All Kamal Jewellers collections, catalogue and contact — in one place." />
+
+<link rel="icon" type="image/png" href="../logo.png" />
+<link rel="apple-touch-icon" href="../logo.png" />
+
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Kamal Jewellers" />
+<meta property="og:title" content="Kamal Jewellers — Links" />
+<meta property="og:description" content="All our collections, catalogue and contact — in one place." />
+<meta property="og:url" content="https://kamaljewellers.shop/catalogue" />
+<meta property="og:image" content="https://kamaljewellers.shop/storefront.jpg" />
+<meta name="twitter:card" content="summary_large_image" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600&family=Jost:wght@300;400;500&display=swap" rel="stylesheet" />
+<!-- Same stylesheet the live site uses → the tile grid below is pixel-identical to the homepage collections grid -->
+<link rel="stylesheet" href="../site.css" />
+
+<style>
+  html,body{margin:0}
+  .lt-body{background:var(--black);min-height:100vh;min-height:100svh;position:relative;overflow-x:hidden}
+  .lt-body::before{content:'';position:fixed;inset:-20%;z-index:0;pointer-events:none;
+    background:radial-gradient(ellipse 60% 45% at 50% 8%,rgba(216,178,94,.16),transparent 60%),
+               radial-gradient(ellipse 50% 40% at 50% 100%,rgba(124,31,51,.10),transparent 60%)}
+  .lt-wrap{position:relative;z-index:1;max-width:680px;margin:0 auto;padding:clamp(2.6rem,8vh,4rem) 1rem 3rem;
+    display:flex;flex-direction:column;align-items:center;text-align:center;
+    animation:ltIn .6s cubic-bezier(.22,1,.36,1) both}
+  @keyframes ltIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  .lt-logo{width:64px;height:64px;border-radius:50%;border:1px solid rgba(216,178,94,.4);box-shadow:0 0 30px rgba(216,178,94,.25);margin-bottom:1.1rem}
+  .lt-name{font-family:'Cormorant Garamond',serif;font-weight:400;font-size:1.9rem;color:var(--cream);letter-spacing:.03em;margin:0}
+  .lt-sub{font-size:.6rem;letter-spacing:.32em;text-transform:uppercase;color:var(--gold);margin-top:.4rem}
+  .lt-tag{font-size:.8rem;color:rgba(243,234,215,.55);max-width:34ch;margin:1.3rem 0 .4rem;line-height:1.6}
+  .lt-grid-wrap{width:100%;margin-top:1.4rem}
+  .lt-empty{color:rgba(243,234,215,.4);font-size:.82rem;padding:2.5rem 0;grid-column:1/-1}
+  .lt-foot{margin-top:2.6rem;font-size:.56rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(243,234,215,.3)}
+  /* .tile is a <button> on the homepage; here each tile IS the link, so it's an <a> —
+     same classes, same look, just a different tag underneath. */
+  a.tile{text-decoration:none;cursor:pointer}
+</style>
+</head>
+<body class="lt-body">
+
+  <div class="lt-wrap">
+    <img class="lt-logo" src="../logo.png" alt="Kamal Jewellers" />
+    <h1 class="lt-name">Kamal Jewellers</h1>
+    <div class="lt-sub">Sadar Bazar · Delhi</div>
+    <p class="lt-tag">All our collections, catalogue &amp; more — tap a photo to open it</p>
+    <div class="lt-grid-wrap">
+      <div class="grid" id="ltGrid"><p class="lt-empty">Loading…</p></div>
+    </div>
+    <div class="lt-foot">© <span id="ltYr"></span> Kamal Jewellers</div>
+  </div>
+
+<script src="../config.js"></script>
+<script src="../content-defaults.js"></script>
+<script>
+  const DEFAULTS = window.KAMAL_DEFAULTS || {};
+  let CONTENT = JSON.parse(JSON.stringify(DEFAULTS));
+  const API = ((window.KAMAL_CONFIG || {}).API_BASE) || '/api';
+  const esc = s => (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+  function deepMerge(base, over){
+    if(Array.isArray(over)) return over;
+    if(over && typeof over==='object'){
+      const out = Object.assign({}, base);
+      for(const k in over){ out[k] = deepMerge(base ? base[k] : undefined, over[k]); }
+      return out;
+    }
+    return over===undefined ? base : over;
+  }
+
+  async function loadContent(){
+    try{
+      const res = await fetch(API + '/content');
+      if(!res.ok) return;
+      const { data } = await res.json();
+      if(data) CONTENT = deepMerge(DEFAULTS, data);
+    }catch(e){ console.warn('content fetch failed', e); }
+  }
+
+  function render(){
+    document.getElementById('ltYr').textContent = new Date().getFullYear();
+    const links = (CONTENT.linkTree && CONTENT.linkTree.links) || [];
+    const grid = document.getElementById('ltGrid');
+    grid.innerHTML = links.length
+      ? links.map((l,i)=>{
+          const n = String(i+1).padStart(2,'0');
+          const swatch = l.image
+            ? `background:#0d0f12 url('${esc(l.image)}') center/cover no-repeat`
+            : `background:linear-gradient(150deg,#2a2217,#0d0907)`;
+          return `<a class="tile" href="${esc(l.url||'#')}" rel="noopener">
+            <div class="swatch" style="${swatch}"></div>
+            <span class="num">${n}</span>
+            <h4>${esc(l.label||'Untitled link')}</h4>
+            <span class="enter">Open ↗</span>
+          </a>`;
+        }).join('')
+      : '<p class="lt-empty">No links yet — add some from Studio.</p>';
+  }
+
+  (async()=>{ await loadContent(); render(); })();
+</script>
+</body>
+</html>

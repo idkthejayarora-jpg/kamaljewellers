@@ -392,6 +392,22 @@ body{padding-top:52px}
 .lead-acts .lead-del{border-color:rgba(240,120,120,.35);color:#f07878}
 .leads-empty{text-align:center;padding:2.4rem 1rem;color:rgba(243,234,215,.45);font-size:.8rem;line-height:1.7}
 
+/* ---- Link-in-bio editor ---- */
+.lt-row{display:flex;align-items:center;gap:.7rem;border:1px solid rgba(216,178,94,.22);border-radius:12px;background:rgba(255,255,255,.05);padding:.7rem .8rem;margin-bottom:.6rem;flex-wrap:wrap}
+.lt-thumb{position:relative;width:56px;height:66px;flex-shrink:0;border-radius:8px;overflow:hidden;border:1px solid rgba(216,178,94,.3);background:linear-gradient(150deg,#2a2217,#0d0907);cursor:pointer}
+.lt-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.lt-thumb-cam{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:.62rem;color:rgba(216,178,94,.75);letter-spacing:.05em;text-align:center;padding:.2rem}
+.lt-thumb-x{position:absolute;top:2px;right:2px;width:16px;height:16px;border-radius:50%;background:rgba(8,6,4,.85);color:#f07878;font-size:.6rem;line-height:16px;text-align:center;display:none}
+.lt-thumb:hover .lt-thumb-x{display:block}
+.lt-row-inputs{display:flex;flex-direction:column;gap:.4rem;flex:1;min-width:160px}
+.lt-row input{background:rgba(255,255,255,.05);border:1px solid rgba(216,178,94,.22);border-radius:8px;padding:.5rem .7rem;color:var(--cream);font-family:'Jost';font-size:.78rem;outline:none;transition:border-color .2s;width:100%;box-sizing:border-box}
+.lt-row input:focus{border-color:rgba(216,178,94,.5)}
+.lt-row-acts{display:flex;gap:.35rem;flex-shrink:0}
+.lt-row-acts button{background:rgba(255,255,255,.06);border:1px solid rgba(216,178,94,.28);color:var(--gold);border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:.8rem;flex-shrink:0}
+.lt-row-acts button:hover{background:rgba(255,255,255,.14)}
+.lt-row-acts button:disabled{opacity:.3;cursor:default}
+.lt-row-acts .lt-del{border-color:rgba(240,120,120,.35);color:#f07878}
+
 /* ---- Phone-friendly Studio ---- */
 @media(max-width:700px){
   /* top bar scrolls sideways instead of overflowing off-screen */
@@ -400,7 +416,7 @@ body{padding-top:52px}
   .ebtn{padding:.55rem .95rem;font-size:.6rem}
   .seg button{padding:.5rem .85rem}
   /* 16px stops mobile browsers auto-zooming into form fields */
-  .drawer input,.drawer textarea,.drawer select,.coll-cta-inp,.si-card input,.si-card textarea{font-size:16px}
+  .drawer input,.drawer textarea,.drawer select,.coll-cta-inp,.si-card input,.si-card textarea,.lt-row input{font-size:16px}
   .lead-acts a,.lead-acts button{padding:.55rem 1rem;font-size:.66rem}
   .coll-meta{gap:.7rem}
   .coll-del{margin-left:0;width:100%;text-align:center;padding:.55rem}
@@ -439,6 +455,7 @@ body{padding-top:52px}
   <div class="spacer"></div>
   <span class="state" id="state"></span>
   <button class="ebtn ghost" id="jumpSaleBtn">⚡ Sale</button>
+  <button class="ebtn ghost" id="jumpLinksBtn">🔗 Links</button>
   <button class="ebtn ghost" id="settingsBtn">Settings</button>
   <button class="ebtn ghost" id="leadsBtn">📥 Leads<span class="leads-badge" id="leadsBadge" style="display:none"></span></button>
   <a class="ebtn ghost" href="index.html" target="_blank">View ↗</a>
@@ -487,6 +504,20 @@ body{padding-top:52px}
     <div id="saleItemList"></div>
     <div style="text-align:center;margin:1.5rem 0">
       <button class="mini-ed" id="addSaleItem">+ Add sale item</button>
+    </div>
+  </section>
+
+  <!-- LINK-IN-BIO PAGE -->
+  <section class="sale-sec-edit" id="linkTreeEdit">
+    <div class="head">
+      <h3>Link Page</h3>
+      <div class="eyebrow">Live at <a href="https://kamaljewellers.shop/catalogue" target="_blank" rel="noopener" style="color:var(--gold)">kamaljewellers.shop/catalogue ↗</a> — put this in your Instagram bio
+        <button class="mini-ed" id="copyLinkBtn" style="margin-left:.6rem;padding:.25rem .7rem;font-size:.52rem">Copy link</button>
+      </div>
+    </div>
+    <div id="linkTreeList"></div>
+    <div style="text-align:center;margin:1.5rem 0">
+      <button class="mini-ed" id="addLinkBtn">+ Add link</button>
     </div>
   </section>
 
@@ -1530,6 +1561,63 @@ $('#addSaleItem').addEventListener('click',()=>{
 $('#jumpSaleBtn').addEventListener('click',()=>{
   document.getElementById('saleSecEdit').scrollIntoView({behavior:'smooth',block:'start'});
 });
+$('#jumpLinksBtn').addEventListener('click',()=>{
+  document.getElementById('linkTreeEdit').scrollIntoView({behavior:'smooth',block:'start'});
+});
+
+/* ── Link-in-bio page editor ───────────────────────────────── */
+function renderLinkTree(){
+  const list=$('#linkTreeList'); if(!list) return;
+  if(!C.linkTree) C.linkTree={links:[]};
+  const links=C.linkTree.links=C.linkTree.links||[];
+  list.innerHTML='';
+  if(!links.length){
+    list.innerHTML='<p style="text-align:center;color:rgba(243,234,215,.35);font-size:.75rem;padding:1.8rem 0">No links yet — click + Add link to get started.</p>';
+    return;
+  }
+  links.forEach((lnk,idx)=>{
+    const row=el('div','lt-row');
+    row.innerHTML=`
+      <div class="lt-thumb" title="Tap to add a photo for this tile">
+        ${lnk.image ? `<img src="${esc(lnk.image)}" alt="">` : `<span class="lt-thumb-cam">📷 Add photo</span>`}
+        ${lnk.image ? `<span class="lt-thumb-x" title="Remove photo">✕</span>` : ''}
+      </div>
+      <div class="lt-row-inputs">
+        <input type="text" placeholder="Label — e.g. Bridal Collection" class="lt-label-inp" value="${esc(lnk.label||'')}">
+        <input type="url" placeholder="https://…" class="lt-url-inp" value="${esc(lnk.url||'')}">
+      </div>
+      <div class="lt-row-acts">
+        <button class="lt-up" title="Move up"${idx===0?' disabled':''}>↑</button>
+        <button class="lt-down" title="Move down"${idx===links.length-1?' disabled':''}>↓</button>
+        <button class="lt-del" title="Delete">✕</button>
+      </div>`;
+    row.querySelector('.lt-label-inp').addEventListener('input',e=>{ lnk.label=e.target.value; markDirty(); });
+    row.querySelector('.lt-url-inp').addEventListener('input',e=>{ lnk.url=e.target.value.trim(); markDirty(); });
+    row.querySelector('.lt-up').addEventListener('click',()=>{ if(idx>0){ [links[idx-1],links[idx]]=[links[idx],links[idx-1]]; markDirty(); renderLinkTree(); } });
+    row.querySelector('.lt-down').addEventListener('click',()=>{ if(idx<links.length-1){ [links[idx+1],links[idx]]=[links[idx],links[idx+1]]; markDirty(); renderLinkTree(); } });
+    row.querySelector('.lt-del').addEventListener('click',()=>{ links.splice(idx,1); markDirty(); renderLinkTree(); });
+    const xBtn=row.querySelector('.lt-thumb-x');
+    if(xBtn) xBtn.addEventListener('click',ev=>{ ev.stopPropagation(); lnk.image=''; markDirty(); renderLinkTree(); });
+    row.querySelector('.lt-thumb').addEventListener('click',ev=>{
+      if(ev.target.closest('.lt-thumb-x')) return;
+      pickImageFor(url=>{ lnk.image=url; markDirty(); renderLinkTree(); }, 'linktree', 0.85);
+    });
+    list.appendChild(row);
+  });
+}
+$('#addLinkBtn').addEventListener('click',()=>{
+  if(!C.linkTree) C.linkTree={links:[]};
+  C.linkTree.links.push({id:'lt-'+Date.now(), label:'New Link', url:'', image:''});
+  markDirty(); renderLinkTree();
+  setTimeout(()=>{
+    const inps=document.querySelectorAll('#linkTreeList .lt-label-inp');
+    inps[inps.length-1]?.focus();
+  },50);
+});
+$('#copyLinkBtn').addEventListener('click',async()=>{
+  try{ await navigator.clipboard.writeText('https://kamaljewellers.shop/catalogue'); toast('Link copied — paste it in your Instagram bio'); }
+  catch(e){ toast('Could not copy — long-press the link above instead'); }
+});
 
 /* ── Settings drawer ────────────────────────────────────────── */
 function dfield(label,obj,key,ta){
@@ -1955,7 +2043,7 @@ function applyTileStyle(C){
 }
 
 /* ── Boot ───────────────────────────────────────────────────── */
-function renderAll(){ renderChrome(); renderGrid(); renderReviews(); renderSale(); renderStore(); applyTileStyle(C); }
+function renderAll(){ renderChrome(); renderGrid(); renderReviews(); renderSale(); renderLinkTree(); renderStore(); applyTileStyle(C); }
 function tokenExpired(token){
   try{
     const p=JSON.parse(atob(token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));
