@@ -7,14 +7,14 @@
 :root{
   --black:#0a0807;
   --ink:#15110d;
-  --gold:#d8b25e;
-  --gold-bright:#f4d784;
-  --gold-deep:#9a7426;
+  --gold:#e0af3d;
+  --gold-bright:#ffd966;
+  --gold-deep:#b8862a;
   --cream:#f3ead7;
-  --ruby:#7c1f33;
-  --emerald:#1f4a3c;
+  --ruby:#a11b3f;
+  --emerald:#0e6b4a;
   --glass:rgba(255,255,255,0.06);
-  --glass-brd:rgba(216,178,94,0.28);
+  --glass-brd:rgba(224,175,61,0.32);
   --ease:cubic-bezier(.22,1,.36,1);
 }
 
@@ -54,7 +54,7 @@ a{color:inherit;text-decoration:none}
 
 /* ---------- Navigation ---------- */
 nav{position:fixed;top:0;left:0;width:100%;z-index:200;display:flex;align-items:center;justify-content:space-between;padding:1.5rem clamp(1.2rem,4vw,3.5rem);transition:background .5s var(--ease),padding .5s var(--ease),backdrop-filter .5s}
-nav.scrolled{background:rgba(10,8,7,.55);backdrop-filter:blur(18px) saturate(140%);padding-top:1rem;padding-bottom:1rem;border-bottom:1px solid rgba(216,178,94,.12)}
+nav.scrolled{background:rgba(10,8,7,.55);backdrop-filter:blur(18px) saturate(140%);padding-top:1rem;padding-bottom:1rem;border-bottom:1px solid rgba(224,175,61,.24)}
 .brand{display:flex;align-items:center;gap:.65rem;font-family:'Cormorant Garamond';font-size:1.55rem;letter-spacing:.12em;color:var(--gold-bright);white-space:nowrap}
 .brand .brand-logo{width:40px;height:40px;flex:0 0 auto;border-radius:50%;box-shadow:0 0 10px rgba(215,175,80,.6),0 0 28px rgba(215,175,80,.3),0 0 60px rgba(215,175,80,.12)}
 .brand .brand-text{display:flex;flex-direction:column;line-height:1}
@@ -109,9 +109,9 @@ section{position:relative}
 .srch-wrap{margin-top:2rem;position:relative;z-index:10}
 .srch-bar{position:relative;width:min(540px,88vw);margin:0 auto}
 .srch-ico{position:absolute;left:1.1rem;top:50%;transform:translateY(-50%);width:17px;height:17px;color:var(--gold);pointer-events:none;z-index:1}
-#srchInput{display:block;width:100%;background:rgba(255,255,255,.09);backdrop-filter:blur(24px) saturate(160%);-webkit-backdrop-filter:blur(24px) saturate(160%);border:1px solid rgba(216,178,94,.35);border-radius:40px;padding:.85rem 1.4rem .85rem 3rem;color:var(--cream);font-family:'Jost';font-size:.9rem;letter-spacing:.02em;outline:none;transition:border-color .3s,background .3s;-webkit-appearance:none;appearance:none}
+#srchInput{display:block;width:100%;background:rgba(255,255,255,.09);backdrop-filter:blur(24px) saturate(160%);-webkit-backdrop-filter:blur(24px) saturate(160%);border:1px solid rgba(224,175,61,.45);border-radius:40px;padding:.85rem 1.4rem .85rem 3rem;color:var(--cream);font-family:'Jost';font-size:.9rem;letter-spacing:.02em;outline:none;transition:border-color .3s,background .3s;-webkit-appearance:none;appearance:none}
 #srchInput::placeholder{color:rgba(243,234,215,.4)}
-#srchInput:focus{border-color:rgba(216,178,94,.7);background:rgba(255,255,255,.13)}
+#srchInput:focus{border-color:rgba(224,175,61,.8);background:rgba(255,255,255,.13)}
 #srchInput::-webkit-search-cancel-button{display:none}
 .srch-drop{position:absolute;top:calc(100% + .55rem);left:0;right:0;
   background:linear-gradient(155deg,rgba(18,13,8,.97),rgba(9,7,5,.98));
@@ -147,9 +147,9 @@ body.theme-emerald .solid{background:radial-gradient(ellipse 90% 50% at 50% 18%,
 /* ---------- Selected tile ring ---------- */
 .tile.selected .enter{opacity:1;transform:none}
 .tile.selected .swatch{transform:scale(1.1)}
-.tile.selected[data-theme="gold"]   {box-shadow:inset 0 0 0 2px rgba(216,178,94,.65),0 0 48px rgba(216,178,94,.22)}
-.tile.selected[data-theme="ruby"]   {box-shadow:inset 0 0 0 2px rgba(180,50,70,.65),0 0 48px rgba(180,50,70,.22)}
-.tile.selected[data-theme="emerald"]{box-shadow:inset 0 0 0 2px rgba(50,160,100,.65),0 0 48px rgba(50,160,100,.22)}
+.tile.selected[data-theme="gold"]   {box-shadow:inset 0 0 0 2px rgba(224,175,61,.8),0 0 56px rgba(224,175,61,.34)}
+.tile.selected[data-theme="ruby"]   {box-shadow:inset 0 0 0 2px rgba(210,40,75,.8),0 0 56px rgba(210,40,75,.34)}
+.tile.selected[data-theme="emerald"]{box-shadow:inset 0 0 0 2px rgba(30,180,115,.8),0 0 56px rgba(30,180,115,.34)}
 
 /* ---------- Collection intro / loading screen ---------- */
 .tile-preview{position:fixed;inset:0;z-index:240;display:flex;align-items:center;justify-content:center;padding:1.5rem;pointer-events:none;opacity:0;transition:opacity .6s var(--ease);background:rgba(8,5,2,.5);backdrop-filter:blur(9px) saturate(120%);-webkit-backdrop-filter:blur(9px) saturate(120%)}
@@ -187,7 +187,10 @@ body.theme-emerald .tp-inner{border-color:rgba(50,160,100,.45)}
 .tile h4{
   font-family:'Cormorant Garamond';font-size:clamp(1.55rem,2vw,2.2rem);font-weight:500;letter-spacing:.05em;
   position:relative;z-index:2;transition:transform .6s var(--ease);
-  /* Crispy metallic gold — multiple stops simulate real light on polished gold */
+  /* Crispy metallic gold — multiple stops simulate real light on polished gold.
+     Stretched to 220% and slowly panned (see @keyframes goldShimmer below) so
+     the highlight visibly travels across the letters, like light moving over
+     a polished surface rather than a static printed gradient. */
   background:linear-gradient(162deg,
     #fff8b0 0%,
     #f4d784 14%,
@@ -198,6 +201,8 @@ body.theme-emerald .tp-inner{border-color:rgba(50,160,100,.45)}
     #e8c55a 78%,
     #c08a20 100%
   );
+  background-size:220% 220%;
+  animation:goldShimmer 7s ease-in-out infinite;
   -webkit-background-clip:text;
   background-clip:text;
   -webkit-text-fill-color:transparent;
@@ -218,6 +223,8 @@ body.theme-emerald .tp-inner{border-color:rgba(50,160,100,.45)}
 }
 .tile:hover .enter{opacity:1;transform:none}
 @media(hover:none){.tile{min-height:280px}}
+@keyframes goldShimmer{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+@media(prefers-reduced-motion:reduce){.tile h4{animation:none}}
 
 /* ---------- Collection detail panels ---------- */
 .collection{min-height:100vh;padding:16vh clamp(1.2rem,5vw,5rem) 12vh;position:relative;z-index:2;display:none;background:var(--black)}
@@ -234,8 +241,8 @@ body.viewing .reviews,body.viewing .visit,body.viewing footer{display:none}
 .collection .lede{max-width:60ch;font-size:clamp(.9rem,1.5vw,1.08rem);line-height:1.9;color:rgba(243,234,215,.74);margin-bottom:4rem}
 
 /* ---------- Catalogue pill (top of each collection) ---------- */
-.catalogue-pill{display:inline-flex;align-items:center;gap:.55rem;padding:.55rem 1.3rem;border-radius:40px;border:1px solid rgba(244,215,132,.55);background:linear-gradient(135deg,rgba(255,255,255,.08),rgba(255,255,255,.03));backdrop-filter:blur(10px) saturate(140%);color:var(--gold-bright);font-size:.58rem;letter-spacing:.32em;text-transform:uppercase;box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 0 0 rgba(244,215,132,0);transition:background .4s,box-shadow .4s,transform .3s var(--ease)}
-.catalogue-pill:hover{background:linear-gradient(135deg,rgba(255,255,255,.16),rgba(255,255,255,.07));box-shadow:0 0 20px rgba(244,215,132,.22),inset 0 1px 0 rgba(255,255,255,.14);transform:translateY(-1px)}
+.catalogue-pill{display:inline-flex;align-items:center;gap:.55rem;padding:.55rem 1.3rem;border-radius:40px;border:1px solid rgba(255,217,102,.7);background:linear-gradient(135deg,rgba(255,217,102,.14),rgba(255,255,255,.04));backdrop-filter:blur(10px) saturate(140%);color:var(--gold-bright);font-size:.58rem;letter-spacing:.32em;text-transform:uppercase;box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 0 14px rgba(255,217,102,.12);transition:background .4s,box-shadow .4s,transform .3s var(--ease)}
+.catalogue-pill:hover{background:linear-gradient(135deg,rgba(255,217,102,.24),rgba(255,255,255,.08));box-shadow:0 0 28px rgba(255,217,102,.36),inset 0 1px 0 rgba(255,255,255,.14);transform:translateY(-1px)}
 
 /* ---------- Immersive full-bleed feature showcase ---------- */
 /* Full-bleed: breaks out of the collection's side padding to span the viewport */
@@ -280,7 +287,7 @@ a.feature:hover .feat-link-cue{opacity:.85;transform:translateX(4px)}
 .reviews h3{font-family:'Cormorant Garamond';font-weight:300;font-size:clamp(2rem,5vw,4rem);margin-top:.8rem}
 .review-field{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.8rem;max-width:1150px;margin:0 auto}
 .gcard{position:relative;padding:2.4rem 2rem;border-radius:22px;background:linear-gradient(150deg,rgba(255,255,255,.07),rgba(255,255,255,.02));border:1px solid var(--glass-brd);backdrop-filter:blur(14px) saturate(140%);box-shadow:0 30px 60px -30px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.08);overflow:hidden;will-change:transform}
-.gcard::before{content:"";position:absolute;top:-40%;left:-30%;width:80%;height:80%;background:radial-gradient(circle,rgba(244,215,132,.22),transparent 70%);filter:blur(10px)}
+.gcard::before{content:"";position:absolute;top:-40%;left:-30%;width:80%;height:80%;background:radial-gradient(circle,rgba(255,217,102,.34),transparent 70%);filter:blur(10px)}
 .gcard .stars{color:var(--gold-bright);letter-spacing:.3em;font-size:.85rem;margin-bottom:1.2rem}
 .gcard p{font-family:'Cormorant Garamond';font-style:italic;font-size:1.25rem;line-height:1.55;color:var(--cream)}
 .gcard .who{margin-top:1.6rem;font-size:.6rem;letter-spacing:.32em;text-transform:uppercase;color:var(--gold);opacity:.8}
