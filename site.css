@@ -411,6 +411,19 @@ footer{position:relative;z-index:2;background:linear-gradient(180deg,var(--black
   text-decoration:underline;text-underline-offset:3px;cursor:none;transition:color .25s}
 .lead-dismiss:hover{color:var(--gold-bright)}
 @media(hover:none){.lead-skip,.lead-dismiss{cursor:pointer}}
+@media(max-width:480px){
+  .lead-ov{padding:1rem}
+  .lead-modal{padding:1.7rem 1.2rem;border-radius:20px}
+  .lead-modal .eyebrow{font-size:.54rem;letter-spacing:.28em}
+  .lead-modal h4{font-size:clamp(1.35rem,7vw,1.65rem);margin:.4rem 0 .3rem}
+  .lead-intro{font-size:.78rem;line-height:1.48;margin-bottom:1rem}
+  .lead-modal .field{margin-bottom:.7rem}
+  .lead-modal .field label{font-size:.5rem;margin-bottom:.3rem}
+  .lead-modal .field input,.lead-modal .field select{padding:.62rem .8rem;font-size:16px}
+  .lead-modal .enq-submit{padding:.8rem;margin-top:.3rem;font-size:.58rem}
+  .lead-dismiss{margin-top:.7rem;font-size:.72rem}
+  .lead-skip{width:30px;height:30px;top:.7rem;right:.8rem;font-size:1rem}
+}
 
 /* ── FLASH SALE SECTION ─────────────────────────────────────────────── */
 .sale-sec{padding:clamp(3.5rem,7vw,5.5rem) 0 clamp(2rem,5vw,3rem);overflow:hidden;display:none}
