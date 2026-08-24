@@ -34,6 +34,8 @@
     display:flex;flex-direction:column;align-items:center;text-align:center;
     animation:ltIn .6s cubic-bezier(.22,1,.36,1) both}
   @keyframes ltIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  .lt-home{display:flex;flex-direction:column;align-items:center;text-decoration:none;cursor:pointer;transition:opacity .3s}
+  .lt-home:hover{opacity:.82}
   .lt-logo{width:58px;height:58px;border-radius:50%;border:1px solid rgba(216,178,94,.4);box-shadow:0 0 30px rgba(216,178,94,.25);margin-bottom:1rem}
   .lt-name{font-family:'Cormorant Garamond',serif;font-weight:400;font-size:clamp(1.55rem,7vw,1.9rem);color:var(--cream);letter-spacing:.03em;margin:0}
   .lt-sub{font-size:.58rem;letter-spacing:.28em;text-transform:uppercase;color:var(--gold);margin-top:.4rem}
@@ -52,14 +54,19 @@
      cursor:none on these controls assumes one is running, so restore a normal
      pointer here or the popup buttons look unclickable on desktop. */
   .lead-skip,.lead-dismiss,.enq-submit{cursor:pointer}
+  /* Multi-photo tiles: slower, dissolve-like crossfade than the homepage's
+     hover-driven .6s — this one runs continuously and unprompted. */
+  #ltGrid .tile .swatch{transition:opacity 1.6s ease,transform 1.1s var(--ease)}
 </style>
 </head>
 <body class="lt-body">
 
   <div class="lt-wrap">
-    <img class="lt-logo" src="../logo.png" alt="Kamal Jewellers" />
-    <h1 class="lt-name">Kamal Jewellers</h1>
-    <div class="lt-sub">Sadar Bazar · Delhi</div>
+    <a class="lt-home" href="https://kamaljewellers.shop" aria-label="Back to the main Kamal Jewellers site">
+      <img class="lt-logo" src="../logo.png" alt="Kamal Jewellers" />
+      <h1 class="lt-name">Kamal Jewellers</h1>
+      <div class="lt-sub">Sadar Bazar · Delhi</div>
+    </a>
     <p class="lt-tag">All our collections, catalogue &amp; more — tap a photo to open it</p>
     <div class="lt-grid-wrap">
       <div class="grid" id="ltGrid"><p class="lt-empty">Loading…</p></div>
@@ -121,6 +128,9 @@
     }catch(e){ console.warn('content fetch failed', e); }
   }
 
+  // Back-compat: older saves may still have a single `image` string.
+  const linkImages = l => (l.images && l.images.length) ? l.images : (l.image ? [l.image] : []);
+
   function render(){
     document.getElementById('ltYr').textContent = new Date().getFullYear();
     const links = (CONTENT.linkTree && CONTENT.linkTree.links) || [];
@@ -128,17 +138,40 @@
     grid.innerHTML = links.length
       ? links.map((l,i)=>{
           const n = String(i+1).padStart(2,'0');
-          const swatch = l.image
-            ? `background:#0d0f12 url('${esc(l.image)}') center/cover no-repeat`
-            : `background:linear-gradient(150deg,#2a2217,#0d0907)`;
+          const imgs = linkImages(l);
+          const swatches = imgs.length
+            ? imgs.map((url,si)=>`<div class="swatch" style="background:#0d0f12 url('${esc(url)}') center/cover no-repeat;opacity:${si===0?'.95':'0'}"></div>`).join('')
+            : `<div class="swatch" style="background:linear-gradient(150deg,#2a2217,#0d0907)"></div>`;
           return `<a class="tile" href="${esc(l.url||'#')}" rel="noopener">
-            <div class="swatch" style="${swatch}"></div>
+            ${swatches}
             <span class="num">${n}</span>
             <h4>${esc(l.label||'Untitled link')}</h4>
             <span class="enter">Open ↗</span>
           </a>`;
         }).join('')
       : '<p class="lt-empty">No links yet — add some from Studio.</p>';
+
+    startCrossfade();
+  }
+
+  // Slowly dissolve between a tile's photos every 3s — skipped for
+  // reduced-motion, and for tiles that only have one photo (or none).
+  let crossfadeTimer = null;
+  function startCrossfade(){
+    if(crossfadeTimer){ clearInterval(crossfadeTimer); crossfadeTimer = null; }
+    if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const cursors = new WeakMap();
+    crossfadeTimer = setInterval(()=>{
+      document.querySelectorAll('#ltGrid .tile').forEach(tile=>{
+        const swatches = tile.querySelectorAll('.swatch');
+        if(swatches.length < 2) return;
+        const cur = cursors.get(tile) || 0;
+        const next = (cur + 1) % swatches.length;
+        swatches[cur].style.opacity = '0';
+        swatches[next].style.opacity = '.95';
+        cursors.set(tile, next);
+      });
+    }, 3000);
   }
 
   /* ============================================================

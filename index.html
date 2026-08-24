@@ -909,13 +909,21 @@ function runParallax(){
   }
 }
 
-function openCollection(id){
-  if(document.body.classList.contains('menu-open')) toggleMenu(false);
-  lastScroll=lenis?lenis.scroll:window.scrollY;
-  document.querySelectorAll('.collection').forEach(s=>s.classList.remove('active'));
+// `pushState:false` is used when we're reacting to browser navigation
+// (popstate) or a deep link — the history entry already exists, or the
+// hash is already in the URL, so pushing again would create a duplicate.
+function openCollection(id, opts={}){
   const sec=document.getElementById('c-'+id);
+  if(!sec) return;
+  if(document.body.classList.contains('menu-open')) toggleMenu(false);
+  if(!document.body.classList.contains('viewing')) lastScroll=lenis?lenis.scroll:window.scrollY;
+  document.querySelectorAll('.collection').forEach(s=>s.classList.remove('active'));
   sec.classList.add('active');
   document.body.classList.add('viewing');
+  const th=TILE_THEMES[id]||'gold';
+  document.body.classList.remove('theme-gold','theme-ruby','theme-emerald');
+  document.body.classList.add('theme-'+th);
+  if(opts.pushState!==false) history.pushState({kjCollection:id},'','#'+id);
   if(lenis){ lenis.resize(); lenis.scrollTo(0,{immediate:true}); }
   else window.scrollTo({top:0,behavior:'instant'});
   watchReveals(sec);   // features fade in on scroll via IntersectionObserver
@@ -923,14 +931,30 @@ function openCollection(id){
   setupParallax(sec);
 }
 
-function closeCollection(){
+function closeCollection(opts={}){
   clearTileTheme();
   document.querySelectorAll('.collection').forEach(s=>s.classList.remove('active'));
   document.body.classList.remove('viewing');
   activeFimgs=[];
+  if(opts.pushState!==false && location.hash) history.pushState({},'',location.pathname+location.search);
   if(lenis){ lenis.resize(); lenis.scrollTo(lastScroll,{immediate:true}); }
   else window.scrollTo({top:lastScroll,behavior:'instant'});
 }
+
+// Phone/browser back while a collection is open closes it instead of
+// exiting the site — same effect as tapping "← All collections".
+function leaveCollection(){
+  if(location.hash) history.back();
+  else closeCollection();
+}
+window.addEventListener('popstate',()=>{
+  const id=location.hash.slice(1);
+  if(id && collectionMap[id]){
+    if(!document.getElementById('c-'+id)?.classList.contains('active')) openCollection(id,{pushState:false});
+  } else if(document.querySelector('.collection.active')){
+    closeCollection({pushState:false});
+  }
+});
 
 /* Single-tap intro: tile → themed loading card (3s) → blends into the collection */
 let introId=null, loadTimer=null;
@@ -989,17 +1013,12 @@ document.addEventListener('click',e=>{
   const linkEl=e.target.closest('[data-link]');
   if(openEl){
     e.preventDefault();
-    if(openEl.dataset.theme!==undefined){
-      const th=openEl.dataset.theme||'gold';
-      document.body.classList.remove('theme-gold','theme-ruby','theme-emerald');
-      document.body.classList.add('theme-'+th);
-    }
     openCollection(openEl.dataset.open);
     return;
   }
-  if(backEl){ e.preventDefault(); closeCollection(); return; }
+  if(backEl){ e.preventDefault(); leaveCollection(); return; }
   if(linkEl){ e.preventDefault();
-    if(document.querySelector('.collection.active')){ closeCollection(); }
+    if(document.querySelector('.collection.active')) leaveCollection();
     if(lenis) lenis.scrollTo(0); else window.scrollTo({top:0,behavior:'smooth'});
     return;
   }
@@ -1077,9 +1096,9 @@ function applyTileStyle(C){
     `.tile h4{font-family:'${hf}',serif;font-weight:${hw};font-size:${hs};`+
     `background:linear-gradient(162deg,#fff8b0 0%,#f4d784 14%,#ffe87a 26%,#c8922a 40%,#f0d070 54%,#fffbe0 66%,#e8c55a 78%,#c08a20 100%);`+
     `-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;`+
-    `filter:drop-shadow(0 2px 10px rgba(244,215,132,.6)) drop-shadow(0 0 28px rgba(244,215,132,.2))}`+
+    `filter:drop-shadow(0 1px 2px rgba(0,0,0,.95)) drop-shadow(0 2px 6px rgba(0,0,0,.75)) drop-shadow(0 0 18px rgba(0,0,0,.55))}`+
     `.tile .num{color:${nc}}`+
-    `.tile .enter{color:${ec};text-shadow:0 0 14px rgba(244,215,132,.8),0 1px 3px rgba(0,0,0,.9)}`;
+    `.tile .enter{color:${ec};text-shadow:0 1px 2px rgba(0,0,0,.95),0 2px 8px rgba(0,0,0,.7)}`;
   let s=document.getElementById('tile-dyn');
   if(!s){s=document.createElement('style');s.id='tile-dyn';document.head.appendChild(s);}
   s.textContent=css;
@@ -1163,7 +1182,12 @@ function boot(){
   // Paint immediately with defaults — the page never waits on the network.
   buildAll(CONTENT);
   // Re-paint if the Worker has saved overrides (resolves under the loader; falls back silently).
-  loadContent().then(()=>buildAll(CONTENT)).catch(e=>console.warn(e));
+  loadContent().then(()=>{
+    buildAll(CONTENT);
+    // Deep link straight into a collection, e.g. kamaljewellers.shop/#bridal
+    const deepId=location.hash.slice(1);
+    if(deepId && collectionMap[deepId]) openCollection(deepId,{pushState:false});
+  }).catch(e=>console.warn(e));
   // Loader dismissal is on a guaranteed timer, never tied to the fetch.
   const wait=Math.max(0,1100-(Date.now()-t0));
   setTimeout(()=>{

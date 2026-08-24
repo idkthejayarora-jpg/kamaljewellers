@@ -52,7 +52,7 @@ window.KAMAL_DEFAULTS = {
   // Tile (collection grid card) visual style — all editable from Studio → Settings
   tileStyle:{
     headingFont:'Cormorant Garamond',  // 'Cormorant Garamond' | 'Jost'
-    headingWeight:300,                 // 100 200 300 400 500 600
+    headingWeight:500,                 // 100 200 300 400 500 600 — bolder holds up against busy photos
     headingSize:'',                    // empty = site default clamp
     headingColor:'#f3ead7',
     numColor:'rgba(255,255,255,0.5)',
@@ -74,13 +74,14 @@ window.KAMAL_DEFAULTS = {
   // Standalone link-in-bio page, live at kamaljewellers.shop/catalogue — put this
   // URL in your Instagram bio. Renders as a photo tile grid (same look as the
   // homepage collections grid); tapping a tile opens that link's url directly.
-  // Fully editable from Studio → Link Page — each tile gets its own photo.
+  // Fully editable from Studio → Link Page — each tile can carry several photos
+  // that slowly crossfade every few seconds for a more immersive feel.
   linkTree:{
     links:[
-      {id:"lt-collections", label:"Explore All Collections", url:"https://kamaljewellers.shop", image:""},
-      {id:"lt-catalogue",   label:"Full Catalogue",           url:"https://linktr.ee/kamaljewellers_instagram", image:""},
-      {id:"lt-whatsapp",    label:"WhatsApp Us",               url:"https://wa.me/919999925670", image:""},
-      {id:"lt-visit",       label:"Visit Our Store",           url:"https://www.google.com/maps/place/Kamal+Jewellers/@28.6578042,77.2151573,17z", image:""}
+      {id:"lt-collections", label:"Explore All Collections", url:"https://kamaljewellers.shop", images:[]},
+      {id:"lt-catalogue",   label:"Full Catalogue",           url:"https://linktr.ee/kamaljewellers_instagram", images:[]},
+      {id:"lt-whatsapp",    label:"WhatsApp Us",               url:"https://wa.me/919999925670", images:[]},
+      {id:"lt-visit",       label:"Visit Our Store",           url:"https://www.google.com/maps/place/Kamal+Jewellers/@28.6578042,77.2151573,17z", images:[]}
     ]
   },
   // Store photos shown in the "Visit our atelier" carousel.
