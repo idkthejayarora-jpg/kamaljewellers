@@ -45,3 +45,24 @@ for page in [root / "index.html", root / "studio.html",
 
 print(f"site.css hash: {digest}")
 print("updated: " + (", ".join(changed) if changed else "nothing (already current)"))
+
+# Stamp a visible build marker into Studio's top bar.
+#
+# Cached pages have repeatedly looked like "the deploy didn't work". A stamp
+# you can read off the screen settles it in seconds: if the number on screen
+# is older than the newest build, it's a stale page, not a failed deploy.
+import datetime
+studio = root / "studio.html"
+if studio.exists():
+    build = datetime.datetime.now().strftime("%d %b %H:%M")
+    text = studio.read_text()
+    stamped, n = re.subn(
+        r'(<span class="build" id="buildStamp"[^>]*>)[^<]*(</span>)',
+        rf'\g<1>build {build}\g<2>',
+        text,
+    )
+    if n:
+        studio.write_text(stamped)
+        print(f"build stamp: {build}")
+    else:
+        print("build stamp: marker not found in studio.html — skipped")

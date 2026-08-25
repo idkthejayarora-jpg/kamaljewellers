@@ -34,6 +34,8 @@ body{cursor:auto!important}
 .ebar .ebrand{font-family:'Cormorant Garamond';font-size:1.1rem;color:var(--gold-bright);letter-spacing:.06em;display:flex;align-items:center;gap:.4rem;flex-shrink:0}
 .ebar .ebrand img{width:26px;height:26px;border-radius:50%}
 .ebar .spacer{margin-left:auto}
+.ebar .build{font-size:.62rem;color:rgba(243,234,215,.35);white-space:nowrap;flex-shrink:0}
+body.studio-light .ebar .build{color:#8d857c}
 .ebar .state{font-size:.62rem;color:var(--gold);white-space:nowrap}
 .ebtn{padding:.46rem .85rem;border:1px solid var(--gold-deep);border-radius:30px;background:linear-gradient(150deg,var(--gold),var(--gold-deep));color:#1a1206;font-family:'Jost';font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;font-weight:500;cursor:pointer;white-space:nowrap;flex-shrink:0}
 .ebtn.ghost{background:transparent;color:var(--gold);border-color:rgba(216,178,94,.3)}
@@ -644,6 +646,9 @@ body.studio-light .solid{background:transparent !important}
   </div>
   <div class="spacer"></div>
   <span class="state" id="state"></span>
+  <!-- Stamped by stamp-css-version.py on every build. If this doesn't match
+       the newest deploy, you're looking at a cached page — reload. -->
+  <span class="build" id="buildStamp" title="Build this page was loaded from — reload if it looks old">build 25 Aug 15:52</span>
   <button class="ebtn ghost" id="jumpSaleBtn">⚡ Sale</button>
   <button class="ebtn ghost" id="lightBtn" title="Switch between light and dark Studio">☀ Light</button>
   <button class="ebtn ghost" id="jumpStatsBtn">📊 Stats</button>
