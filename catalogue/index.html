@@ -175,6 +175,7 @@
 
 <script src="../config.js"></script>
 <script src="../content-defaults.js"></script>
+<script src="../tile-style.js"></script>
 <script src="../track.js" defer></script>
 <script>
   const DEFAULTS = window.KAMAL_DEFAULTS || {};
@@ -225,6 +226,10 @@
           </a>`;
         }).join('')
       : '<p class="lt-empty">No links yet — add some from Studio.</p>';
+
+    // The tiles live on this page now, so Studio's tile settings have to be
+    // applied here — without this the colour/border/font controls do nothing.
+    if (window.applyTileStyle) applyTileStyle(CONTENT);
 
     startCrossfade();
   }

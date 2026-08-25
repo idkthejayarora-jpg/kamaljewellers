@@ -77,6 +77,7 @@ window.KAMAL_DEFAULTS = {
     headingFont:'Cormorant Garamond',  // 'Cormorant Garamond' | 'Jost'
     headingWeight:500,                 // 100 200 300 400 500 600 — bolder holds up against busy photos
     headingSize:'',                    // empty = site default clamp
+    headingGradient:true,              // false = use headingColor as a flat colour
     headingColor:'#f3ead7',
     numColor:'rgba(255,255,255,0.5)',
     enterColor:'#f4d784',

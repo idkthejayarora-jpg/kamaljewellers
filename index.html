@@ -293,6 +293,7 @@
 <!-- ===== Libraries ===== -->
 <script src="config.js"></script>
 <script src="content-defaults.js"></script>
+<script src="tile-style.js"></script>
 <script src="track.js" defer></script>
 
 <script>
@@ -1144,33 +1145,6 @@ function buildStore(C){
   dotsWrap.querySelectorAll('.store-dot').forEach(d=>d.addEventListener('click',()=>go(Number(d.dataset.i))));
   prev.onclick=()=>go(active-1);
   next.onclick=()=>go(active+1);
-}
-function applyTileStyle(C){
-  const ts=C.tileStyle||{};
-  const hf=ts.headingFont||'Cormorant Garamond';
-  const hw=ts.headingWeight??300;
-  const hs=ts.headingSize||'clamp(1.55rem,2vw,2.2rem)';
-  const hc=ts.headingColor||'#f3ead7';
-  const nc=ts.numColor||'rgba(255,255,255,0.5)';
-  const ec=ts.enterColor||'#f4d784';
-  const bc=ts.borderColor||'rgba(255,255,255,0.12)';
-  const bw=ts.borderWidth??1;
-  const br=ts.borderRadius??20;
-  const go=ts.glassOpacity??0.05;
-  const os=ts.overlayStrength??0.82;
-  const css=
-    `.tile{background:rgba(255,255,255,${go});border:${bw}px solid ${bc};border-radius:${br}px}`+
-    `.tile::after{background:linear-gradient(0deg,rgba(0,0,0,${os}) 0%,rgba(0,0,0,${(os*.61).toFixed(2)}) 22%,rgba(0,0,0,${(os*.12).toFixed(2)}) 48%,transparent 70%)}`+
-    `.tile h4{font-family:'${hf}',serif;font-weight:${hw};font-size:${hs};`+
-    `background:linear-gradient(162deg,#fff8b0 0%,#f4d784 14%,#ffe87a 26%,#c8922a 40%,#f0d070 54%,#fffbe0 66%,#e8c55a 78%,#c08a20 100%);`+
-    `background-size:220% 220%;animation:goldShimmer 7s ease-in-out infinite;`+
-    `-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;`+
-    `filter:drop-shadow(0 1px 2px rgba(0,0,0,.95)) drop-shadow(0 2px 6px rgba(0,0,0,.75)) drop-shadow(0 0 18px rgba(0,0,0,.55))}`+
-    `.tile .num{color:${nc}}`+
-    `.tile .enter{color:${ec};text-shadow:0 1px 2px rgba(0,0,0,.95),0 2px 8px rgba(0,0,0,.7)}`;
-  let s=document.getElementById('tile-dyn');
-  if(!s){s=document.createElement('style');s.id='tile-dyn';document.head.appendChild(s);}
-  s.textContent=css;
 }
 function buildSearch(C){
   const input=document.getElementById('srchInput');
