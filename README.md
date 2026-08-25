@@ -3,6 +3,11 @@
 An immersive, water-wave single-page site for Kamal Jewellers (Sadar Bazar, Delhi),
 with a self-serve admin panel for editing text, managing photos, and reading enquiries.
 
+> **Deploying?** See **[DEPLOY.md](DEPLOY.md)**. The website updates automatically
+> on push, but `worker.js` must be deployed by hand in the Cloudflare dashboard —
+> everything under `/api/*` stays stale until you do.
+> (`SETUP.md` is outdated; it describes an old Supabase backend.)
+
 - **Public site:** `index.html` — Lenis liquid scroll, WebGL molten-gold hero, SVG ripple
   transitions, 10 collections, glassmorphism reviews, floating "Enquire" widget.
 - **Admin panel:** `admin.html` — password login, content editor, photo upload with
