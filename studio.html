@@ -648,7 +648,7 @@ body.studio-light .solid{background:transparent !important}
   <span class="state" id="state"></span>
   <!-- Stamped by stamp-css-version.py on every build. If this doesn't match
        the newest deploy, you're looking at a cached page — reload. -->
-  <span class="build" id="buildStamp" title="Build this page was loaded from — reload if it looks old">build 25 Aug 15:59</span>
+  <span class="build" id="buildStamp" title="Build this page was loaded from — reload if it looks old">build 25 Aug 16:07</span>
   <button class="ebtn ghost" id="jumpSaleBtn">⚡ Sale</button>
   <button class="ebtn ghost" id="lightBtn" title="Switch between light and dark Studio">☀ Light</button>
   <button class="ebtn ghost" id="jumpStatsBtn">📊 Stats</button>
@@ -1929,8 +1929,24 @@ async function renderStats(){
   let s;
   try{ s=await api('/stats?days='+statsDays); }
   catch(e){
-    body.innerHTML='<p class="st-msg">Couldn\'t load stats.<br>'+esc(e.message)+
-      '<br><br>If this says 404, the Worker needs deploying — see the note in the commit.</p>';
+    // A 404 here has exactly one cause and one fix, so say it plainly rather
+    // than pointing at a commit message nobody is going to go and read.
+    const is404=/404/.test(e.message);
+    body.innerHTML = is404
+      ? '<div class="st-msg" style="max-width:520px;margin:0 auto;text-align:left">'
+        + '<p style="text-align:center;margin-bottom:1rem"><b>Stats aren\'t switched on yet.</b></p>'
+        + '<p>The counting code lives in <code>worker.js</code>, which GitHub can\'t '
+        + 'publish — it has to be deployed once by hand:</p>'
+        + '<ol style="margin:.8rem 0 0 1.1rem;line-height:1.9">'
+        + '<li>Cloudflare dashboard → <b>Workers &amp; Pages</b> → your worker</li>'
+        + '<li><b>Edit code</b> → select all → paste in <code>worker.js</code> → <b>Deploy</b></li>'
+        + '<li>Then <b>Storage &amp; Databases → D1</b> → your database → <b>Console</b> '
+        + '→ paste <code>schema.sql</code> and run it</li>'
+        + '</ol>'
+        + '<p style="margin-top:1rem;opacity:.75">Full steps are in <code>DEPLOY.md</code>. '
+        + 'Numbers start from the deploy onwards — past visits aren\'t backfilled.</p>'
+        + '</div>'
+      : '<p class="st-msg">Couldn\'t load stats.<br>'+esc(e.message)+'</p>';
     return;
   }
   const mobile=(s.devices||[]).find(d=>d.device==='mobile');
