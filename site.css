@@ -149,50 +149,7 @@ section{position:relative}
 .hero{height:100vh;height:100svh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;position:relative;z-index:2}
 .hero .eyebrow{margin-bottom:1.6rem;opacity:.85}
 .hero h1{font-family:'Cormorant Garamond';font-weight:400;line-height:.98;font-size:clamp(2.8rem,9vw,8.5rem);letter-spacing:.01em}
-.hero h1 em{font-style:italic;display:block}
-
-/* ---------- Molten metal hero title ----------
-   Line one is polished silver, line two is gold. Each is a hard-stepped
-   metallic gradient (the sharp light/dark banding is what reads as metal
-   rather than a soft colour fade) with a specular hotspot layered on top.
-   The hotspot's position comes from --lx/--ly, which JS drives from the
-   pointer on desktop and from device tilt on a phone — so the highlight
-   travels across the letters as you move, like light on a real surface. */
-.hero h1 .metal{
-  display:block;
-  --lx:50%; --ly:24%;
-  background-image:
-    radial-gradient(circle at var(--lx) var(--ly),
-      rgba(255,255,255,.92) 0%, rgba(255,255,255,.45) 9%, rgba(255,255,255,0) 26%),
-    var(--metal-base);
-  -webkit-background-clip:text; background-clip:text;
-  -webkit-text-fill-color:transparent; color:transparent;
-}
-/* Chrome, not a soft colour fade. Near-vertical so the bands run across the
-   letters like a horizon reflected in polished metal: bright crown, dark
-   belly, then a hard white flash at the mid-line. No drop-shadow — the
-   contrast in the gradient is what gives it form. */
-.hero h1 .metal-silver{
-  --metal-base:linear-gradient(177deg,
-    #ffffff 0%,  #f6faff 6%,  #c2cedd 14%,
-    #6b7a8c 22%, #38424f 30%, #2b333d 34%,
-    #93a2b3 39%, #ffffff 45%, #ffffff 53%,
-    #d6e0ea 59%, #7e8d9f 68%, #454f5c 75%,
-    #9dabbb 82%, #f2f7fc 91%, #ffffff 100%);
-}
-.hero h1 .metal-gold{
-  --metal-base:linear-gradient(177deg,
-    #fffbe0 0%,  #ffeda4 6%,  #e7bf58 14%,
-    #a5761f 22%, #5f4310 30%, #4a340b 34%,
-    #c69a34 39%, #ffeeaa 45%, #fffdf2 53%,
-    #f3d886 59%, #b0801f 68%, #6b4d12 75%,
-    #d5a93f 82%, #fff3bd 91%, #fffae2 100%);
-}
-/* No pointer and no gyro (or motion turned down) → hold a tasteful static
-   highlight rather than animating anything. */
-@media(prefers-reduced-motion:reduce){
-  .hero h1 .metal{--lx:38% !important;--ly:22% !important}
-}
+.hero h1 em{font-style:italic;color:var(--gold-bright);display:block}
 .hero .sub{margin-top:1.8rem;max-width:34ch;font-size:clamp(.85rem,1.4vw,1rem);line-height:1.8;color:rgba(243,234,215,.72);letter-spacing:.04em}
 .scroll-cue{position:absolute;bottom:2.2rem;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:.7rem;font-size:.58rem;letter-spacing:.4em;text-transform:uppercase;color:var(--gold);opacity:.7}
 .scroll-cue .line{width:1px;height:46px;background:linear-gradient(var(--gold),transparent);position:relative;overflow:hidden}
