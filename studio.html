@@ -734,7 +734,8 @@ async function api(path, opts={}){
   const isForm = opts.body instanceof FormData;
   if(!isForm && opts.body && typeof opts.body!=='string'){ opts={...opts, body:JSON.stringify(opts.body)}; headers['Content-Type']='application/json'; }
   let res;
-  try{ res = await fetch(API+path, {...opts, headers}); }
+  // no-store so Studio always edits the live saved content, never a cached copy
+  try{ res = await fetch(API+path, {cache:'no-store', ...opts, headers}); }
   catch(e){ throw new Error('Network error — cannot reach '+API+path+' ('+e.message+')'); }
   const text = await res.text().catch(()=>'');
   let data = {}; try{ data=JSON.parse(text); }catch{}

@@ -193,7 +193,9 @@
 
   async function loadContent(){
     try{
-      const res = await fetch(API + '/content');
+      // no-store — see the note in index.html; keeps Studio edits from being
+      // masked by a heuristically-cached API response.
+      const res = await fetch(API + '/content', { cache: 'no-store' });
       if(!res.ok) return;
       const { data } = await res.json();
       if(data) CONTENT = deepMerge(DEFAULTS, data);

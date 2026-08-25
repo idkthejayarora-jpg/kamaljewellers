@@ -318,7 +318,9 @@ function deepMerge(base, over){
 
 async function loadContent(){
   try{
-    const res = await fetch(API + '/content');
+    // no-store: the API sends no Cache-Control, so without this the browser
+    // heuristically caches it and Studio edits can take ages to show up.
+    const res = await fetch(API + '/content', { cache: 'no-store' });
     if(!res.ok) return;
     const { data } = await res.json();
     if(data) CONTENT = deepMerge(DEFAULTS, data);

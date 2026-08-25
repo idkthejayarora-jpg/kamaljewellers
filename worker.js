@@ -7,10 +7,17 @@ const CORS = {
   'Access-Control-Allow-Headers': 'Content-Type,Authorization',
 };
 
+// no-store matters: without an explicit Cache-Control, browsers fall back to
+// heuristic caching and can serve a stale /api/content for ages — which looks
+// exactly like "Studio saves aren't showing up on the site".
 const json = (data, status = 200) =>
   new Response(JSON.stringify(data), {
     status,
-    headers: { ...CORS, 'Content-Type': 'application/json' },
+    headers: {
+      ...CORS,
+      'Content-Type': 'application/json',
+      'Cache-Control': 'no-store, must-revalidate',
+    },
   });
 
 const fail = (msg, status = 400) => json({ error: msg }, status);
