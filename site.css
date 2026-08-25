@@ -248,7 +248,11 @@ body.theme-emerald .tp-inner{border-color:rgba(50,160,100,.45)}
 .vid-reel{max-height:78vh}
 .vid-card .vid-thumb{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
 .vid-card .vid-ph{position:absolute;inset:0;background:linear-gradient(150deg,#2a2217,#0d0907);display:flex;align-items:center;justify-content:center;
-  font-size:.62rem;letter-spacing:.24em;text-transform:uppercase;color:rgba(255,217,102,.5);text-align:center;padding:1.5rem}
+  font-size:.8rem;letter-spacing:.04em;line-height:1.6;color:rgba(255,231,170,.82);text-align:center;padding:1.5rem;z-index:2}
+/* An unconfigured card shouldn't pretend there's something to play */
+.vid-card.is-empty .vid-play,.vid-card.is-empty .vid-shade{display:none}
+/* A clip fills the frame exactly like the still it replaces */
+video.vid-clip{object-fit:cover;background:#0d0b08}
 .vid-card .vid-shade{position:absolute;inset:0;pointer-events:none;
   background:linear-gradient(0deg,rgba(6,4,3,.9) 0%,rgba(6,4,3,.45) 26%,transparent 55%)}
 /* Gold ring play button — the single strongest "this is a video" cue */

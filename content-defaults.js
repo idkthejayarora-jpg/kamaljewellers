@@ -59,8 +59,10 @@ window.KAMAL_DEFAULTS = {
     title:"Latest from the studio",
     youtubeUrl:"",
     youtubeCaption:"Our newest film",
+    youtubeClip:"",      // optional short muted mp4 — silent preview instead of a still
     reelUrl:"",
     reelThumb:"",
+    reelClip:"",         // Instagram gives no thumbnail, so a clip is the easiest fix
     reelCaption:"Latest reel"
   },
   // Homepage "Check our catalogue" showcase — replaces the old tile grid and

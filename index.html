@@ -29,7 +29,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet" />
 
-<link rel="stylesheet" href="site.css?v=2b061acafd" />
+<link rel="stylesheet" href="site.css?v=5d6ad9bbbb" />
 </head>
 <body>
 
@@ -1229,29 +1229,62 @@ function buildVideos(C){
   const vt=document.getElementById('vidTitle');
   if(vt) vt.innerHTML=nameWithEm(v.title||'Latest from the studio');
 
+  // A short muted clip beats a still: it shows motion, and for Instagram —
+  // which publishes no thumbnail at all — it's the only way to preview
+  // anything without embedding their whole heavyweight iframe.
+  const clipMedia = (url) =>
+    `<video class="vid-thumb vid-clip" src="${esc(url)}" muted loop playsinline
+            preload="none" disablepictureinpicture aria-hidden="true"></video>`;
+
   let html='';
   if(id){
+    const media = v.youtubeClip
+      ? clipMedia(v.youtubeClip)
+      : `<img class="vid-thumb" src="https://i.ytimg.com/vi/${esc(id)}/maxresdefault.jpg"
+              onerror="this.src='https://i.ytimg.com/vi/${esc(id)}/hqdefault.jpg'"
+              alt="" loading="lazy" />`;
     html+=`<a class="vid-card vid-main" id="ytCard" href="https://www.youtube.com/watch?v=${esc(id)}" target="_blank" rel="noopener" data-yt="${esc(id)}">
-      <img class="vid-thumb" src="https://i.ytimg.com/vi/${esc(id)}/maxresdefault.jpg"
-           onerror="this.src='https://i.ytimg.com/vi/${esc(id)}/hqdefault.jpg'"
-           alt="" loading="lazy" />
+      ${media}
       <span class="vid-shade"></span>
       <span class="vid-play" aria-hidden="true"></span>
       <span class="vid-cap"><span class="k">YouTube</span><span class="t">${esc(v.youtubeCaption||'Watch the film')}</span></span>
     </a>`;
   }
   if(hasReel){
-    const thumb=v.reelThumb
-      ? `<img class="vid-thumb" src="${esc(v.reelThumb)}" alt="" loading="lazy" />`
-      : `<span class="vid-ph">Add a reel cover<br>in Studio</span>`;
-    html+=`<a class="vid-card vid-reel" href="${esc(v.reelUrl||'#')}" target="_blank" rel="noopener">
-      ${thumb}
+    let media, empty='';
+    if(v.reelClip)        media = clipMedia(v.reelClip);
+    else if(v.reelThumb)  media = `<img class="vid-thumb" src="${esc(v.reelThumb)}" alt="" loading="lazy" />`;
+    else {
+      // No clip and no cover — say so plainly instead of showing a black void
+      media = `<span class="vid-ph">Add a preview clip or cover photo<br>in Studio → Videos</span>`;
+      empty = ' is-empty';
+    }
+    html+=`<a class="vid-card vid-reel${empty}" href="${esc(v.reelUrl||'#')}" target="_blank" rel="noopener">
+      ${media}
       <span class="vid-shade"></span>
       <span class="vid-play" aria-hidden="true"></span>
       <span class="vid-cap"><span class="k">Instagram</span><span class="t">${esc(v.reelCaption||'Latest reel')}</span></span>
     </a>`;
   }
   wrap.innerHTML=html;
+
+  // Clips play only while on screen and pause when they scroll away — no
+  // point burning a visitor's battery and data on a video nobody is looking at.
+  const clips=[...wrap.querySelectorAll('.vid-clip')];
+  if(clips.length){
+    if('IntersectionObserver' in window){
+      const cio=new IntersectionObserver(entries=>{
+        entries.forEach(en=>{
+          const el=en.target;
+          if(en.isIntersecting){ el.preload='auto'; el.play().catch(()=>{}); }
+          else el.pause();
+        });
+      },{threshold:0.25});
+      clips.forEach(c=>cio.observe(c));
+    } else {
+      clips.forEach(c=>{ c.preload='auto'; c.play().catch(()=>{}); });
+    }
+  }
 
   // Click-to-play: swap the facade for the real embed, so the page never
   // ships a YouTube iframe to visitors who don't press play.

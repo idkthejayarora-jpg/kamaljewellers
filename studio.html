@@ -11,7 +11,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet" />
 <link href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css" rel="stylesheet" />
 <!-- The exact same stylesheet the live site uses → pixel-identical look -->
-<link rel="stylesheet" href="site.css?v=2b061acafd" />
+<link rel="stylesheet" href="site.css?v=5d6ad9bbbb" />
 <script src="tile-style.js"></script>
 <style>
 /* ============================================================
@@ -444,6 +444,14 @@ body{padding-top:52px}
 .vs-thumb img{width:100%;height:100%;object-fit:cover;display:block}
 .vs-thumb-x{position:absolute;top:3px;right:3px;width:18px;height:18px;border-radius:50%;
   background:rgba(8,6,4,.9);border:1px solid rgba(240,120,120,.4);color:#f07878;font-size:.62rem;line-height:16px;text-align:center}
+.vs-clip{position:relative;width:100%;max-width:210px;aspect-ratio:16/10;border-radius:10px;overflow:hidden;
+  border:1px dashed rgba(216,178,94,.4);background:linear-gradient(150deg,#2a2217,#0d0907);
+  cursor:pointer;display:flex;align-items:center;justify-content:center}
+.vs-clip video{width:100%;height:100%;object-fit:cover;display:block}
+.vs-clip-add{font-size:.75rem;color:rgba(216,178,94,.75);text-align:center;padding:.5rem}
+.vs-clip-x{position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;
+  background:rgba(8,6,4,.92);border:1px solid rgba(240,120,120,.45);color:#f07878;
+  font-size:.66rem;line-height:18px;text-align:center;z-index:2}
 @media(max-width:700px){.vs-form input,.vs-form textarea{font-size:16px}}
 
 /* ---- Link-in-bio editor ---- */
@@ -726,12 +734,18 @@ body.studio-light .solid{background:transparent !important}
           <div class="fld"><label>Video URL <span style="opacity:.5">— watch, youtu.be or shorts link</span></label><input type="url" id="vsYtUrl" placeholder="https://www.youtube.com/watch?v=…"></div>
           <div class="fld"><label>Caption</label><input type="text" id="vsYtCap" placeholder="Our newest film"></div>
           <div class="vs-note" id="vsYtNote">The cover image is pulled from YouTube automatically.</div>
+          <div class="fld" style="margin-top:.7rem"><label>Preview clip <span style="opacity:.5">— optional, plays silently instead of the cover</span></label>
+            <div class="vs-clip" id="vsYtClip"></div>
+          </div>
         </div>
         <div class="vs-col">
           <div class="vs-k">◉ Instagram reel (vertical, 30%)</div>
           <div class="fld"><label>Reel URL</label><input type="url" id="vsReelUrl" placeholder="https://www.instagram.com/reel/…"></div>
           <div class="fld"><label>Caption</label><input type="text" id="vsReelCap" placeholder="Latest reel"></div>
-          <div class="fld"><label>Cover photo <span style="opacity:.5">— Instagram gives none, so upload one</span></label>
+          <div class="fld"><label>Preview clip <span style="opacity:.5">— best option: Instagram gives no cover image at all</span></label>
+            <div class="vs-clip" id="vsReelClip"></div>
+          </div>
+          <div class="fld"><label>Cover photo <span style="opacity:.5">— used only if there's no clip</span></label>
             <div class="vs-thumb" id="vsReelThumb" title="Tap to upload a cover for the reel"></div>
           </div>
         </div>
@@ -1977,6 +1991,25 @@ function renderVideoEditor(){
   }
   updateYtNote();
   renderReelThumb();
+  renderClip('vsYtClip','youtubeClip');
+  renderClip('vsReelClip','reelClip');
+}
+
+// Small uploader tile for a preview clip: shows the clip looping silently
+// once set, with a way to remove it.
+function renderClip(boxId, key){
+  const box=$('#'+boxId); if(!box) return;
+  const v=C.videoSection;
+  box.innerHTML = v[key]
+    ? `<video src="${esc(v[key])}" muted loop autoplay playsinline></video>
+       <span class="vs-clip-x" title="Remove clip">✕</span>`
+    : `<span class="vs-clip-add">+ Upload a short clip</span>`;
+  const x=box.querySelector('.vs-clip-x');
+  if(x) x.onclick=ev=>{ ev.stopPropagation(); v[key]=''; markDirty(); renderClip(boxId,key); };
+  box.onclick=ev=>{
+    if(ev.target.closest('.vs-clip-x')) return;
+    pickClipFor(url=>{ v[key]=url; markDirty(); renderClip(boxId,key); });
+  };
 }
 function renderReelThumb(){
   const box=$('#vsReelThumb'); if(!box) return;
@@ -2389,6 +2422,34 @@ function pickImageFor(onDone, coll='sale', ratio=0.8){
   inp.onchange=()=>{ const f=inp.files[0]; inp.remove(); if(!f) return; openCropper(URL.createObjectURL(f), ratio); };
   inp.click();
 }
+/* Video can't go through the image cropper, so clips upload straight to R2.
+   Kept short on purpose — these are silent teasers, not the actual film. */
+async function pickClipFor(onDone, coll='videos'){
+  const inp=el('input'); inp.type='file'; inp.accept='video/*';
+  inp.style.cssText='position:fixed;left:-9999px';
+  document.body.appendChild(inp);
+  inp.onchange=async()=>{
+    const f=inp.files[0]; inp.remove();
+    if(!f) return;
+    if(f.size > 8*1024*1024){
+      toast('That clip is '+(f.size/1048576).toFixed(1)+'MB — keep previews under 8MB so the page stays fast.');
+      return;
+    }
+    toast('Uploading clip…');
+    try{
+      const form=new FormData();
+      form.append('file', f, f.name || 'clip.mp4');
+      form.append('collection', coll);
+      const { url } = await api('/photos',{method:'POST',body:form});
+      onDone(url);
+      toast('Clip added ✓');
+    }catch(e){
+      toast(/503/.test(e.message) ? 'Video storage off — enable R2 in Cloudflare.' : 'Upload failed: '+e.message);
+    }
+  };
+  inp.click();
+}
+
 function pickPhoto(ci, ii){
   cropColl=ci; cropReplace=ii; cropOnDone=null; // ii=null → add new
   const inp=el('input'); inp.type='file'; inp.accept='image/*'; inp.style.cssText='position:fixed;left:-9999px';
