@@ -166,6 +166,81 @@ async function handleTestNotify(env) {
   return fail('Could not send: ' + (r.reason || r.detail || ('HTTP ' + r.status)), 400);
 }
 
+// ── Analytics ─────────────────────────────────────────────────────────────────
+// Location comes from request.cf, which Cloudflare fills in on every request at
+// no cost — so there's no permission prompt, no lat/long, and no gap in the
+// data from people who decline. City-level is all this needs to answer
+// "where are my customers?".
+async function handleTrack(request, env, ctx) {
+  let body;
+  try { body = await request.json(); } catch { return json({ ok: true }); } // never argue with a beacon
+  const { type, label, path, session, device } = body || {};
+  if (type !== 'view' && type !== 'tap') return json({ ok: true });
+
+  const cf = request.cf || {};
+  const row = env.DB.prepare(
+    `INSERT INTO events (id,created_at,type,label,path,session,city,region,country,device)
+     VALUES (?,?,?,?,?,?,?,?,?,?)`
+  ).bind(
+    crypto.randomUUID(),
+    new Date().toISOString(),
+    type,
+    String(label || '').slice(0, 120) || null,
+    String(path || '').slice(0, 120) || null,
+    String(session || '').slice(0, 40) || null,
+    cf.city || null,
+    cf.region || null,
+    cf.country || null,
+    device === 'mobile' ? 'mobile' : 'desktop'
+  ).run();
+
+  // Don't make the visitor's browser wait on our bookkeeping
+  if (ctx && ctx.waitUntil) ctx.waitUntil(row.catch(e => console.error('track', e)));
+  else await row.catch(e => console.error('track', e));
+
+  return json({ ok: true });
+}
+
+async function handleStats(request, env) {
+  const url = new URL(request.url);
+  const days = Math.min(365, Math.max(1, parseInt(url.searchParams.get('days') || '30', 10)));
+  const since = new Date(Date.now() - days * 864e5).toISOString();
+
+  const q = (sql, ...binds) => env.DB.prepare(sql).bind(...binds).all();
+
+  const [totals, daily, taps, collections, cities, devices] = await Promise.all([
+    q(`SELECT COUNT(*) AS views, COUNT(DISTINCT session) AS visitors
+        FROM events WHERE type='view' AND created_at >= ?`, since),
+    q(`SELECT substr(created_at,1,10) AS day,
+              COUNT(*) AS views,
+              COUNT(DISTINCT session) AS visitors
+        FROM events WHERE type='view' AND created_at >= ?
+        GROUP BY day ORDER BY day`, since),
+    q(`SELECT label, COUNT(*) AS n FROM events
+        WHERE type='tap' AND label IS NOT NULL AND created_at >= ?
+        GROUP BY label ORDER BY n DESC LIMIT 12`, since),
+    q(`SELECT label, COUNT(*) AS n FROM events
+        WHERE type='tap' AND label LIKE 'collection:%' AND created_at >= ?
+        GROUP BY label ORDER BY n DESC LIMIT 12`, since),
+    q(`SELECT COALESCE(city,'Unknown') AS city, COALESCE(region,'') AS region,
+              COUNT(DISTINCT session) AS n
+        FROM events WHERE created_at >= ?
+        GROUP BY city, region ORDER BY n DESC LIMIT 12`, since),
+    q(`SELECT COALESCE(device,'desktop') AS device, COUNT(DISTINCT session) AS n
+        FROM events WHERE created_at >= ? GROUP BY device`, since),
+  ]);
+
+  return json({
+    days,
+    totals: totals.results[0] || { views: 0, visitors: 0 },
+    daily: daily.results,
+    taps: taps.results,
+    collections: collections.results,
+    cities: cities.results,
+    devices: devices.results,
+  });
+}
+
 // ── Enquiries ─────────────────────────────────────────────────────────────────
 async function handleSubmitEnquiry(request, env, ctx) {
   let body;
@@ -263,6 +338,7 @@ export default {
       if (path === '/api/auth'    && method === 'POST') return handleAuth(request, env);
       if (path === '/api/content' && method === 'GET')  return handleGetContent(env);
       if (path === '/api/enquiries' && method === 'POST') return handleSubmitEnquiry(request, env, ctx);
+      if (path === '/api/track'     && method === 'POST') return handleTrack(request, env, ctx);
 
       // Protected endpoints
       if (!await isAuthed(request, env)) return fail('Unauthorized', 401);
@@ -274,6 +350,7 @@ export default {
       if (path === '/api/notify'   && method === 'GET')   return handleGetNotify(env);
       if (path === '/api/notify'   && method === 'POST')  return handleSaveNotify(request, env);
       if (path === '/api/notify/test' && method === 'POST') return handleTestNotify(env);
+      if (path === '/api/stats'    && method === 'GET')   return handleStats(request, env);
 
       const enqMatch   = path.match(/^\/api\/enquiries\/(.+)$/);
       const photoMatch = path.match(/^\/api\/photos\/(.+)$/);

@@ -392,6 +392,33 @@ body{padding-top:52px}
 .lead-acts .lead-del{border-color:rgba(240,120,120,.35);color:#f07878}
 .leads-empty{text-align:center;padding:2.4rem 1rem;color:rgba(243,234,215,.45);font-size:.8rem;line-height:1.7}
 
+/* ---- Stats ---- */
+.st-wrap{max-width:900px;margin:0 auto}
+.st-range{display:flex;gap:.4rem;justify-content:center;margin-bottom:1.4rem}
+.st-range button{background:rgba(255,255,255,.05);border:1px solid rgba(216,178,94,.25);color:var(--cream);
+  border-radius:20px;padding:.4rem .95rem;font-family:'Jost';font-size:.6rem;letter-spacing:.12em;
+  text-transform:uppercase;cursor:pointer;transition:background .2s,border-color .2s}
+.st-range button.on{background:rgba(216,178,94,.18);border-color:rgba(216,178,94,.6);color:var(--gold-bright)}
+.st-msg{text-align:center;color:rgba(243,234,215,.45);font-size:.8rem;padding:2rem 0;line-height:1.7}
+.st-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:.7rem;margin-bottom:1.4rem}
+.st-kpi{border:1px solid rgba(216,178,94,.22);border-radius:12px;background:rgba(255,255,255,.05);padding:.9rem 1rem;text-align:center}
+.st-kpi b{display:block;font-family:'Cormorant Garamond';font-size:1.9rem;font-weight:500;color:var(--gold-bright);line-height:1}
+.st-kpi span{display:block;font-size:.52rem;letter-spacing:.16em;text-transform:uppercase;color:rgba(243,234,215,.5);margin-top:.35rem}
+.st-card{border:1px solid rgba(216,178,94,.22);border-radius:12px;background:rgba(255,255,255,.04);padding:1rem 1.1rem;margin-bottom:.9rem}
+.st-card h4{font-family:'Cormorant Garamond';font-size:1.15rem;font-weight:500;color:var(--gold-bright);margin:0 0 .8rem}
+.st-card svg{display:block;width:100%;height:auto;overflow:visible}
+.st-bars{display:flex;flex-direction:column;gap:.5rem}
+.st-bar{display:grid;grid-template-columns:1fr auto;gap:.6rem;align-items:center;font-size:.75rem}
+.st-bar .lbl{color:rgba(243,234,215,.8);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.st-bar .n{color:var(--gold);font-size:.72rem;flex-shrink:0}
+.st-bar .track{grid-column:1/-1;height:5px;border-radius:4px;background:rgba(255,255,255,.07);overflow:hidden}
+/* display:block matters — a bare <span> is inline, so height/width are ignored
+   and the bar renders as an empty track. The .track above escapes this only
+   because grid items get blockified automatically. */
+.st-bar .fill{display:block;height:100%;border-radius:4px;background:linear-gradient(90deg,var(--gold-deep),var(--gold-bright))}
+.st-empty{color:rgba(243,234,215,.4);font-size:.75rem;padding:.4rem 0}
+@media(max-width:700px){.st-kpi b{font-size:1.55rem}}
+
 /* ---- Videos + catalogue-box editors ---- */
 .vs-form{max-width:900px;margin:0 auto}
 .vs-two{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
@@ -482,6 +509,7 @@ body{padding-top:52px}
   <div class="spacer"></div>
   <span class="state" id="state"></span>
   <button class="ebtn ghost" id="jumpSaleBtn">⚡ Sale</button>
+  <button class="ebtn ghost" id="jumpStatsBtn">📊 Stats</button>
   <button class="ebtn ghost" id="jumpVideoBtn">▶ Videos</button>
   <button class="ebtn ghost" id="jumpLinksBtn">🔗 Links</button>
   <button class="ebtn ghost" id="settingsBtn">Settings</button>
@@ -532,6 +560,22 @@ body{padding-top:52px}
     <div id="saleItemList"></div>
     <div style="text-align:center;margin:1.5rem 0">
       <button class="mini-ed" id="addSaleItem">+ Add sale item</button>
+    </div>
+  </section>
+
+  <!-- STATS -->
+  <section class="sale-sec-edit" id="statsEdit">
+    <div class="head">
+      <h3>Stats</h3>
+      <div class="eyebrow">Who's visiting, what they tap, and where they're from</div>
+    </div>
+    <div class="st-wrap">
+      <div class="st-range" id="stRange">
+        <button data-d="7">7 days</button>
+        <button data-d="30" class="on">30 days</button>
+        <button data-d="90">90 days</button>
+      </div>
+      <div id="statsBody"><p class="st-msg">Loading…</p></div>
     </div>
   </section>
 
@@ -813,6 +857,7 @@ async function enterStudio(){
   await loadContent();
   renderAll();
   refreshLeadsBadge();
+  renderStats();   // one network call on entry, not on every re-render
 }
 
 /* ── Save ───────────────────────────────────────────────────── */
@@ -1641,6 +1686,9 @@ $('#addSaleItem').addEventListener('click',()=>{
 $('#jumpSaleBtn').addEventListener('click',()=>{
   document.getElementById('saleSecEdit').scrollIntoView({behavior:'smooth',block:'start'});
 });
+$('#jumpStatsBtn').addEventListener('click',()=>{
+  document.getElementById('statsEdit').scrollIntoView({behavior:'smooth',block:'start'});
+});
 $('#jumpVideoBtn').addEventListener('click',()=>{
   document.getElementById('videoEdit').scrollIntoView({behavior:'smooth',block:'start'});
 });
@@ -1649,6 +1697,108 @@ $('#jumpLinksBtn').addEventListener('click',()=>{
 });
 
 /* ── Link-in-bio page editor ───────────────────────────────── */
+/* ── Stats ──────────────────────────────────────────────────── */
+let statsDays = 30;
+
+// Tidy up the machine-readable labels the tracker sends
+function prettyLabel(l){
+  if(!l) return '—';
+  if(l.startsWith('collection:')){
+    const id=l.slice(11);
+    const c=(C.collections||[]).find(x=>x.id===id);
+    return (c?c.name:id)+' (collection)';
+  }
+  if(l.startsWith('catalogue:')) return l.slice(10);
+  if(l.startsWith('menu:'))      return l.slice(5)+' (menu)';
+  if(l==='video:youtube')  return 'YouTube video';
+  if(l==='video:reel')     return 'Instagram reel';
+  if(l==='whatsapp')       return 'WhatsApp button';
+  if(l==='enquire')        return 'Enquire button';
+  if(l==='catalogue-pill') return 'Catalogue pill';
+  if(l==='sale-item')      return 'Sale item';
+  return l;
+}
+
+function barList(rows, labelKey, valKey, mapLabel){
+  if(!rows || !rows.length) return '<p class="st-empty">Nothing yet in this period.</p>';
+  const max=Math.max(...rows.map(r=>r[valKey]))||1;
+  return '<div class="st-bars">'+rows.map(r=>{
+    const label=mapLabel?mapLabel(r[labelKey],r):r[labelKey];
+    const pct=Math.round((r[valKey]/max)*100);
+    return `<div class="st-bar">
+      <span class="lbl">${esc(label||'—')}</span><span class="n">${r[valKey]}</span>
+      <span class="track"><span class="fill" style="width:${pct}%"></span></span>
+    </div>`;
+  }).join('')+'</div>';
+}
+
+// Small hand-drawn SVG line chart — avoids pulling in a charting library
+// for what is ultimately one sparkline.
+function lineChart(daily){
+  if(!daily || daily.length<2) return '<p class="st-empty">Needs a couple of days of data to draw a trend.</p>';
+  const w=700, h=150, pad=8;
+  const max=Math.max(...daily.map(d=>d.views))||1;
+  const step=(w-pad*2)/(daily.length-1);
+  const pts=daily.map((d,i)=>[pad+i*step, h-pad-((d.views/max)*(h-pad*2))]);
+  const line=pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
+  const area=line+` L ${pts[pts.length-1][0].toFixed(1)} ${h-pad} L ${pts[0][0].toFixed(1)} ${h-pad} Z`;
+  const first=daily[0].day.slice(5), last=daily[daily.length-1].day.slice(5);
+  return `<svg viewBox="0 0 ${w} ${h+18}" role="img" aria-label="Daily views">
+    <defs><linearGradient id="stg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="rgba(224,175,61,.42)"/><stop offset="100%" stop-color="rgba(224,175,61,0)"/>
+    </linearGradient></defs>
+    <path d="${area}" fill="url(#stg)"/>
+    <path d="${line}" fill="none" stroke="#ffd966" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+    <text x="${pad}" y="${h+14}" fill="rgba(243,234,215,.45)" font-size="11" font-family="Jost">${esc(first)}</text>
+    <text x="${w-pad}" y="${h+14}" fill="rgba(243,234,215,.45)" font-size="11" font-family="Jost" text-anchor="end">${esc(last)}</text>
+    <text x="${w/2}" y="${h+14}" fill="rgba(243,234,215,.35)" font-size="11" font-family="Jost" text-anchor="middle">peak ${max}/day</text>
+  </svg>`;
+}
+
+async function renderStats(){
+  const body=$('#statsBody'); if(!body) return;
+  body.innerHTML='<p class="st-msg">Loading…</p>';
+  let s;
+  try{ s=await api('/stats?days='+statsDays); }
+  catch(e){
+    body.innerHTML='<p class="st-msg">Couldn\'t load stats.<br>'+esc(e.message)+
+      '<br><br>If this says 404, the Worker needs deploying — see the note in the commit.</p>';
+    return;
+  }
+  const mobile=(s.devices||[]).find(d=>d.device==='mobile');
+  const desktop=(s.devices||[]).find(d=>d.device==='desktop');
+  const t=s.totals||{};
+
+  if(!t.views){
+    body.innerHTML='<p class="st-msg">No visits recorded yet in this period.<br>'+
+      'Numbers start appearing as soon as people land on the site.</p>';
+    return;
+  }
+
+  body.innerHTML=`
+    <div class="st-kpis">
+      <div class="st-kpi"><b>${t.visitors||0}</b><span>Visitors</span></div>
+      <div class="st-kpi"><b>${t.views||0}</b><span>Page views</span></div>
+      <div class="st-kpi"><b>${mobile?mobile.n:0}</b><span>On phone</span></div>
+      <div class="st-kpi"><b>${desktop?desktop.n:0}</b><span>On desktop</span></div>
+    </div>
+    <div class="st-card"><h4>Visits over time</h4>${lineChart(s.daily)}</div>
+    <div class="st-card"><h4>Most demand — collections</h4>
+      ${barList(s.collections,'label','n',prettyLabel)}</div>
+    <div class="st-card"><h4>What people tap</h4>
+      ${barList(s.taps,'label','n',prettyLabel)}</div>
+    <div class="st-card"><h4>Where they're from</h4>
+      ${barList(s.cities,'city','n',(city,row)=>city+(row.region?' · '+row.region:''))}</div>
+  `;
+}
+
+$('#stRange')?.addEventListener('click',e=>{
+  const b=e.target.closest('button[data-d]'); if(!b) return;
+  statsDays=Number(b.dataset.d);
+  $('#stRange').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
+  renderStats();
+});
+
 /* ── Homepage videos + catalogue box ────────────────────────── */
 // Small helper: keep an <input> in sync with a field on a content object.
 // Uses .oninput (not addEventListener) so re-rendering replaces the handler
