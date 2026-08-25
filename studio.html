@@ -11,7 +11,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet" />
 <link href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css" rel="stylesheet" />
 <!-- The exact same stylesheet the live site uses → pixel-identical look -->
-<link rel="stylesheet" href="site.css?v=5d6ad9bbbb" />
+<link rel="stylesheet" href="site.css?v=dac88104c3" />
 <script src="tile-style.js"></script>
 <style>
 /* ============================================================
@@ -648,7 +648,7 @@ body.studio-light .solid{background:transparent !important}
   <span class="state" id="state"></span>
   <!-- Stamped by stamp-css-version.py on every build. If this doesn't match
        the newest deploy, you're looking at a cached page — reload. -->
-  <span class="build" id="buildStamp" title="Build this page was loaded from — reload if it looks old">build 25 Aug 15:52</span>
+  <span class="build" id="buildStamp" title="Build this page was loaded from — reload if it looks old">build 25 Aug 15:57</span>
   <button class="ebtn ghost" id="jumpSaleBtn">⚡ Sale</button>
   <button class="ebtn ghost" id="lightBtn" title="Switch between light and dark Studio">☀ Light</button>
   <button class="ebtn ghost" id="jumpStatsBtn">📊 Stats</button>
@@ -2157,7 +2157,20 @@ function renderDrawer(){
     const f=el('div','fld'); f.appendChild(el('label',null,label));
     const inp=el('input'); inp.type='color'; inp.value=initVal;
     inp.style.cssText='width:100%;height:42px;padding:.2rem;border-radius:8px;border:1px solid rgba(216,178,94,.3);background:rgba(255,255,255,.1);cursor:pointer';
-    inp.addEventListener('input',()=>{ ts[key]=inp.value; markDirty(); applyTileStyle(C); });
+    inp.addEventListener('input',()=>{
+      ts[key]=inp.value;
+      // Picking a heading colour while the gradient is on used to do nothing
+      // at all — the gradient paints straight over it. Choosing a colour is a
+      // clear statement of intent, so honour it and switch the gradient off.
+      if(key==='headingColor' && ts.headingGradient!==false){
+        ts.headingGradient=false;
+        const box=$('#tsGradBox'); if(box) box.checked=false;
+        const note=$('#tsGradNote');
+        if(note) note.textContent='Gradient off — the heading colour below is used.';
+        toast('Gold gradient switched off so your colour shows');
+      }
+      markDirty(); applyTileStyle(C);
+    });
     f.appendChild(inp); return f;
   }
   function tsTextInp(label, placeholder, key){
@@ -2198,6 +2211,7 @@ function renderDrawer(){
   // Gold gradient switch — while it's on it paints over the heading colour,
   // so the picker below would silently do nothing without this control.
   { const f=el('div','fld'); const lbl=el('label','cbx'); const box=el('input'); box.type='checkbox';
+    box.id='tsGradBox';
     box.checked = ts.headingGradient !== false;
     box.addEventListener('change',()=>{
       ts.headingGradient=box.checked; markDirty(); applyTileStyle(C);
