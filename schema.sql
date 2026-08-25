@@ -1,3 +1,15 @@
+-- Site content lives here rather than in KV.
+--
+-- KV is eventually consistent and its reads carry a 60-second minimum edge
+-- cache, so a Studio save could take up to a minute to show on the live site —
+-- which is exactly the "saving is slow / not tied together" problem. D1 is
+-- strongly consistent, so a save is visible on the very next request.
+CREATE TABLE IF NOT EXISTS site_content (
+  id         TEXT PRIMARY KEY,       -- always 'main'; one row
+  json       TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
 -- Analytics events for the Studio → Stats panel.
 --
 -- Deliberately holds nothing that identifies a person: no IP, no name, no
@@ -7,7 +19,7 @@
 -- attaches to the request, so there's no permission prompt and no lat/long.
 --
 -- Apply with:
---   npx wrangler d1 execute <DB_NAME> --remote --file=schema-events.sql
+--   npx wrangler d1 execute <DB_NAME> --remote --file=schema.sql
 
 CREATE TABLE IF NOT EXISTS events (
   id         TEXT PRIMARY KEY,

@@ -107,7 +107,20 @@ async function handleChangePassword(request, env) {
 }
 
 // ── Content ───────────────────────────────────────────────────────────────────
+// Stored in D1, not KV. KV is eventually consistent and its reads carry a
+// 60-second minimum edge cache, so a Studio save could take up to a minute to
+// appear on the site. D1 is strongly consistent — the next request sees it.
+// KV is still written as a backup, and still read as a fallback, so this
+// survives the table not existing yet and can be rolled back safely.
 async function handleGetContent(env) {
+  try {
+    const row = await env.DB.prepare(
+      `SELECT json FROM site_content WHERE id='main'`
+    ).first();
+    if (row && row.json) return json({ data: JSON.parse(row.json) });
+  } catch (e) {
+    console.error('content read from D1 failed, falling back to KV', e);
+  }
   const data = await env.KV.get('site_content', 'json');
   return json({ data: data || null });
 }
@@ -115,8 +128,27 @@ async function handleGetContent(env) {
 async function handleSaveContent(request, env) {
   let body;
   try { body = await request.json(); } catch { return fail('Invalid JSON'); }
-  await env.KV.put('site_content', JSON.stringify(body.data));
-  return json({ ok: true });
+  const payload = JSON.stringify(body.data);
+
+  let savedToD1 = false;
+  try {
+    await env.DB.prepare(
+      `INSERT INTO site_content (id,json,updated_at) VALUES ('main',?,?)
+       ON CONFLICT(id) DO UPDATE SET json=excluded.json, updated_at=excluded.updated_at`
+    ).bind(payload, new Date().toISOString()).run();
+    savedToD1 = true;
+  } catch (e) {
+    console.error('content write to D1 failed', e);
+  }
+
+  // Backup copy. If D1 failed outright this is the only copy, so surface that.
+  try {
+    await env.KV.put('site_content', payload);
+  } catch (e) {
+    if (!savedToD1) return fail('Could not save: ' + e.message, 500);
+  }
+
+  return json({ ok: true, store: savedToD1 ? 'd1' : 'kv' });
 }
 
 // ── Lead notifications (WhatsApp via CallMeBot) ───────────────────────────────
