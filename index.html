@@ -105,16 +105,26 @@
       <div class="sale-track" id="saleGrid"></div>
     </section>
 
-    <!-- DIRECTORY -->
-    <section class="directory" id="collections">
-      <div class="dir-cta reveal">
-        <a class="catalogue-pill dir-pill" id="dirCatalogueLink" href="#" target="_blank" rel="noopener">✦ See Catalogue</a>
+    <!-- VIDEO STRIP — wide YouTube feature + vertical reel -->
+    <section class="vid-sec" id="vidSec">
+      <div class="vid-head reveal">
+        <span class="eyebrow" id="vidEyebrow">On screen</span>
+        <h2 id="vidTitle">Latest from the <em>studio</em></h2>
       </div>
-      <div class="head reveal">
-        <h3>The Collections</h3>
-        <div class="eyebrow">Tap to dive in</div>
-      </div>
-      <div class="grid" id="grid"></div>
+      <div class="vid-grid reveal" id="vidGrid"></div>
+    </section>
+
+    <!-- CATALOGUE SHOWCASE — single box previewing the /catalogue page -->
+    <section class="cat-sec" id="collections">
+      <a class="cat-box reveal" id="catBox" href="/catalogue">
+        <div class="cat-fan" id="catFan" aria-hidden="true"></div>
+        <div class="cat-copy">
+          <span class="eyebrow" id="catEyebrow">Everything in one place</span>
+          <h2 id="catTitle">Check our <em>catalogue</em></h2>
+          <p id="catText">Every collection, every look — browse the full catalogue in one place.</p>
+          <span class="cat-cta" id="catCta">Open the catalogue <i>↗</i></span>
+        </div>
+      </a>
     </section>
 
     <!-- COLLECTION DETAIL PANELS (injected) -->
@@ -432,7 +442,8 @@ const TILE_THEMES={
 let collectionMap={};
 
 function buildCollections(C){
-  grid.innerHTML=''; menuList.innerHTML=''; panels.innerHTML='';
+  if(grid) grid.innerHTML='';
+  menuList.innerHTML=''; panels.innerHTML='';
   footCols.querySelectorAll('a').forEach(a=>a.remove());
   collectionMap={};
 
@@ -445,10 +456,15 @@ function buildCollections(C){
       ? `background:#0d0f12 url('${cover}') center/cover no-repeat`
       : `background:transparent`;
 
-    const tile=document.createElement('button');
-    tile.className='tile mag'; tile.dataset.open=c.id; tile.dataset.theme=th;
-    tile.innerHTML=`<div class="swatch" style="${swatch}"></div><span class="num">${n}</span><h4>${esc(c.name)}</h4><span class="enter">Explore →</span>`;
-    grid.appendChild(tile);
+    // The homepage tile grid was replaced by the catalogue showcase box, so
+    // there's no #grid to fill — collections are now reached via the catalogue
+    // page, the nav menu, hero search and footer, all still built below.
+    if(grid){
+      const tile=document.createElement('button');
+      tile.className='tile mag'; tile.dataset.open=c.id; tile.dataset.theme=th;
+      tile.innerHTML=`<div class="swatch" style="${swatch}"></div><span class="num">${n}</span><h4>${esc(c.name)}</h4><span class="enter">Explore →</span>`;
+      grid.appendChild(tile);
+    }
 
     const li=document.createElement('li');
     li.innerHTML=`<a data-open="${c.id}">${esc(c.name)}</a>`;
@@ -1185,11 +1201,99 @@ function buildSearch(C){
   document.addEventListener('click',e=>{ if(!e.target.closest('#srchBar')) hideDrop(); },{passive:true});
 }
 
+/* ============================================================
+   VIDEO STRIP — wide YouTube feature + vertical Instagram reel
+   YouTube thumbnails come straight off img.youtube.com (no API key,
+   no cost). Clicking swaps in a privacy-mode embed rather than
+   loading an iframe on every page view. Instagram publishes no
+   thumbnail, so that one is uploaded in Studio and links out.
+   ============================================================ */
+function ytId(url){
+  const m=String(url||'').match(/(?:youtu\.be\/|v=|\/shorts\/|\/embed\/)([A-Za-z0-9_-]{11})/);
+  return m?m[1]:null;
+}
+function buildVideos(C){
+  const sec=document.getElementById('vidSec'), wrap=document.getElementById('vidGrid');
+  if(!sec||!wrap) return;
+  const v=C.videoSection||{};
+  const id=ytId(v.youtubeUrl);
+  const hasReel=!!(v.reelUrl||v.reelThumb);
+  // Nothing set up yet (or switched off) → the whole strip stays out of the page
+  if(v.enabled===false || (!id && !hasReel)){ sec.classList.add('empty'); wrap.innerHTML=''; return; }
+  sec.classList.remove('empty');
+  setText('vidEyebrow', v.eyebrow||'On screen');
+  const vt=document.getElementById('vidTitle');
+  if(vt) vt.innerHTML=nameWithEm(v.title||'Latest from the studio');
+
+  let html='';
+  if(id){
+    html+=`<a class="vid-card vid-main" id="ytCard" href="https://www.youtube.com/watch?v=${esc(id)}" target="_blank" rel="noopener" data-yt="${esc(id)}">
+      <img class="vid-thumb" src="https://i.ytimg.com/vi/${esc(id)}/maxresdefault.jpg"
+           onerror="this.src='https://i.ytimg.com/vi/${esc(id)}/hqdefault.jpg'"
+           alt="" loading="lazy" />
+      <span class="vid-shade"></span>
+      <span class="vid-play" aria-hidden="true"></span>
+      <span class="vid-cap"><span class="k">YouTube</span><span class="t">${esc(v.youtubeCaption||'Watch the film')}</span></span>
+    </a>`;
+  }
+  if(hasReel){
+    const thumb=v.reelThumb
+      ? `<img class="vid-thumb" src="${esc(v.reelThumb)}" alt="" loading="lazy" />`
+      : `<span class="vid-ph">Add a reel cover<br>in Studio</span>`;
+    html+=`<a class="vid-card vid-reel" href="${esc(v.reelUrl||'#')}" target="_blank" rel="noopener">
+      ${thumb}
+      <span class="vid-shade"></span>
+      <span class="vid-play" aria-hidden="true"></span>
+      <span class="vid-cap"><span class="k">Instagram</span><span class="t">${esc(v.reelCaption||'Latest reel')}</span></span>
+    </a>`;
+  }
+  wrap.innerHTML=html;
+
+  // Click-to-play: swap the facade for the real embed, so the page never
+  // ships a YouTube iframe to visitors who don't press play.
+  const card=document.getElementById('ytCard');
+  if(card) card.addEventListener('click',e=>{
+    e.preventDefault();
+    const vid=card.dataset.yt;
+    card.innerHTML=`<iframe src="https://www.youtube-nocookie.com/embed/${vid}?autoplay=1&rel=0"
+      title="YouTube video" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture"
+      allowfullscreen></iframe>`;
+  });
+}
+
+/* ============================================================
+   CATALOGUE SHOWCASE — one box that previews the /catalogue page
+   ============================================================ */
+function buildCatalogueBox(C){
+  const box=document.getElementById('catBox'); if(!box) return;
+  const cb=C.catalogueBox||{};
+  box.href = cb.url || '/catalogue';
+  setText('catEyebrow', cb.eyebrow||'Everything in one place');
+  const t=document.getElementById('catTitle');
+  if(t) t.innerHTML=nameWithEm(cb.title||'Check our catalogue');
+  setText('catText', cb.text||'');
+  const cta=document.getElementById('catCta');
+  if(cta) cta.innerHTML=`${esc(cb.cta||'Open the catalogue')} <i>↗</i>`;
+
+  // Fan of three real photos pulled from the catalogue page's own links,
+  // falling back to collection covers so the box is never empty.
+  const fan=document.getElementById('catFan'); if(!fan) return;
+  const fromLinks=((C.linkTree&&C.linkTree.links)||[])
+    .map(l=>(l.images&&l.images[0])||l.image).filter(Boolean);
+  const fromCols=(C.collections||[]).map(c=>c.images&&c.images.length?imgUrl(c.images[0]):null).filter(Boolean);
+  const pics=[...fromLinks,...fromCols].slice(0,3);
+  fan.innerHTML=[0,1,2].map(i=>
+    `<span class="pv">${pics[i]?`<img src="${esc(pics[i])}" alt="" loading="lazy">`:''}</span>`
+  ).join('');
+}
+
 function buildAll(C){
   try{
     applyContent(C);
     initAnnouncement(C);
     buildSale(C);
+    buildVideos(C);
+    buildCatalogueBox(C);
     buildStore(C);
     buildCollections(C);
     buildReviews(C);

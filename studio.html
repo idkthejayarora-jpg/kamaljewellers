@@ -392,6 +392,31 @@ body{padding-top:52px}
 .lead-acts .lead-del{border-color:rgba(240,120,120,.35);color:#f07878}
 .leads-empty{text-align:center;padding:2.4rem 1rem;color:rgba(243,234,215,.45);font-size:.8rem;line-height:1.7}
 
+/* ---- Videos + catalogue-box editors ---- */
+.vs-form{max-width:900px;margin:0 auto}
+.vs-two{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:700px){.vs-two{grid-template-columns:1fr}}
+.vs-col{border:1px solid rgba(216,178,94,.22);border-radius:12px;background:rgba(255,255,255,.04);padding:1rem}
+.vs-k{font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-bottom:.8rem}
+.vs-form .fld{margin-bottom:.8rem}
+.vs-form .fld label{display:block;font-size:.55rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(216,178,94,.75);margin-bottom:.3rem}
+.vs-form input,.vs-form textarea{width:100%;box-sizing:border-box;background:rgba(255,255,255,.05);
+  border:1px solid rgba(216,178,94,.22);border-radius:8px;padding:.55rem .8rem;color:var(--cream);
+  font-family:'Jost';font-size:.8rem;outline:none;resize:vertical;transition:border-color .2s}
+.vs-form input:focus,.vs-form textarea:focus{border-color:rgba(216,178,94,.55)}
+.vs-note{font-size:.68rem;color:rgba(243,234,215,.45);line-height:1.5;margin-top:.3rem}
+/* .cbx is only laid out inside .fld elsewhere — this form uses it standalone */
+.vs-form .cbx{display:flex;align-items:center;gap:.65rem;color:var(--cream);font-size:.85rem;
+  text-transform:none;letter-spacing:0;font-weight:400;cursor:pointer;width:fit-content}
+.vs-form .cbx input{width:18px;height:18px;accent-color:#d8b25e;flex-shrink:0;margin:0}
+.vs-thumb{width:92px;aspect-ratio:9/16;border-radius:10px;border:1px dashed rgba(216,178,94,.4);
+  background:linear-gradient(150deg,#2a2217,#0d0907);cursor:pointer;overflow:hidden;position:relative;
+  display:flex;align-items:center;justify-content:center;color:rgba(216,178,94,.7);font-size:1.3rem}
+.vs-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.vs-thumb-x{position:absolute;top:3px;right:3px;width:18px;height:18px;border-radius:50%;
+  background:rgba(8,6,4,.9);border:1px solid rgba(240,120,120,.4);color:#f07878;font-size:.62rem;line-height:16px;text-align:center}
+@media(max-width:700px){.vs-form input,.vs-form textarea{font-size:16px}}
+
 /* ---- Link-in-bio editor ---- */
 .lt-row{display:flex;align-items:center;gap:.7rem;border:1px solid rgba(216,178,94,.22);border-radius:12px;background:rgba(255,255,255,.05);padding:.7rem .8rem;margin-bottom:.6rem;flex-wrap:wrap}
 .lt-thumbs{display:flex;gap:.4rem;flex-wrap:wrap;flex-shrink:0}
@@ -457,6 +482,7 @@ body{padding-top:52px}
   <div class="spacer"></div>
   <span class="state" id="state"></span>
   <button class="ebtn ghost" id="jumpSaleBtn">⚡ Sale</button>
+  <button class="ebtn ghost" id="jumpVideoBtn">▶ Videos</button>
   <button class="ebtn ghost" id="jumpLinksBtn">🔗 Links</button>
   <button class="ebtn ghost" id="settingsBtn">Settings</button>
   <button class="ebtn ghost" id="leadsBtn">📥 Leads<span class="leads-badge" id="leadsBadge" style="display:none"></span></button>
@@ -506,6 +532,57 @@ body{padding-top:52px}
     <div id="saleItemList"></div>
     <div style="text-align:center;margin:1.5rem 0">
       <button class="mini-ed" id="addSaleItem">+ Add sale item</button>
+    </div>
+  </section>
+
+  <!-- HOMEPAGE VIDEOS -->
+  <section class="sale-sec-edit" id="videoEdit">
+    <div class="head">
+      <h3>Videos</h3>
+      <div class="eyebrow">The strip under the hero — a wide YouTube feature (70%) beside a vertical reel (30%)</div>
+    </div>
+    <div class="vs-form">
+      <label class="cbx" style="margin-bottom:1rem"><input type="checkbox" id="vsOn"> Show this section on the homepage</label>
+      <div class="vs-two">
+        <div class="fld"><label>Section eyebrow</label><input type="text" id="vsEyebrow" placeholder="On screen"></div>
+        <div class="fld"><label>Section heading</label><input type="text" id="vsTitle" placeholder="Latest from the studio"></div>
+      </div>
+      <div class="vs-two">
+        <div class="vs-col">
+          <div class="vs-k">▶ YouTube (wide, 70%)</div>
+          <div class="fld"><label>Video URL <span style="opacity:.5">— watch, youtu.be or shorts link</span></label><input type="url" id="vsYtUrl" placeholder="https://www.youtube.com/watch?v=…"></div>
+          <div class="fld"><label>Caption</label><input type="text" id="vsYtCap" placeholder="Our newest film"></div>
+          <div class="vs-note" id="vsYtNote">The cover image is pulled from YouTube automatically.</div>
+        </div>
+        <div class="vs-col">
+          <div class="vs-k">◉ Instagram reel (vertical, 30%)</div>
+          <div class="fld"><label>Reel URL</label><input type="url" id="vsReelUrl" placeholder="https://www.instagram.com/reel/…"></div>
+          <div class="fld"><label>Caption</label><input type="text" id="vsReelCap" placeholder="Latest reel"></div>
+          <div class="fld"><label>Cover photo <span style="opacity:.5">— Instagram gives none, so upload one</span></label>
+            <div class="vs-thumb" id="vsReelThumb" title="Tap to upload a cover for the reel"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOMEPAGE CATALOGUE BOX -->
+  <section class="sale-sec-edit" id="catBoxEdit">
+    <div class="head">
+      <h3>Catalogue box</h3>
+      <div class="eyebrow">The big box on the homepage that sends people to your link page</div>
+    </div>
+    <div class="vs-form">
+      <div class="vs-two">
+        <div class="fld"><label>Eyebrow</label><input type="text" id="cbEyebrow" placeholder="Everything in one place"></div>
+        <div class="fld"><label>Heading</label><input type="text" id="cbTitle" placeholder="Check our catalogue"></div>
+      </div>
+      <div class="fld"><label>Description</label><textarea id="cbText" rows="2" placeholder="Every collection, every look…"></textarea></div>
+      <div class="vs-two">
+        <div class="fld"><label>Button label</label><input type="text" id="cbCta" placeholder="Open the catalogue"></div>
+        <div class="fld"><label>Links to <span style="opacity:.5">— blank = your /catalogue page</span></label><input type="url" id="cbUrl" placeholder="/catalogue"></div>
+      </div>
+      <div class="vs-note">The three photos fanned inside the box are pulled from your Link Page automatically.</div>
     </div>
   </section>
 
@@ -1563,11 +1640,75 @@ $('#addSaleItem').addEventListener('click',()=>{
 $('#jumpSaleBtn').addEventListener('click',()=>{
   document.getElementById('saleSecEdit').scrollIntoView({behavior:'smooth',block:'start'});
 });
+$('#jumpVideoBtn').addEventListener('click',()=>{
+  document.getElementById('videoEdit').scrollIntoView({behavior:'smooth',block:'start'});
+});
 $('#jumpLinksBtn').addEventListener('click',()=>{
   document.getElementById('linkTreeEdit').scrollIntoView({behavior:'smooth',block:'start'});
 });
 
 /* ── Link-in-bio page editor ───────────────────────────────── */
+/* ── Homepage videos + catalogue box ────────────────────────── */
+// Small helper: keep an <input> in sync with a field on a content object.
+// Uses .oninput (not addEventListener) so re-rendering replaces the handler
+// instead of stacking a second one — renderAll runs twice on every load.
+function bindInput(id, obj, key, onChange){
+  const el=$('#'+id); if(!el) return;
+  el.value = obj[key]==null ? '' : obj[key];
+  el.oninput=()=>{ obj[key]=el.value.trim(); markDirty(); onChange&&onChange(); };
+}
+function renderVideoEditor(){
+  if(!$('#videoEdit')) return;
+  if(!C.videoSection) C.videoSection={enabled:true};
+  const v=C.videoSection;
+
+  const on=$('#vsOn');
+  on.checked = v.enabled!==false;
+  on.onchange=()=>{ v.enabled=on.checked; markDirty(); };
+
+  bindInput('vsEyebrow', v,'eyebrow');
+  bindInput('vsTitle',   v,'title');
+  bindInput('vsYtUrl',   v,'youtubeUrl', updateYtNote);
+  bindInput('vsYtCap',   v,'youtubeCaption');
+  bindInput('vsReelUrl', v,'reelUrl');
+  bindInput('vsReelCap', v,'reelCaption');
+
+  // Live feedback on whether we can actually read a video id out of the URL
+  function updateYtNote(){
+    const note=$('#vsYtNote'); if(!note) return;
+    const url=(v.youtubeUrl||'').trim();
+    const m=url.match(/(?:youtu\.be\/|v=|\/shorts\/|\/embed\/)([A-Za-z0-9_-]{11})/);
+    if(!url){ note.textContent='The cover image is pulled from YouTube automatically.'; note.style.color=''; }
+    else if(m){ note.textContent='✓ Video found — cover will be pulled automatically.'; note.style.color='#7bd88f'; }
+    else { note.textContent='Hmm — that doesn’t look like a YouTube link. Paste the full watch/share URL.'; note.style.color='#f0a878'; }
+  }
+  updateYtNote();
+  renderReelThumb();
+}
+function renderReelThumb(){
+  const box=$('#vsReelThumb'); if(!box) return;
+  const v=C.videoSection;
+  box.innerHTML = v.reelThumb
+    ? `<img src="${esc(v.reelThumb)}" alt=""><span class="vs-thumb-x" title="Remove">✕</span>`
+    : '+';
+  const x=box.querySelector('.vs-thumb-x');
+  if(x) x.onclick=ev=>{ ev.stopPropagation(); v.reelThumb=''; markDirty(); renderReelThumb(); };
+  box.onclick=ev=>{
+    if(ev.target.closest('.vs-thumb-x')) return;
+    pickImageFor(url=>{ v.reelThumb=url; markDirty(); renderReelThumb(); }, 'videos', 0.5625);
+  };
+}
+function renderCatBoxEditor(){
+  if(!$('#catBoxEdit')) return;
+  if(!C.catalogueBox) C.catalogueBox={};
+  const cb=C.catalogueBox;
+  bindInput('cbEyebrow', cb,'eyebrow');
+  bindInput('cbTitle',   cb,'title');
+  bindInput('cbText',    cb,'text');
+  bindInput('cbCta',     cb,'cta');
+  bindInput('cbUrl',     cb,'url');
+}
+
 function renderLinkTree(){
   const list=$('#linkTreeList'); if(!list) return;
   if(!C.linkTree) C.linkTree={links:[]};
@@ -2055,7 +2196,7 @@ function applyTileStyle(C){
 }
 
 /* ── Boot ───────────────────────────────────────────────────── */
-function renderAll(){ renderChrome(); renderGrid(); renderReviews(); renderSale(); renderLinkTree(); renderStore(); applyTileStyle(C); }
+function renderAll(){ renderChrome(); renderGrid(); renderReviews(); renderSale(); renderVideoEditor(); renderCatBoxEditor(); renderLinkTree(); renderStore(); applyTileStyle(C); }
 function tokenExpired(token){
   try{
     const p=JSON.parse(atob(token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));

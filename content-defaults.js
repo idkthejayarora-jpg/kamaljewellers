@@ -49,6 +49,29 @@ window.KAMAL_DEFAULTS = {
   // Global "See Catalogue" pill above The Collections; per-collection overrides in each collection
   catalogueLabel:"See Catalogue",
   catalogueUrl:"",
+  // Homepage video strip — one wide YouTube feature (70%) + one vertical
+  // Instagram reel (30%). Both are link-driven and set from Studio → Videos.
+  // The YouTube thumbnail is derived from the video URL automatically (no API
+  // key needed); Instagram gives no public thumbnail, so that one is uploaded.
+  videoSection:{
+    enabled:true,
+    eyebrow:"On screen",
+    title:"Latest from the studio",
+    youtubeUrl:"",
+    youtubeCaption:"Our newest film",
+    reelUrl:"",
+    reelThumb:"",
+    reelCaption:"Latest reel"
+  },
+  // Homepage "Check our catalogue" showcase — replaces the old tile grid and
+  // previews the /catalogue link page with a fan of its own photos.
+  catalogueBox:{
+    eyebrow:"Everything in one place",
+    title:"Check our catalogue",
+    text:"Every collection, every look — browse the full catalogue in one place.",
+    cta:"Open the catalogue",
+    url:""
+  },
   // Tile (collection grid card) visual style — all editable from Studio → Settings
   tileStyle:{
     headingFont:'Cormorant Garamond',  // 'Cormorant Garamond' | 'Jost'
