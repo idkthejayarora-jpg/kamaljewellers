@@ -320,9 +320,11 @@ function deepMerge(base, over){
 
 async function loadContent(){
   try{
-    // no-store: the API sends no Cache-Control, so without this the browser
-    // heuristically caches it and Studio edits can take ages to show up.
-    const res = await fetch(API + '/content', { cache: 'no-store' });
+    // A throwaway query param beats the cache without cache:'no-store',
+    // which Safari can fail outright on. That failure would be silent here —
+    // the catch below would fall back to defaults and visitors would quietly
+    // get the wrong content — so it's worth avoiding entirely.
+    const res = await fetch(API + '/content?_=' + Date.now());
     if(!res.ok) return;
     const { data } = await res.json();
     if(data) CONTENT = deepMerge(DEFAULTS, data);

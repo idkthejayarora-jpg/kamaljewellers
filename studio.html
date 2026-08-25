@@ -648,7 +648,7 @@ body.studio-light .solid{background:transparent !important}
   <span class="state" id="state"></span>
   <!-- Stamped by stamp-css-version.py on every build. If this doesn't match
        the newest deploy, you're looking at a cached page — reload. -->
-  <span class="build" id="buildStamp" title="Build this page was loaded from — reload if it looks old">build 25 Aug 15:57</span>
+  <span class="build" id="buildStamp" title="Build this page was loaded from — reload if it looks old">build 25 Aug 15:59</span>
   <button class="ebtn ghost" id="jumpSaleBtn">⚡ Sale</button>
   <button class="ebtn ghost" id="lightBtn" title="Switch between light and dark Studio">☀ Light</button>
   <button class="ebtn ghost" id="jumpStatsBtn">📊 Stats</button>
@@ -925,9 +925,16 @@ async function api(path, opts={}){
   if(TOKEN) headers['Authorization']='Bearer '+TOKEN;
   const isForm = opts.body instanceof FormData;
   if(!isForm && opts.body && typeof opts.body!=='string'){ opts={...opts, body:JSON.stringify(opts.body)}; headers['Content-Type']='application/json'; }
+  // Beat the cache on reads with a throwaway query param rather than
+  // cache:'no-store'. Safari fails outright ("Load failed") on fetches
+  // carrying no-store — it broke every Save — and the option is pointless on
+  // a POST anyway, since POST responses are never cached to begin with.
+  const method=(opts.method||'GET').toUpperCase();
+  let url=API+path;
+  if(method==='GET') url += (url.includes('?')?'&':'?') + '_=' + Date.now();
+
   let res;
-  // no-store so Studio always edits the live saved content, never a cached copy
-  try{ res = await fetch(API+path, {cache:'no-store', ...opts, headers}); }
+  try{ res = await fetch(url, {...opts, headers}); }
   catch(e){ throw new Error('Network error — cannot reach '+API+path+' ('+e.message+')'); }
   const text = await res.text().catch(()=>'');
   let data = {}; try{ data=JSON.parse(text); }catch{}
