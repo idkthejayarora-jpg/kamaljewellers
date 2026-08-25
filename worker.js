@@ -112,8 +112,55 @@ async function handleSaveContent(request, env) {
   return json({ ok: true });
 }
 
+// ── Lead notifications (WhatsApp via CallMeBot) ───────────────────────────────
+// Kept in its own KV key, NOT in site_content — that blob is served publicly
+// from GET /api/content, so an API key stored there would be world-readable.
+async function handleGetNotify(env) {
+  const cfg = await env.KV.get('notify_config', 'json');
+  return json({ data: cfg || { enabled: false, phone: '', apiKey: '' } });
+}
+
+async function handleSaveNotify(request, env) {
+  let body;
+  try { body = await request.json(); } catch { return fail('Invalid JSON'); }
+  const { enabled, phone, apiKey } = body.data || {};
+  await env.KV.put('notify_config', JSON.stringify({
+    enabled: !!enabled,
+    phone: String(phone || '').trim(),
+    apiKey: String(apiKey || '').trim(),
+  }));
+  return json({ ok: true });
+}
+
+// Fire-and-forget WhatsApp ping. Never throws — a notification problem must
+// never cost us the lead itself, which is already safely in the database.
+async function sendWhatsApp(env, text) {
+  try {
+    const cfg = await env.KV.get('notify_config', 'json');
+    if (!cfg || !cfg.enabled) return { ok: false, reason: 'disabled' };
+    const digits = String(cfg.phone || '').replace(/[^\d]/g, '');
+    if (!digits || !cfg.apiKey) return { ok: false, reason: 'not configured' };
+    const url = 'https://api.callmebot.com/whatsapp.php'
+      + '?phone=' + encodeURIComponent(digits)
+      + '&apikey=' + encodeURIComponent(cfg.apiKey)
+      + '&text=' + encodeURIComponent(text);
+    const res = await fetch(url, { method: 'GET' });
+    const detail = (await res.text().catch(() => '')).slice(0, 200);
+    return { ok: res.ok, status: res.status, detail };
+  } catch (err) {
+    console.error('whatsapp notify failed', err);
+    return { ok: false, reason: err.message };
+  }
+}
+
+async function handleTestNotify(env) {
+  const r = await sendWhatsApp(env, 'Kamal Jewellers — test alert. Lead notifications are working.');
+  if (r.ok) return json({ ok: true });
+  return fail('Could not send: ' + (r.reason || r.detail || ('HTTP ' + r.status)), 400);
+}
+
 // ── Enquiries ─────────────────────────────────────────────────────────────────
-async function handleSubmitEnquiry(request, env) {
+async function handleSubmitEnquiry(request, env, ctx) {
   let body;
   try { body = await request.json(); } catch { return fail('Invalid JSON'); }
   const { name, phone, email, interest, message } = body;
@@ -123,6 +170,17 @@ async function handleSubmitEnquiry(request, env) {
   await env.DB.prepare(
     'INSERT INTO enquiries (id,created_at,name,phone,email,interest,message) VALUES (?,?,?,?,?,?,?)'
   ).bind(id, now, name, phone, email || null, interest || null, message).run();
+
+  // Alert after the row is safely stored, and outside the response path so the
+  // visitor's form never waits on (or fails because of) the notification.
+  const text = 'New lead — Kamal Jewellers\n'
+    + 'Name: ' + name + '\n'
+    + 'Contact: ' + phone + '\n'
+    + (interest ? 'Looking for: ' + interest + '\n' : '')
+    + 'Open Studio → Leads to reply.';
+  if (ctx && ctx.waitUntil) ctx.waitUntil(sendWhatsApp(env, text));
+  else await sendWhatsApp(env, text);
+
   return json({ ok: true, id });
 }
 
@@ -181,7 +239,7 @@ async function handleServePhoto(key, env) {
 
 // ── Router ────────────────────────────────────────────────────────────────────
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     const url = new URL(request.url);
     const path = url.pathname;
     const method = request.method;
@@ -197,7 +255,7 @@ export default {
       // Public endpoints
       if (path === '/api/auth'    && method === 'POST') return handleAuth(request, env);
       if (path === '/api/content' && method === 'GET')  return handleGetContent(env);
-      if (path === '/api/enquiries' && method === 'POST') return handleSubmitEnquiry(request, env);
+      if (path === '/api/enquiries' && method === 'POST') return handleSubmitEnquiry(request, env, ctx);
 
       // Protected endpoints
       if (!await isAuthed(request, env)) return fail('Unauthorized', 401);
@@ -206,6 +264,9 @@ export default {
       if (path === '/api/password' && method === 'POST') return handleChangePassword(request, env);
       if (path === '/api/enquiries' && method === 'GET')  return handleListEnquiries(env);
       if (path === '/api/photos'   && method === 'POST')  return handleUploadPhoto(request, env);
+      if (path === '/api/notify'   && method === 'GET')   return handleGetNotify(env);
+      if (path === '/api/notify'   && method === 'POST')  return handleSaveNotify(request, env);
+      if (path === '/api/notify/test' && method === 'POST') return handleTestNotify(env);
 
       const enqMatch   = path.match(/^\/api\/enquiries\/(.+)$/);
       const photoMatch = path.match(/^\/api\/photos\/(.+)$/);

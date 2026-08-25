@@ -81,7 +81,7 @@
   <!-- HERO -->
   <header class="hero">
     <div class="eyebrow reveal" id="heroEyebrow">Est. in the heart of Old Delhi</div>
-    <h1 class="reveal"><span id="heroTitle">Worn like water,</span><em id="heroTitleEm">treasured like time.</em></h1>
+    <h1 class="reveal"><span class="metal metal-silver" id="heroTitle">Worn like water,</span><em class="metal metal-gold" id="heroTitleEm">treasured like time.</em></h1>
     <p class="sub reveal" id="heroSub">Handcrafted bridal, kundan & polki, and the pieces breaking the internet — each one made to bring out your inner radiance.</p>
     <div class="srch-wrap reveal" id="srchWrap">
       <div class="srch-bar" id="srchBar">
@@ -865,6 +865,71 @@ window.addEventListener('scroll',navScrollHandler,{passive:true});
     }
     if(!reduce) requestAnimationFrame(loop); // reduced-motion: render one static frame
   })(start);
+})();
+
+/* ============================================================
+   HERO METAL — moving specular highlight on the title
+   Drives --lx/--ly on the two metal spans from the pointer (desktop) or
+   device tilt (phone), easing toward the target each frame so the light
+   glides instead of snapping. Only writes to the DOM when the value has
+   actually moved, and parks itself entirely when the hero scrolls away,
+   so it costs nothing for the rest of the page.
+   ============================================================ */
+(function heroMetal(){
+  const els=[document.getElementById('heroTitle'),document.getElementById('heroTitleEm')].filter(Boolean);
+  if(!els.length) return;
+  if(matchMedia('(prefers-reduced-motion:reduce)').matches) return;  // CSS holds a static highlight
+
+  let tx=50, ty=24;            // target, in %
+  let cx=50, cy=24;            // current, eased
+  let lastX=-1, lastY=-1;      // last values actually written
+  let visible=true, gotInput=false, raf=0;
+
+  addEventListener('pointermove',e=>{
+    gotInput=true;
+    tx=(e.clientX/innerWidth)*100;
+    ty=(e.clientY/innerHeight)*100;
+  },{passive:true});
+
+  // Phone: tilting the handset sweeps the highlight, which is the whole
+  // point — it should feel like catching light. Silently absent on iOS
+  // unless motion access is granted, and the idle drift covers that.
+  addEventListener('deviceorientation',e=>{
+    if(e.gamma==null&&e.beta==null) return;
+    gotInput=true;
+    tx=50+Math.max(-45,Math.min(45,e.gamma||0))*1.1;
+    ty=24+Math.max(-45,Math.min(45,(e.beta||0)-45))*0.5;
+  },{passive:true});
+
+  const hero=document.querySelector('.hero');
+  if(hero&&'IntersectionObserver'in window){
+    new IntersectionObserver(([en])=>{
+      visible=en.isIntersecting;
+      if(visible&&!raf) raf=requestAnimationFrame(tick);
+    },{threshold:0}).observe(hero);
+  }
+
+  function tick(now){
+    raf=0;
+    if(!visible) return;                     // parked until the hero returns
+    if(!gotInput){                           // no pointer, no gyro → slow drift
+      const t=now/1000;
+      tx=50+Math.sin(t*0.45)*26;
+      ty=26+Math.cos(t*0.32)*10;
+    }
+    cx+=(tx-cx)*0.09;                        // ease toward the target
+    cy+=(ty-cy)*0.09;
+    const rx=Math.round(cx*10)/10, ry=Math.round(cy*10)/10;
+    if(rx!==lastX||ry!==lastY){              // skip the repaint if nothing moved
+      lastX=rx; lastY=ry;
+      for(const el of els){
+        el.style.setProperty('--lx',rx+'%');
+        el.style.setProperty('--ly',ry+'%');
+      }
+    }
+    raf=requestAnimationFrame(tick);
+  }
+  raf=requestAnimationFrame(tick);
 })();
 
 /* ============================================================

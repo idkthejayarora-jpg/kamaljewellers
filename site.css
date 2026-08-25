@@ -98,7 +98,42 @@ section{position:relative}
 .hero{height:100vh;height:100svh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;position:relative;z-index:2}
 .hero .eyebrow{margin-bottom:1.6rem;opacity:.85}
 .hero h1{font-family:'Cormorant Garamond';font-weight:400;line-height:.98;font-size:clamp(2.8rem,9vw,8.5rem);letter-spacing:.01em}
-.hero h1 em{font-style:italic;color:var(--gold-bright);display:block}
+.hero h1 em{font-style:italic;display:block}
+
+/* ---------- Molten metal hero title ----------
+   Line one is polished silver, line two is gold. Each is a hard-stepped
+   metallic gradient (the sharp light/dark banding is what reads as metal
+   rather than a soft colour fade) with a specular hotspot layered on top.
+   The hotspot's position comes from --lx/--ly, which JS drives from the
+   pointer on desktop and from device tilt on a phone — so the highlight
+   travels across the letters as you move, like light on a real surface. */
+.hero h1 .metal{
+  display:block;
+  --lx:50%; --ly:24%;
+  background-image:
+    radial-gradient(circle at var(--lx) var(--ly),
+      rgba(255,255,255,.92) 0%, rgba(255,255,255,.45) 9%, rgba(255,255,255,0) 26%),
+    var(--metal-base);
+  -webkit-background-clip:text; background-clip:text;
+  -webkit-text-fill-color:transparent; color:transparent;
+}
+.hero h1 .metal-silver{
+  --metal-base:linear-gradient(168deg,
+    #ffffff 0%, #dfe6ee 11%, #ffffff 21%, #94a0ae 34%,
+    #f2f6fa 46%, #ffffff 58%, #aab4c1 72%, #e7edf4 86%, #ffffff 100%);
+  filter:drop-shadow(0 1px 2px rgba(0,0,0,.55)) drop-shadow(0 6px 26px rgba(190,205,225,.22));
+}
+.hero h1 .metal-gold{
+  --metal-base:linear-gradient(168deg,
+    #fff8b0 0%, #f4d784 13%, #ffe87a 25%, #c8922a 39%,
+    #f0d070 53%, #fffbe0 66%, #e8c55a 79%, #c08a20 100%);
+  filter:drop-shadow(0 1px 2px rgba(0,0,0,.55)) drop-shadow(0 6px 26px rgba(224,175,61,.28));
+}
+/* No pointer and no gyro (or motion turned down) → hold a tasteful static
+   highlight rather than animating anything. */
+@media(prefers-reduced-motion:reduce){
+  .hero h1 .metal{--lx:38% !important;--ly:22% !important}
+}
 .hero .sub{margin-top:1.8rem;max-width:34ch;font-size:clamp(.85rem,1.4vw,1rem);line-height:1.8;color:rgba(243,234,215,.72);letter-spacing:.04em}
 .scroll-cue{position:absolute;bottom:2.2rem;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:.7rem;font-size:.58rem;letter-spacing:.4em;text-transform:uppercase;color:var(--gold);opacity:.7}
 .scroll-cue .line{width:1px;height:46px;background:linear-gradient(var(--gold),transparent);position:relative;overflow:hidden}

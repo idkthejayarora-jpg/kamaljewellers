@@ -1913,6 +1913,68 @@ function renderDrawer(){
   g.appendChild(dfield('Page title', C.seo,'title'));
   g.appendChild(dfield('Meta description', C.seo,'description',true));
   b.appendChild(g);
+  // WhatsApp lead alerts — config lives in its own KV key behind auth, never
+  // in the public content blob, so the API key is not world-readable.
+  g=el('div','dgroup'); g.appendChild(el('h3',null,'WhatsApp lead alerts'));
+  {
+    const hint=el('p',null,
+      'Get a WhatsApp message the moment someone leaves their details, so you don\'t have to keep checking Studio.<br><br>'+
+      '<b style="color:var(--gold)">One-time setup:</b><br>'+
+      '1. Save <b>+34 644 51 95 23</b> to your contacts as "CallMeBot".<br>'+
+      '2. WhatsApp it the exact words: <b>I allow callmebot to send me messages</b><br>'+
+      '3. It replies with your API key — paste it below with your own number.');
+    hint.style.cssText='font-size:.74rem;color:rgba(243,234,215,.6);line-height:1.65;margin-bottom:1rem';
+    g.appendChild(hint);
+
+    const nOn=el('div','fld'); const nLbl=el('label','cbx'); const nBox=el('input'); nBox.type='checkbox';
+    nLbl.appendChild(nBox); nLbl.appendChild(document.createTextNode('Send me a WhatsApp for every new lead'));
+    nOn.appendChild(nLbl); g.appendChild(nOn);
+
+    const pf2=el('div','fld'); pf2.appendChild(el('label',null,'Your WhatsApp number (with country code)'));
+    const pIn=el('input'); pIn.type='tel'; pIn.placeholder='+91 99999 25670'; pf2.appendChild(pIn); g.appendChild(pf2);
+
+    const kf=el('div','fld'); kf.appendChild(el('label',null,'CallMeBot API key'));
+    const kIn=el('input'); kIn.type='text'; kIn.placeholder='e.g. 123456'; kf.appendChild(kIn); g.appendChild(kf);
+
+    const row=el('div'); row.style.cssText='display:flex;gap:.5rem;flex-wrap:wrap';
+    const saveB=el('button','mini-ed','Save alerts');
+    const testB=el('button','mini-ed','Send test');
+    row.appendChild(saveB); row.appendChild(testB); g.appendChild(row);
+    const note=el('div'); note.style.cssText='font-size:.72rem;color:rgba(243,234,215,.5);margin-top:.6rem;min-height:1em';
+    g.appendChild(note);
+
+    // Load the saved config (separate authenticated endpoint, not site content)
+    api('/notify').then(({data})=>{
+      if(!data) return;
+      nBox.checked=!!data.enabled; pIn.value=data.phone||''; kIn.value=data.apiKey||'';
+    }).catch(()=>{ note.textContent='Could not load current settings.'; });
+
+    async function saveNotify(){
+      saveB.disabled=true; note.textContent='Saving…';
+      try{
+        await api('/notify',{method:'POST',body:{data:{enabled:nBox.checked,phone:pIn.value,apiKey:kIn.value}}});
+        note.textContent='Saved ✓'; toast('Lead alerts saved');
+      }catch(e){ note.textContent='Failed: '+e.message; }
+      saveB.disabled=false;
+    }
+    saveB.addEventListener('click',saveNotify);
+    testB.addEventListener('click',async()=>{
+      testB.disabled=true; note.textContent='Saving, then sending a test…';
+      try{
+        // Save first so the test uses exactly what's on screen
+        await api('/notify',{method:'POST',body:{data:{enabled:nBox.checked,phone:pIn.value,apiKey:kIn.value}}});
+        await api('/notify/test',{method:'POST',body:{}});
+        note.textContent='Test sent — check your WhatsApp.'; toast('Test sent ✓');
+      }catch(e){
+        note.textContent=/disabled/i.test(e.message)
+          ? 'Tick the box above first, then send a test.'
+          : 'Failed: '+e.message;
+      }
+      testB.disabled=false;
+    });
+  }
+  b.appendChild(g);
+
   // Password
   g=el('div','dgroup'); g.appendChild(el('h3',null,'Change password'));
   const pf=el('div','fld'); pf.appendChild(el('label',null,'New password (min 6 chars)'));
