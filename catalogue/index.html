@@ -4,6 +4,8 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <meta name="theme-color" content="#0a0807" />
+<!-- Theme boot: must be synchronous and before the stylesheet, or dark reloads flash white -->
+<script src="../theme.js"></script>
 <title>Kamal Jewellers — Links</title>
 <meta name="description" content="All Kamal Jewellers collections, catalogue and contact — in one place." />
 
@@ -20,9 +22,9 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600&family=Jost:wght@300;400;500&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 <!-- Same stylesheet the live site uses → the tile grid below is pixel-identical to the homepage collections grid -->
-<link rel="stylesheet" href="../site.css?v=dac88104c3" />
+<link rel="stylesheet" href="../site.css?v=0d5744d300" />
 
 <style>
   html,body{margin:0}
@@ -121,9 +123,61 @@
   @keyframes boxSeamFlash{0%{opacity:0;transform:translateY(-.5px) scaleX(.25)}55%{opacity:1;transform:translateY(-.5px) scaleX(1)}100%{opacity:0;transform:translateY(-.5px) scaleX(1)}}
   @keyframes boxLiftTop{to{transform:translateY(-100%)}}
   @keyframes boxLiftBottom{to{transform:translateY(100%)}}
+
+  /* The switch floats here — this page has no nav bar to sit in */
+  .lt-sw{position:fixed;top:1rem;right:1rem;z-index:20;cursor:pointer}
+  @media(max-width:420px){.lt-sw{top:.75rem;right:.75rem}}
+
+  /* ── WHITE GOLD (default) ───────────────────────────────────────────
+     Same rule as site.css: this page is written black-first, so light is
+     the additive layer and dark needs nothing. */
+  html:not([data-theme="dark"]){
+    /* The ambient glows are light SOURCES on black; on pearl the same
+       gradients just fog the page, so they become soft tints instead. */
+    & .lt-body::before{
+      background:radial-gradient(ellipse 70% 50% at 50% 6%,rgba(200,165,80,.20),transparent 62%),
+                 radial-gradient(ellipse 55% 42% at 50% 100%,rgba(160,40,75,.10),transparent 60%)}
+    & .lt-body::after{
+      background:radial-gradient(ellipse 40% 26% at 50% 15%,rgba(230,200,120,.14),transparent 70%),
+                 radial-gradient(ellipse 120% 60% at 50% 100%,rgba(120,100,60,.10),transparent 60%)}
+    & .lt-logo{border-color:rgba(169,123,10,.45);
+      box-shadow:0 0 0 5px rgba(169,123,10,.06),0 8px 26px rgba(90,70,30,.18),0 0 0 1px rgba(169,123,10,.18);
+      animation:none}
+    & .lt-divider::before{background:linear-gradient(90deg,transparent,rgba(169,123,10,.6))}
+    & .lt-divider::after{background:linear-gradient(90deg,rgba(169,123,10,.6),transparent)}
+    & .lt-tag{color:rgba(30,26,21,.68)}
+    & .lt-empty{color:rgba(30,26,21,.45)}
+    & .lt-foot{color:rgba(30,26,21,.42)}
+    & #ltGrid .tile{border-color:rgba(169,123,10,.34);
+      box-shadow:0 10px 30px -12px rgba(80,62,26,.26),inset 0 1px 0 #fff}
+    & #ltGrid .tile:hover,& #ltGrid .tile:active{border-color:rgba(169,123,10,.65);
+      box-shadow:0 18px 44px -14px rgba(80,62,26,.34),inset 0 1px 0 #fff}
+    & #ltGrid .tile::before{border-color:rgba(169,123,10,.22)}
+    /* Medallion sits over the photo, so it stays dark-on-glass */
+    & #ltGrid .tile .num{border-color:rgba(255,255,255,.5);background:rgba(20,16,10,.42);color:#ffe08a}
+    /* Ivory box lids to match the homepage loader */
+    & .box-lid{
+      background:
+        radial-gradient(ellipse 160% 130% at 50% 0%,rgba(190,150,60,.08),transparent 45%),
+        repeating-linear-gradient(115deg,rgba(120,100,60,.03) 0px,rgba(120,100,60,.03) 1px,transparent 1px,transparent 3px),
+        linear-gradient(180deg,#fffdf8 0%,#f4efe4 45%,#e9e2d3 100%)}
+    & .box-lid-top{box-shadow:inset 0 -1px 0 rgba(169,123,10,.4)}
+    & .box-lid-bottom{box-shadow:inset 0 1px 0 rgba(169,123,10,.4)}
+    & .box-seam{
+      background:linear-gradient(90deg,transparent,rgba(169,123,10,.9) 22%,#fff 50%,rgba(169,123,10,.9) 78%,transparent);
+      box-shadow:0 0 22px 3px rgba(169,123,10,.5)}
+  }
+
+  /* Bolder, to match the rest of the site */
+  .lt-name{font-weight:600}
+  .lt-sub,.lt-foot{font-weight:600}
 </style>
 </head>
 <body class="lt-body">
+
+  <button class="theme-sw lt-sw" id="themeSw" type="button" role="switch" aria-checked="false" aria-label="Dark mode">
+    <span class="theme-sw-track"><span class="theme-sw-knob"></span></span>
+  </button>
 
   <div class="box-reveal" id="boxReveal" aria-hidden="true">
     <div class="box-lid box-lid-top"></div>

@@ -4,6 +4,8 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <meta name="theme-color" content="#0a0807" />
+<!-- Theme boot: must be synchronous and before the stylesheet, or dark reloads flash white -->
+<script src="theme.js"></script>
 <title id="pgTitle">Kamal Jewellers</title>
 <meta name="description" id="metaDesc" content="A limited sale piece from Kamal Jewellers, Sadar Bazar, Delhi." />
 
@@ -21,9 +23,9 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
-<link rel="stylesheet" href="site.css?v=dac88104c3" />
+<link rel="stylesheet" href="site.css?v=0d5744d300" />
 <style>
 /* ── Product page layout ─────────────────────────────────────── */
 body{cursor:none}
@@ -104,6 +106,47 @@ body{cursor:none}
   color:var(--gold-bright);text-decoration:none;font-size:.64rem;letter-spacing:.28em;text-transform:uppercase;cursor:none}
 @media(max-width:820px){.pdp-grid{grid-template-columns:1fr}.pg-main{max-width:480px}}
 @media(hover:none){body{cursor:auto}.pdp-crumb a,.pg-thumb,.pi-qty button,.pi-reserve,.pdp-back{cursor:pointer}}
+
+/* ── WHITE GOLD (default) ─────────────────────────────────────
+   Written black-first like the rest of the site, so light is the
+   additive layer and dark needs no overrides. */
+html:not([data-theme="dark"]){
+  & .pdp-crumb{color:rgba(30,26,21,.55)}
+  & .pg-main{background:#f0e9dc;border-color:rgba(169,123,10,.22)}
+  & .pg-thumb{border-color:rgba(169,123,10,.28)}
+  & .pi-note{color:rgba(30,26,21,.68)}
+  & .pi-orig{color:rgba(30,26,21,.4)}
+  & .pi-save{color:#1a7a41}
+  & .pi-stock.low{color:#b4561c}
+  & .pi-stock.in{color:rgba(30,26,21,.55)}
+  & .pi-stock.out{color:#b32b2b}
+  & .pi-qty{border-color:rgba(169,123,10,.4)}
+  & .pi-qty button:hover{background:rgba(169,123,10,.12)}
+  & .pi-total{color:rgba(30,26,21,.6)}
+  & .pi-reserve{border-color:rgba(20,150,70,.45);
+    background:linear-gradient(150deg,rgba(37,211,102,.2),rgba(255,255,255,.6));
+    color:#0f6b37;box-shadow:0 14px 34px -16px rgba(80,62,26,.34),inset 0 1px 0 #fff}
+  & .pi-reserve:hover{background:linear-gradient(150deg,rgba(37,211,102,.32),rgba(255,255,255,.8))}
+  & .pi-reserve svg{fill:#12924d}
+  & .pi-reserve.disabled{border-color:rgba(30,26,21,.18);background:rgba(30,26,21,.05);color:rgba(30,26,21,.4)}
+  & .pi-block h3{border-bottom-color:rgba(169,123,10,.24)}
+  & .pi-desc{color:rgba(30,26,21,.78)}
+  & .pi-specs tr{border-bottom-color:rgba(30,26,21,.1)}
+  & .pi-specs td.v{color:rgba(30,26,21,.8)}
+  & .pr-head{border-bottom-color:rgba(169,123,10,.24)}
+  & .pr-avg{color:rgba(30,26,21,.6)}
+  & .pr-card{border-color:rgba(169,123,10,.22);background:rgba(255,255,255,.6);
+    box-shadow:0 6px 20px -10px rgba(80,62,26,.2)}
+  & .pr-card .txt{color:rgba(30,26,21,.82)}
+  & .pr-empty{color:rgba(30,26,21,.45)}
+  & .pdp-404 p{color:rgba(30,26,21,.65)}
+  & .pdp-back{border-color:var(--gold)}
+}
+
+/* Bolder, to match the rest of the site */
+.pi-name,.pr-head h2,.pdp-404 h1{font-weight:600}
+.pi-eyebrow,.pdp-crumb,.pi-qty-lbl,.pi-stock,.pi-save,.pr-card .who,.pdp-back{font-weight:600}
+.pi-sale{font-weight:600}
 </style>
 </head>
 <body>
@@ -115,7 +158,12 @@ body{cursor:none}
 <!-- nav -->
 <nav id="nav" class="scrolled">
   <a class="brand mag" href="index.html"><img class="brand-logo" src="logo.png" alt="" /><span class="brand-text">Kamal Jewellers<small>Sadar Bazar · Delhi</small></span></a>
-  <a class="nav-toggle mag" href="index.html#saleSec" style="text-decoration:none"><span>All sale pieces</span></a>
+  <div class="nav-right">
+    <button class="theme-sw" id="themeSw" type="button" role="switch" aria-checked="false" aria-label="Dark mode">
+      <span class="theme-sw-track"><span class="theme-sw-knob"></span></span>
+    </button>
+    <a class="nav-toggle mag" href="index.html#saleSec" style="text-decoration:none"><span>All sale pieces</span></a>
+  </div>
 </nav>
 
 <main id="app"><!-- rendered by JS --></main>

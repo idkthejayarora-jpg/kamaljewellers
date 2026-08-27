@@ -4,6 +4,8 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <meta name="theme-color" content="#0a0807" />
+<!-- Theme boot: must be synchronous and before the stylesheet, or dark reloads flash white -->
+<script src="theme.js"></script>
 <title>Kamal Jewellers — Worn Like Water, Treasured Like Time</title>
 <meta name="description" id="metaDesc" content="Kamal Jewellers — Sadar Bazar, Delhi. Bridal, Kundan, Polki, Western & viral jewellery crafted to bring out your inner radiance." />
 
@@ -27,9 +29,9 @@
 <!-- Fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
-<link rel="stylesheet" href="site.css?v=dac88104c3" />
+<link rel="stylesheet" href="site.css?v=0d5744d300" />
 </head>
 <body>
 
@@ -72,7 +74,12 @@
 <!-- ===== Nav ===== -->
 <nav id="nav">
   <a class="brand mag" href="#top" data-link><img class="brand-logo" src="logo.png" alt="" /><span class="brand-text">Kamal Jewellers<small>Sadar Bazar · Delhi</small></span></a>
-  <div class="nav-toggle mag" id="navToggle"><span>Collections</span><span class="lines"><i></i><i></i></span></div>
+  <div class="nav-right">
+    <button class="theme-sw" id="themeSw" type="button" role="switch" aria-checked="false" aria-label="Dark mode">
+      <span class="theme-sw-track"><span class="theme-sw-knob"></span></span>
+    </button>
+    <div class="nav-toggle mag" id="navToggle"><span>Collections</span><span class="lines"><i></i><i></i></span></div>
+  </div>
 </nav>
 
 <!-- ===== Menu overlay ===== -->
@@ -818,20 +825,35 @@ window.addEventListener('scroll',navScrollHandler,{passive:true});
 (function(){
   const cv=document.getElementById('gl');
   const gl=cv.getContext('webgl');
-  if(!gl){ cv.style.background='radial-gradient(circle at 50% 40%,#2a1f0c,#0a0807)'; return; }
+  if(!gl){
+    // No WebGL: a flat gradient stands in, and it still has to follow the theme.
+    const paint=()=>{ cv.style.background=(window.KJTheme&&KJTheme.get()==='dark')
+      ? 'radial-gradient(circle at 50% 40%,#2a1f0c,#0a0807)'
+      : 'radial-gradient(circle at 50% 40%,#fdfaf3,#efe7d6)'; };
+    paint(); addEventListener('kj:theme',paint); return;
+  }
 
   const vs=`attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}`;
   const fs=`
   precision highp float;
   uniform vec2 R; uniform float T; uniform float V;
-  // flowing caustic / liquid gold field
+  // 0.0 = black gold, 1.0 = white gold. Mixed rather than branched so the
+  // switch can be animated across themes instead of snapping.
+  uniform float L;
+
   mat2 rot(float a){float c=cos(a),s=sin(a);return mat2(c,-s,s,c);}
-  float noise(vec2 p){
-    return sin(p.x)*sin(p.y);
+
+  // Per-cell randomness for the glass panes.
+  float hash21(vec2 p){
+    p=fract(p*vec2(123.34,456.21));
+    p+=dot(p,p+45.32);
+    return fract(p.x*p.y);
   }
-  void main(){
-    vec2 uv=(gl_FragCoord.xy-0.5*R)/R.y;
-    float t=T*0.15 + V*0.0009;
+
+  // The flowing gold field. Pulled out into a function because the glass
+  // above it has to sample it MORE THAN ONCE — refracted, and once per
+  // colour channel — which is the whole basis of the effect below.
+  float field(vec2 uv,float t){
     vec2 q=uv*3.0;
     float acc=0.0;
     for(int i=0;i<5;i++){
@@ -840,27 +862,145 @@ window.addEventListener('scroll',navScrollHandler,{passive:true});
       q+=vec2(sin(t+fi*1.3), cos(t*0.8+fi));
       acc += abs(sin(q.x+t)*cos(q.y - t*0.7))/(fi+1.0);
     }
-    float caustic=pow(acc*0.6,1.9);
-    // gold palette
-    vec3 deep=vec3(0.05,0.035,0.02);
-    vec3 gold=vec3(0.95,0.70,0.22);
-    vec3 bright=vec3(1.0,0.88,0.48);
-    vec3 col=mix(deep,gold,clamp(caustic,0.0,1.0));
-    col=mix(col,bright,clamp(caustic-0.6,0.0,1.0));
-    // vignette toward edges
+    return pow(acc*0.6,1.9);
+  }
+
+  // Height of the glass sheet at a point — two slow crossing swells. Kept
+  // deliberately smooth and low-frequency: this is a poured, polished pane
+  // catching light, not rippling water.
+  float glassH(vec2 uv,float t){
+    return sin(uv.x*2.1+t*0.5)*cos(uv.y*1.7-t*0.42)*0.6
+         + sin((uv.x+uv.y)*3.3-t*0.34)*0.4;
+  }
+
+  vec3 ramp(float c,float L){
+    vec3 deep  =mix(vec3(0.05,0.035,0.02), vec3(0.973,0.953,0.906), L);
+    vec3 gold  =mix(vec3(0.95,0.70,0.22),  vec3(0.898,0.831,0.678), L);
+    vec3 bright=mix(vec3(1.0,0.88,0.48),   vec3(0.643,0.482,0.157), L);
+    vec3 col=mix(deep,gold,clamp(c,0.0,1.0));
+    return mix(col,bright,clamp(c-0.6,0.0,1.0));
+  }
+
+  void main(){
+    vec2 uv=(gl_FragCoord.xy-0.5*R)/R.y;
+    float t=T*0.15 + V*0.0009;
+
+    // ---- Clear glass over the gradient ----
+    // The pane's surface normal, from the gradient of its height. Everything
+    // else here derives from this one vector: which way each patch of glass
+    // is tilted decides where it bends the gold behind it and where it throws
+    // a highlight back at you.
+    float e=0.012;
+    float h =glassH(uv,T);
+    float hx=glassH(uv+vec2(e,0.0),T);
+    float hy=glassH(uv+vec2(0.0,e),T);
+    vec2 slope=vec2(hx-h,hy-h)/e;
+    vec3 N=normalize(vec3(-slope*0.05,1.0));
+
+    // Refraction: look at the gold THROUGH the glass, so the gradient bends
+    // as the sheet undulates instead of sitting flat behind it.
+    vec2 bend=slope*0.035;
+
+    // Dispersion — each channel bends by a slightly different amount. This is
+    // the single detail that separates "clear glass" from "a blurry overlay":
+    // real glass splits what it transmits.
+    float cr=field(uv+bend*1.12,t);
+    float cg=field(uv+bend*1.00,t);
+    float cb=field(uv+bend*0.88,t);
+    vec3 col=vec3(ramp(cr,L).r,ramp(cg,L).g,ramp(cb,L).b);
+
     float vig=smoothstep(1.25,0.2,length(uv));
-    col*=vig*1.25;
-    // ruby/emerald glints from the jewellery world
-    col += vec3(0.18,0.0,0.06)*pow(max(0.0,sin(uv.x*4.0+t*2.0)),8.0);
-    col += vec3(0.0,0.14,0.07)*pow(max(0.0,cos(uv.y*5.0-t*1.5)),8.0);
-    gl_FragColor=vec4(col,1.0);
+    // Dark: multiply the edges down to black. Light: multiplying would grey
+    // the ground into something dingy, so fade toward the page colour instead.
+    col*=mix(vig*1.25,1.0,L);
+    col=mix(col,vec3(0.973,0.949,0.898),(1.0-vig)*L*0.85);
+
+    // ---- Reflections ----
+    // A specular lobe from a light that drifts overhead. Tight exponent so it
+    // reads as a hard glint on a polished surface rather than a soft glow.
+    vec3 Ldir=normalize(vec3(sin(T*0.16)*0.7,cos(T*0.13)*0.55,0.85));
+    float spec=pow(max(0.0,dot(N,Ldir)),42.0);
+
+    // A broad reflection sweeping slowly across the pane — the moving band
+    // you see travel over glass as you pass it.
+    float sweepPos=fract((uv.x*0.55+uv.y*0.42)*0.32 - T*0.028);
+    float sweep=pow(smoothstep(1.0,0.0,abs(sweepPos-0.5)*2.6),3.0);
+
+    // Fresnel: glass reflects hardest where it is tilted away from you, which
+    // is what puts a bright rim on every swell.
+    float fres=pow(1.0-max(0.0,N.z),2.2);
+
+    // The reflection is TINTED BY THE GRADIENT it sits on, not flat white —
+    // a reflection that ignores what it is reflecting reads as fog.
+    vec3 tint=mix(vec3(1.0,0.94,0.78),col*1.35+0.25,0.55);
+    col+=tint*(spec*mix(0.5,0.34,L) + sweep*mix(0.10,0.07,L) + fres*mix(0.12,0.07,L));
+
+    // ---- Panes ----
+    // The sheet is cut into panels. Triangular cells, because square ones read
+    // as tiling the moment you look at them.
+    vec2 fq=rot(0.45)*(uv*4.2);
+    vec2 fid=floor(fq); vec2 ff=fract(fq);
+    float tri=step(ff.x+ff.y,1.0);
+    float fh=hash21(fid+tri*23.1);
+    float edge=min(min(ff.x,ff.y),abs(1.0-ff.x-ff.y));
+
+    // Each edge is a BEVEL, not a line: a crisp bright rim exactly on the cut,
+    // with a soft shaded band just inside it. That pairing is what makes an
+    // edge read as clear glass having thickness. A single dark line — which is
+    // what this was before — reads as a crease in paper instead.
+    float rim  =smoothstep(0.020,0.0,edge);
+    float inner=smoothstep(0.070,0.020,edge)*(1.0-rim);
+    col+=rim  *mix(vec3(0.26,0.23,0.15),vec3(0.13,0.13,0.125),L);
+    col-=inner*mix(vec3(0.022,0.020,0.014),vec3(0.055,0.052,0.044),L);
+
+    // Panes are never perfectly matched — a hair of variation in how much
+    // light each one lets through.
+    col+=(fh-0.5)*mix(0.030,0.020,L);
+
+    // Ruby/emerald glints from the jewellery world.
+    float gr=pow(max(0.0,sin(uv.x*4.0+t*2.0)),8.0);
+    float ge=pow(max(0.0,cos(uv.y*5.0-t*1.5)),8.0);
+    // On black these are added as coloured LIGHT. On pearl adding light does
+    // nothing (it is already near 1.0) and subtracting inverts the hue —
+    // taking red and blue out of white leaves green, which is what turned the
+    // hero into pink and green blotches. Tinting toward the stone is the only
+    // version that stays the colour it is named after.
+    vec3 add=vec3(0.18,0.0,0.06)*gr+vec3(0.0,0.14,0.07)*ge;
+    vec3 tinted=mix(col,vec3(0.870,0.706,0.741),gr*0.16);
+    tinted=mix(tinted,vec3(0.729,0.835,0.780),ge*0.13);
+    col=mix(col+add,tinted,L);
+
+    gl_FragColor=vec4(clamp(col,0.0,1.0),1.0);
   }`;
 
-  function sh(type,src){const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);return s;}
+  // A shader that fails to compile draws nothing and says nothing, so the
+  // symptom is a blank hero with a clean console — which is a genuinely
+  // confusing thing to debug. Report it, and fall back to a flat gradient so
+  // the page still looks deliberate.
+  function sh(type,src){
+    const s=gl.createShader(type);
+    gl.shaderSource(s,src); gl.compileShader(s);
+    if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)){
+      console.error('[hero] shader failed to compile:\n'+gl.getShaderInfoLog(s));
+      return null;
+    }
+    return s;
+  }
+  const vsh=sh(gl.VERTEX_SHADER,vs), fsh=sh(gl.FRAGMENT_SHADER,fs);
+  if(!vsh||!fsh){
+    const paint=()=>{ cv.style.background=(window.KJTheme&&KJTheme.get()==='dark')
+      ? 'radial-gradient(circle at 50% 40%,#2a1f0c,#0a0807)'
+      : 'radial-gradient(circle at 50% 40%,#fdfaf3,#efe7d6)'; };
+    paint(); addEventListener('kj:theme',paint); return;
+  }
   const prog=gl.createProgram();
-  gl.attachShader(prog,sh(gl.VERTEX_SHADER,vs));
-  gl.attachShader(prog,sh(gl.FRAGMENT_SHADER,fs));
-  gl.linkProgram(prog); gl.useProgram(prog);
+  gl.attachShader(prog,vsh);
+  gl.attachShader(prog,fsh);
+  gl.linkProgram(prog);
+  if(!gl.getProgramParameter(prog,gl.LINK_STATUS)){
+    console.error('[hero] shader link failed:\n'+gl.getProgramInfoLog(prog));
+  }
+  gl.useProgram(prog);
 
   const buf=gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER,buf);
@@ -872,6 +1012,14 @@ window.addEventListener('scroll',navScrollHandler,{passive:true});
   const uR=gl.getUniformLocation(prog,'R');
   const uT=gl.getUniformLocation(prog,'T');
   const uV=gl.getUniformLocation(prog,'V');
+  const uL=gl.getUniformLocation(prog,'L');
+
+  // Theme, eased rather than snapped — the hero is the largest thing on
+  // screen and an instant palette flip reads as a glitch. lightTarget is
+  // the truth, lightMix chases it a frame at a time.
+  let lightTarget=(window.KJTheme && KJTheme.get()==='dark')?0:1;
+  let lightMix=lightTarget;
+  addEventListener('kj:theme',e=>{ lightTarget=e.detail.theme==='dark'?0:1; });
 
   function size(){
     const dpr=matchMedia('(hover:none)').matches?Math.min(devicePixelRatio||1,.6):Math.min(devicePixelRatio||1,1.0);
@@ -885,16 +1033,23 @@ window.addEventListener('scroll',navScrollHandler,{passive:true});
   const start=performance.now();
   new IntersectionObserver(([e])=>{ glPaused=!e.isIntersecting; },{threshold:0})
     .observe(cv);
+  function draw(now){
+    smoothV+=((Math.abs(vel)*40)-smoothV)*0.05;
+    lightMix+=(lightTarget-lightMix)*0.08;
+    if(Math.abs(lightTarget-lightMix)<0.002) lightMix=lightTarget;
+    gl.uniform2f(uR,cv.width,cv.height);
+    gl.uniform1f(uT,(now-start)/1000);
+    gl.uniform1f(uV,smoothV);
+    gl.uniform1f(uL,lightMix);
+    gl.drawArrays(gl.TRIANGLES,0,3);
+  }
   (function loop(now){
-    if(!glPaused){
-      smoothV+=((Math.abs(vel)*40)-smoothV)*0.05;
-      gl.uniform2f(uR,cv.width,cv.height);
-      gl.uniform1f(uT,(now-start)/1000);
-      gl.uniform1f(uV,smoothV);
-      gl.drawArrays(gl.TRIANGLES,0,3);
-    }
+    if(!glPaused) draw(now);
     if(!reduce) requestAnimationFrame(loop); // reduced-motion: render one static frame
   })(start);
+  // Under reduced motion nothing is animating, so a theme switch would
+  // otherwise leave the hero painted in the old palette until a resize.
+  if(reduce) addEventListener('kj:theme',()=>{ lightMix=lightTarget; draw(performance.now()); });
 })();
 
 /* ============================================================

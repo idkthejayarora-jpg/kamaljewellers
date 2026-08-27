@@ -4,18 +4,99 @@
    SVG water-displacement warping · GSAP ripple transitions
    ============================================================ */
 
+/* ============================================================
+   THEME TOKENS — white gold (default) / black gold (opt-in)
+   ------------------------------------------------------------
+   The site was built black-first, so every hardcoded colour further
+   down this file IS the dark theme. That is deliberate and load-bearing:
+   it means `[data-theme="dark"]` needs no overrides at all and renders
+   byte-identically to the original design.
+
+   White gold is the default, and is built as an additive layer — the
+   token values below, plus the `html:not([data-theme="dark"])` block at
+   the end of this file which restates the handful of rules that hardcode
+   a dark surface.
+
+   Token NAMES are kept from the original palette even where the name now
+   reads oddly (--gold-bright is the DEEPEST gold in light mode, because
+   emphasis on white means darker, not brighter). Renaming them would have
+   meant touching all ~145 var() call sites for no visual gain.
+   ============================================================ */
 :root{
+  color-scheme:light;
+
+  /* Surfaces. Champagne, not white — the ground has to be the same metal the
+     hero is made of, or the textured sheet stops halfway down the page and
+     everything below it looks like paper by comparison. */
+  --black:#faf6ec;          /* page ground */
+  --ink:#ece2cd;            /* recessed surface */
+  --panel:#fffdf8;          /* raised card */
+
+  /* Ink — warm near-black, never pure #000 against a warm ground */
+  --cream:#1e1a15;          /* primary text */
+
+  /* Metal. Saturated rather than merely dark — #ffd966 on white is about
+     1.3:1 and effectively invisible, but muting it to a safe brown kills
+     the whole point. These keep the chroma high and buy contrast with
+     value instead: --gold lands ~4.7:1 and --gold-bright ~6.3:1 on pearl. */
+  --gold:#8a6208;           /* accent — eyebrows, labels, rules */
+  --gold-bright:#8a5f00;    /* emphasis — display italics, hovers */
+  --gold-deep:#6b4700;
+  --gold-glint:#e8b64a;     /* highlight stop — gradients/fills only, never text */
+
+  /* Display metal. Real gold is never one flat colour: the stops alternate
+     light and dark so the letterforms read as a struck surface catching
+     light. Panned by @keyframes goldShimmer. */
+  --gold-grad:linear-gradient(162deg,#c9932a 0%,#8a5f00 20%,#dcae42 38%,
+              #7d5400 56%,#c98f1c 74%,#6b4700 100%);
+
+  /* Filled buttons need their OWN gold, not the display gradient. The display
+     stops swing bright (#dcae42) so the letterforms sparkle — but white label
+     text on that stop is ~1.9:1 and unreadable. This one is capped at #9a6f0e
+     so white stays above 4.5:1 across every stop. */
+  --cta-fill:linear-gradient(135deg,#6f4a00 0%,#9a6f0e 45%,#5f3f00 100%);
+  --cta-ink:#fff;
+
+  /* White gold's cool half: platinum hairlines against the warm ground */
+  --platinum:#b9b3a6;
+
+  --ruby:#8c1435;
+  --emerald:#0b5a3d;
+
+  --glass:rgba(255,255,255,.72);
+  --glass-brd:rgba(138,108,30,.26);
+
+  /* Bold is the house default now, not an exception */
+  --w-body:400;
+  --w-display:600;
+  --w-label:600;
+
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+
+html[data-theme="dark"]{
+  color-scheme:dark;
   --black:#0a0807;
   --ink:#15110d;
-  --gold:#e0af3d;
-  --gold-bright:#ffd966;
-  --gold-deep:#b8862a;
-  --cream:#f3ead7;
+  --panel:#15110d;
+  --cream:#f7f0df;
+  /* Pushed brighter and more saturated than the original palette — the
+     brief is flamboyant in BOTH modes, and the old #e0af3d sat too close
+     to the warm background glow to pop off it. */
+  --gold:#f2c04c;
+  --gold-bright:#ffe08a;
+  --gold-deep:#c9942e;
+  --gold-glint:#fff3c4;
+  --gold-grad:linear-gradient(162deg,#fff8b0 0%,#f4d784 14%,#ffe87a 26%,
+              #c8922a 40%,#f0d070 54%,#fffbe0 66%,#e8c55a 78%,#c08a20 100%);
+  /* Inverted here: bright metal fill, dark label. */
+  --cta-fill:linear-gradient(135deg,#e8c55a 0%,#ffe08a 45%,#c9942e 100%);
+  --cta-ink:#241a06;
+  --platinum:#6f6a60;
   --ruby:#a11b3f;
   --emerald:#0e6b4a;
   --glass:rgba(255,255,255,0.06);
-  --glass-brd:rgba(224,175,61,0.32);
-  --ease:cubic-bezier(.22,1,.36,1);
+  --glass-brd:rgba(242,192,76,0.42);
 }
 
 *{margin:0;padding:0;box-sizing:border-box}
@@ -665,4 +746,452 @@ footer{position:relative;z-index:2;background:linear-gradient(180deg,var(--black
   .srch-drop{max-height:260px}
   /* No custom cursor elements needed on touch */
   .cursor,.cursor-dot{display:none!important}
+}
+
+/* ============================================================
+   WHITE GOLD — the default (light) layer
+   ------------------------------------------------------------
+   Scoped `html:not([data-theme="dark"])` so it applies by default and
+   disappears entirely in dark mode. Everything here exists because the
+   base rule above hardcodes a dark surface that a token swap can't reach.
+
+   THE RULE THAT MATTERS MOST: overlays that sit on top of PHOTOGRAPHS
+   stay dark in both themes — .tile::after, .feature .veil, .vid-shade,
+   .store-card .cap, and the .tile h4 drop-shadows. Their job is to make
+   light text legible over an unpredictable image, which has nothing to
+   do with what the page ground is doing. Flipping them was the single
+   most tempting mistake here and it would have made captions unreadable.
+   ============================================================ */
+html:not([data-theme="dark"]){
+
+  /* ---------- Ground & selection ---------- */
+  & body{background:var(--black);color:var(--cream)}
+  & ::selection{background:var(--gold);color:#fff}
+
+  /* ---------- Loader: pearl jewellery box, not velvet ---------- */
+  & .loader{background:#f6f2ea}
+  & .vbox-lid{
+    background:
+      radial-gradient(ellipse 120% 90% at 50% 100%,rgba(190,150,60,.10),transparent 60%),
+      linear-gradient(180deg,#fffdf8 0%,#f4efe4 46%,#e9e2d3 100%)}
+  & .vbox-bot{
+    background:
+      radial-gradient(ellipse 120% 90% at 50% 0%,rgba(190,150,60,.10),transparent 60%),
+      linear-gradient(0deg,#fffdf8 0%,#f4efe4 46%,#e9e2d3 100%)}
+  /* Suede nap: on a pale lid the threading has to darken, not lighten */
+  & .vbox-nap{opacity:.55;
+    background:
+      repeating-linear-gradient(114deg,rgba(120,100,60,.05) 0 1px,transparent 1px 3px),
+      repeating-linear-gradient(66deg,rgba(90,70,35,.06) 0 1px,transparent 1px 4px),
+      repeating-linear-gradient(90deg,rgba(160,130,70,.04) 0 2px,transparent 2px 7px),
+      radial-gradient(ellipse 70% 120% at 30% 40%,rgba(255,255,255,.5),transparent 70%)}
+  & .vbox-pipe{
+    background:linear-gradient(90deg,transparent,rgba(138,108,30,.45) 12%,#b8912f 50%,rgba(138,108,30,.45) 88%,transparent);
+    box-shadow:0 0 12px rgba(138,108,30,.30)}
+  & .vbox-glow{
+    background:radial-gradient(ellipse 50% 50% at 50% 50%,rgba(200,165,80,.34),rgba(200,165,80,.10) 42%,transparent 72%)}
+  & .vbox-seam{
+    background:linear-gradient(90deg,transparent,#d9bf72 20%,#fff 50%,#d9bf72 80%,transparent);
+    box-shadow:0 0 30px 5px rgba(190,150,60,.55)}
+  /* The crest glows on black; on pearl it needs a shadow to sit down */
+  & .loader .logoMark{
+    box-shadow:0 0 0 1px rgba(138,108,30,.22),0 10px 30px rgba(90,70,30,.18),0 2px 8px rgba(90,70,30,.12)}
+
+  /* ---------- Navigation ---------- */
+  & nav.scrolled{background:rgba(250,247,241,.78);border-bottom:1px solid rgba(138,108,30,.20)}
+  & .brand .brand-logo{box-shadow:0 2px 10px rgba(90,70,30,.18),0 0 0 1px rgba(138,108,30,.18)}
+  & .brand small{opacity:.62}
+
+  /* ---------- Menu overlay ---------- */
+  & .menu{background:linear-gradient(160deg,#fbf8f2,#f2ece0 60%,#fbf8f2)}
+  & .menu li{border-bottom:1px solid rgba(138,108,30,.14)}
+
+  /* ---------- Hero ---------- */
+  & .hero .sub{color:rgba(30,26,21,.72)}
+
+  /* ---------- Search ---------- */
+  & #srchInput{background:rgba(255,255,255,.86);border-color:rgba(138,108,30,.34);
+    box-shadow:0 2px 10px rgba(90,70,30,.06)}
+  & #srchInput::placeholder{color:rgba(30,26,21,.42)}
+  & #srchInput:focus{border-color:rgba(138,108,30,.7);background:#fff}
+  & .srch-drop{background:linear-gradient(155deg,#fffdf9,#f7f2e9);
+    border-color:rgba(138,108,30,.26);
+    box-shadow:0 20px 50px -18px rgba(80,62,26,.28);
+    scrollbar-color:rgba(138,108,30,.28) transparent}
+  & .srch-item{border-bottom:1px solid rgba(30,26,21,.07)}
+  & .srch-item:hover,& .srch-item.sr-active{background:rgba(138,108,30,.09)}
+  & .srch-thumb{background:#ece6da}
+  & .srch-arr{color:rgba(138,108,30,.55)}
+  & .srch-empty{color:rgba(30,26,21,.45)}
+
+  /* ---------- Tile theme atmosphere ---------- */
+  & body.theme-gold{background:radial-gradient(ellipse 100% 60% at 50% 0%,#f6ecd4 0%,var(--black) 55%)}
+  & body.theme-ruby{background:radial-gradient(ellipse 100% 60% at 50% 0%,#f7e4e6 0%,var(--black) 55%)}
+  & body.theme-emerald{background:radial-gradient(ellipse 100% 60% at 50% 0%,#e2f1e8 0%,var(--black) 55%)}
+  & body.theme-gold .solid{background:radial-gradient(ellipse 90% 50% at 50% 18%,rgba(200,165,80,.20) 0%,transparent 68%),linear-gradient(180deg,transparent,var(--black) 12%)}
+  & body.theme-ruby .solid{background:radial-gradient(ellipse 90% 50% at 50% 18%,rgba(190,90,110,.16) 0%,transparent 68%),linear-gradient(180deg,transparent,var(--black) 12%)}
+  & body.theme-emerald .solid{background:radial-gradient(ellipse 90% 50% at 50% 18%,rgba(60,150,110,.16) 0%,transparent 68%),linear-gradient(180deg,transparent,var(--black) 12%)}
+
+  /* ---------- Collection intro ---------- */
+  & .tile-preview{background:rgba(250,247,241,.62)}
+  & .tp-inner{background:linear-gradient(155deg,rgba(255,255,255,.94),rgba(252,249,243,.86));
+    border-color:rgba(138,108,30,.28);
+    box-shadow:inset 0 1.5px 0 #fff,0 32px 80px -26px rgba(80,62,26,.34)}
+  & .tp-load{background:rgba(30,26,21,.10)}
+  & #tpLede{color:rgba(30,26,21,.75)}
+  & .tp-close{color:rgba(30,26,21,.45)}
+
+  /* ---------- Video strip ---------- */
+  & .vid-card{background:#fffdf9;border-color:rgba(138,108,30,.30);
+    box-shadow:0 14px 40px -14px rgba(80,62,26,.26),inset 0 1px 0 #fff}
+  & .vid-card:hover{border-color:rgba(138,108,30,.6);
+    box-shadow:0 22px 56px -16px rgba(80,62,26,.34),inset 0 1px 0 #fff}
+  & .vid-card .vid-ph{background:linear-gradient(150deg,#f3ecdd,#e8e0cf);color:rgba(60,48,24,.8)}
+  & video.vid-clip{background:#f3ecdd}
+  /* Play button sits over video stills — keep it dark-on-glass so it reads
+     against whatever frame happens to be showing */
+  & .vid-play{border-color:rgba(255,255,255,.9);background:rgba(20,16,10,.4);
+    box-shadow:0 2px 18px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.3)}
+  & .vid-play::after{border-left-color:#fff}
+  & .vid-card:hover .vid-play{background:rgba(20,16,10,.6)}
+
+  /* ---------- Catalogue showcase ---------- */
+  & .cat-box{border-color:rgba(138,108,30,.30);
+    background:linear-gradient(150deg,rgba(255,255,255,.9),rgba(246,240,229,.72));
+    box-shadow:0 20px 56px -20px rgba(80,62,26,.26),inset 0 1px 0 #fff}
+  & .cat-box::before{border-color:rgba(138,108,30,.18)}
+  & .cat-box:hover{border-color:rgba(138,108,30,.6);
+    box-shadow:0 30px 70px -22px rgba(80,62,26,.34),inset 0 1px 0 #fff}
+  & .cat-fan .pv{border-color:rgba(138,108,30,.3);background:linear-gradient(150deg,#f3ecdd,#e6ded0);
+    box-shadow:0 14px 34px -12px rgba(80,62,26,.34)}
+  & .cat-copy p{color:rgba(30,26,21,.72)}
+  /* .cat-cta is a filled gold button in both themes — owned by the PRESENCE
+     layer via --cta-fill, so deliberately not restyled here. */
+
+  /* ---------- Directory / tiles ----------
+     NOTE: .tile::after and .tile h4's shadows are intentionally NOT here.
+     They sit over the collection photograph. */
+  & .directory .head{border-bottom-color:rgba(138,108,30,.20)}
+  /* Only the shadow. The tile's fill, border and radius belong to Studio via
+     tile-style.js — overriding them here would silently discard the owner's
+     saved settings, so that file picks light defaults instead. */
+  & .tile{box-shadow:0 8px 26px -10px rgba(80,62,26,.22),inset 0 1px 0 #fff}
+  & .tile:hover{box-shadow:0 16px 40px -12px rgba(80,62,26,.30),inset 0 1px 0 #fff}
+
+  /* ---------- Feature showcase ----------
+     .veil stays a darkener: the glass card's text sits on the photo. */
+  & .feature{background:#f1ebe0}
+  & .feature .ftext{background:linear-gradient(155deg,rgba(255,255,255,.9),rgba(252,249,243,.8));
+    border-color:rgba(138,108,30,.3);
+    box-shadow:inset 0 1.5px 0 #fff,0 24px 60px -24px rgba(40,30,12,.5)}
+  & .feature .ftext p{color:rgba(30,26,21,.82)}
+
+  /* ---------- Reviews ---------- */
+  & .gcard{background:linear-gradient(150deg,rgba(255,255,255,.9),rgba(250,246,238,.7));
+    box-shadow:0 26px 50px -28px rgba(80,62,26,.3),inset 0 1px 0 #fff}
+  & .gcard::before{background:radial-gradient(circle,rgba(200,165,80,.26),transparent 70%)}
+
+  /* ---------- Visit ---------- */
+  & .info-row{border-top-color:rgba(138,108,30,.16)}
+  & .store-nav{border-color:rgba(138,108,30,.35);background:rgba(255,255,255,.8);color:var(--gold-bright)}
+  & .store-nav:hover{background:#fff}
+  & .store-dot{background:rgba(30,26,21,.3)}
+  /* The map is inverted to fake a dark tile set. In light mode it should
+     simply be itself. */
+  & .map-card iframe{filter:none}
+  & .map-open{background:rgba(255,255,255,.8);border-top-color:rgba(138,108,30,.16)}
+  & .map-open:hover{background:rgba(138,108,30,.10)}
+
+  /* ---------- Footer ---------- */
+  & footer{background:linear-gradient(180deg,var(--black),#f2ece0);border-top-color:rgba(138,108,30,.16)}
+  & .f-brand .footLogo{box-shadow:0 6px 20px rgba(90,70,30,.18),0 0 0 1px rgba(138,108,30,.18)}
+  & .f-brand p{color:rgba(30,26,21,.62)}
+  & .f-col a,& .f-col p{color:rgba(30,26,21,.78)}
+  & .f-bottom{border-top-color:rgba(138,108,30,.14);color:rgba(30,26,21,.45)}
+
+  /* ---------- Floating buttons ---------- */
+  & .enq-btn{background:linear-gradient(150deg,rgba(255,255,255,.92),rgba(248,243,234,.8));
+    box-shadow:0 14px 34px -14px rgba(80,62,26,.32),inset 0 1px 0 #fff}
+  & .enq-btn:hover{background:#fff}
+  & .enq-btn .dotpulse{background:var(--gold);box-shadow:0 0 0 0 rgba(138,108,30,.5)}
+  & .wa-btn{background:linear-gradient(150deg,rgba(37,211,102,.18),rgba(255,255,255,.7));
+    border-color:rgba(20,150,70,.45);color:#0f6b37;
+    box-shadow:0 14px 34px -14px rgba(80,62,26,.3),inset 0 1px 0 #fff}
+  & .wa-btn:hover{background:linear-gradient(150deg,rgba(37,211,102,.3),rgba(255,255,255,.85))}
+  & .wa-btn svg{fill:#12924d}
+
+  /* ---------- Enquiry modal ---------- */
+  & .enq-overlay{background:rgba(240,235,226,.7)}
+  & .enq-modal{background:linear-gradient(155deg,#fffdf9,#f7f2e8);
+    box-shadow:0 50px 90px -40px rgba(60,46,20,.45),inset 0 1px 0 #fff}
+  & .enq-modal .intro2{color:rgba(30,26,21,.68)}
+  & .field input,& .field select,& .field textarea{
+    background:#fff;border-color:rgba(138,108,30,.28);color:var(--cream)}
+  & .field input:focus,& .field select:focus,& .field textarea:focus{border-color:var(--gold)}
+  & .field select option{background:#fff;color:var(--cream)}
+  /* .enq-submit is a filled gold button — owned by the PRESENCE layer. */
+  & .enq-done small{color:rgba(30,26,21,.6)}
+
+  /* ---------- Lead popup ---------- */
+  & .lead-ov{background:rgba(240,235,226,.8)}
+  & .lead-modal{border-color:rgba(138,108,30,.34);
+    background:linear-gradient(155deg,#fffdf9,#f6f1e7);
+    box-shadow:0 50px 100px -40px rgba(60,46,20,.5),0 0 60px -30px rgba(138,108,30,.3),inset 0 1px 0 #fff}
+  & .lead-skip{border-color:rgba(138,108,30,.28);background:rgba(255,255,255,.7)}
+  & .lead-skip:hover{background:rgba(138,108,30,.14)}
+  & .lead-intro{color:rgba(30,26,21,.82)}
+  & .lead-dismiss{color:rgba(30,26,21,.58)}
+
+  /* ---------- Flash sale ---------- */
+  & .sale-card{background:#fffdf9;border-color:rgba(138,108,30,.2);
+    box-shadow:0 8px 24px -12px rgba(80,62,26,.2)}
+  & .sale-card:hover{box-shadow:0 24px 50px -18px rgba(80,62,26,.3),0 0 0 1px rgba(138,108,30,.24)}
+  & .sc-img{background:#f0e9dc}
+  & .sc-note{color:rgba(30,26,21,.72)}
+  & .sc-orig{color:rgba(30,26,21,.5)}
+  & .sc-stock{color:#b4561c}
+  & .sc-btn{border-color:rgba(138,108,30,.45);background:rgba(190,150,60,.12)}
+  & .sc-btn:hover{background:rgba(190,150,60,.24);border-color:var(--gold)}
+  & .sale-ov{background:rgba(240,235,226,.72)}
+  & .sale-modal{background:#fffdf9;border-color:rgba(138,108,30,.22);
+    box-shadow:0 40px 90px -36px rgba(60,46,20,.45)}
+  & .sm-note{color:rgba(30,26,21,.55)}
+  & .sm-orig{color:rgba(30,26,21,.4)}
+  & .sm-stock{color:#b4561c}
+  & .sm-close{color:rgba(30,26,21,.5)}
+  & .sm-wa{background:rgba(37,211,102,.12);border-color:rgba(20,150,70,.35);color:#0f6b37}
+  & .sm-wa:hover{background:rgba(37,211,102,.22)}
+
+  /* Mobile: the search dropdown drops its blur, so it needs a solid ground */
+  @media(hover:none){
+    & .srch-drop{background:#fffdf9}
+  }
+}
+
+/* ============================================================
+   PRESENCE — bold, poppy, flamboyant. Applies to BOTH themes.
+   ------------------------------------------------------------
+   The original design was deliberately whisper-quiet: Jost 300 body,
+   Cormorant 300 display, gold accents sitting low-contrast against a warm
+   glow. Read at arm's length on a phone in daylight that reads as washed
+   out rather than restrained. This layer trades the whisper for presence
+   without touching layout — weight, chroma and separation only.
+
+   Sits last in the file so it wins over both the base rules and the white
+   gold layer, and it is theme-agnostic: every colour here resolves through
+   a token, so it is correct in white gold and black gold alike.
+   ============================================================ */
+
+/* ---------- Weight ---------- */
+body{font-weight:var(--w-body)}
+.hero .sub,.cat-copy p,.collection .lede,#tpLede,.lead-intro,
+.feature .ftext p,.f-brand p,.f-col a,.f-col p,.sc-note,
+.enq-modal .intro2,.info-row .v{font-weight:var(--w-body)}
+
+/* Display serif — 600 across the board. Cormorant is a high-contrast face;
+   at 300 its hairlines all but vanish once the page is scaled down. */
+.hero h1,.collection h2,.cat-copy h2,.vid-head h2,.reviews h3,.visit h3,
+.directory .head h3,#tpName,.feature .ftext h3,.enq-modal h4,.lead-modal h4,
+.sale-head h2,.sm-name,.brand,.f-brand,.gcard p,.enq-done p{
+  font-weight:var(--w-display)}
+.sc-name,.srch-name{font-weight:var(--w-display)}
+/* Tighter tracking as weight goes up — bold Cormorant at the old spacing
+   reads loose and drifts apart at display sizes. */
+.hero h1{letter-spacing:-.005em}
+.collection h2,.cat-copy h2{letter-spacing:-.004em}
+
+/* Small caps labels — these carry the brand voice and were the worst
+   offenders at 300: letterspaced thin caps disappear entirely on pearl. */
+.eyebrow,.nav-toggle,.scroll-cue,.tile .enter,.back,.f-col h5,.info-row .k,
+.vid-cap .k,.field label,.srch-tag,.gcard .who,.f-bottom,.catalogue-pill,
+.cat-cta,.enq-btn,.wa-btn,.enq-submit,.sc-btn,.dir-pill,.tp-cta,.anno,
+.map-open,.store-card .cap,.feat-link-cue,.menu .eyebrow,.sm-wa,.sc-off,.sm-off{
+  font-weight:var(--w-label)}
+
+/* ---------- Metallic display accents ----------
+   The italic `em` inside each display heading is the flamboyant beat of
+   the page, so it gets struck-metal treatment rather than flat gold.
+   -webkit-text-fill-color is what actually paints it; `color` stays as the
+   fallback for anything that can't clip a background to text. */
+.hero h1 em,.collection h2 em,.cat-copy h2 em,.vid-head h2 em,.visit h3 em,
+#tpName em,.feature .ftext h3 em,.enq-modal h4 em,.lead-modal h4 em,
+.sale-head h2 em,.f-brand{
+  color:var(--gold-bright);
+  background:var(--gold-grad);
+  background-size:220% 220%;
+  animation:goldShimmer 7s ease-in-out infinite;
+  -webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;
+  font-weight:var(--w-display);
+}
+@supports not ((-webkit-background-clip:text) or (background-clip:text)){
+  .hero h1 em,.collection h2 em,.cat-copy h2 em,.vid-head h2 em,.visit h3 em,
+  #tpName em,.feature .ftext h3 em,.enq-modal h4 em,.lead-modal h4 em,
+  .sale-head h2 em,.f-brand{background:none;-webkit-text-fill-color:currentColor}
+}
+@media(prefers-reduced-motion:reduce){
+  .hero h1 em,.collection h2 em,.cat-copy h2 em,.vid-head h2 em,.visit h3 em,
+  #tpName em,.feature .ftext h3 em,.enq-modal h4 em,.lead-modal h4 em,
+  .sale-head h2 em,.f-brand{animation:none}
+}
+/* The feature card's heading sits on a photograph, so the metal needs a
+   shadow under it the way .tile h4 does — otherwise it dissolves into a
+   bright frame. */
+.feature .ftext h3 em{filter:drop-shadow(0 1px 3px rgba(0,0,0,.45))}
+html:not([data-theme="dark"]) .feature .ftext h3 em{
+  filter:drop-shadow(0 1px 2px rgba(255,255,255,.7))}
+
+/* ---------- Separation ----------
+   "Non-blending" in practice means edges. Hairlines at .1–.2 alpha read as
+   nothing; these are pushed to where a border is actually a border. */
+.eyebrow{color:var(--gold);opacity:1}
+.hero .eyebrow{opacity:1}
+.menu .eyebrow{opacity:1}
+.tile .enter{color:var(--gold-bright)}
+.scroll-cue{opacity:.9}
+
+.catalogue-pill,.cat-cta,.dir-pill,.tp-cta{border-width:1.5px}
+.directory .head{border-bottom-width:1.5px}
+.info-row{border-top-width:1.5px}
+
+/* Gold-filled CTAs. A gold outline on a gold-tinted fill was the quietest
+   possible treatment; solid metal is the point of the brief. */
+.cat-cta,.tp-cta,.dir-pill,.enq-submit,.catalogue-pill{
+  background:var(--cta-fill);background-size:200% 200%;
+  color:var(--cta-ink);-webkit-text-fill-color:var(--cta-ink);
+  border-color:transparent;
+  box-shadow:0 6px 18px -6px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.32)}
+.enq-submit:hover,.catalogue-pill:hover,.cat-box:hover .cat-cta{
+  background:var(--cta-fill);background-size:200% 200%;background-position:100% 50%;
+  box-shadow:0 10px 26px -8px rgba(0,0,0,.42),inset 0 1px 0 rgba(255,255,255,.4)}
+/* The dark theme's label colour rides on --cta-ink above; nothing extra needed. */
+
+/* ---------- Sale badges: keep them shouting ---------- */
+.sc-off,.sm-off{font-weight:700;letter-spacing:.12em}
+
+/* ============================================================
+   THEME SWITCH — white gold ⇄ black gold
+   ------------------------------------------------------------
+   A real switch rather than an icon button: the knob's position tells you
+   which way the site is set even before you read the colour. Sized for a
+   360px phone, where it shares the nav bar with the brand and the menu
+   trigger — hence the shrink at 480px rather than a wrap.
+   ============================================================ */
+.nav-right{display:flex;align-items:center;gap:clamp(.7rem,2.5vw,1.2rem);min-width:0;flex:0 0 auto}
+/* The nav was already full before the switch was added to it. Without a
+   guaranteed gap the brand runs straight into the track — measured at 360px
+   they met at exactly the same x with nothing between them. */
+nav{gap:.9rem}
+.brand{min-width:0;flex:0 1 auto}
+@media(max-width:560px){
+  /* Below this the word and the switch cannot both have room. The lines are
+     the actual affordance; the word is the part that can go. */
+  .nav-toggle > span:not(.lines){display:none}
+  .nav-toggle{gap:0}
+}
+
+.theme-sw{
+  flex:0 0 auto;padding:0;border:0;background:none;line-height:0;
+  cursor:none;-webkit-tap-highlight-color:transparent}
+@media(hover:none){.theme-sw{cursor:pointer}}
+
+.theme-sw-track{
+  position:relative;display:block;width:46px;height:26px;border-radius:40px;
+  border:1.5px solid var(--glass-brd);
+  background:var(--glass);
+  backdrop-filter:blur(10px) saturate(140%);-webkit-backdrop-filter:blur(10px) saturate(140%);
+  box-shadow:inset 0 1px 3px rgba(0,0,0,.14);
+  transition:background .45s var(--ease),border-color .45s var(--ease)}
+
+.theme-sw-knob{
+  position:absolute;top:50%;left:3px;width:18px;height:18px;border-radius:50%;
+  transform:translateY(-50%);
+  background:var(--gold-grad);background-size:180% 180%;
+  box-shadow:0 2px 6px rgba(0,0,0,.32),inset 0 1px 0 rgba(255,255,255,.45);
+  transition:left .45s var(--ease),box-shadow .45s var(--ease)}
+/* Dark = knob to the right, and the metal picks up a glow it can't have
+   against a pale track */
+html[data-theme="dark"] .theme-sw-knob{
+  left:calc(100% - 21px);
+  box-shadow:0 0 12px rgba(242,192,76,.55),0 2px 6px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.4)}
+.theme-sw:hover .theme-sw-track{border-color:var(--gold)}
+.theme-sw:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:40px}
+
+@media(max-width:480px){
+  .theme-sw-track{width:40px;height:23px}
+  .theme-sw-knob{width:16px;height:16px;left:2.5px}
+  html[data-theme="dark"] .theme-sw-knob{left:calc(100% - 18.5px)}
+}
+@media(prefers-reduced-motion:reduce){
+  .theme-sw-track,.theme-sw-knob{transition:none}
+}
+
+/* ============================================================
+   CLEAR GLASS — white gold only
+   ------------------------------------------------------------
+   The hero canvas does the real refraction in GLSL. This continues the same
+   material down the rest of the page, where there is no canvas.
+
+   Two parts, matching the shader:
+     PANES   — a static grid of glass panels. Every edge is a BEVEL: a bright
+               rim line paired with a soft shaded band beside it. That pairing
+               is what gives an edge thickness and makes it read as clear
+               glass; a lone dark line reads as a crease in paper, which is
+               exactly how the earlier version failed.
+     SHEEN   — reflections drifting slowly across, so the structure stays put
+               and only the light moves. Glass panels don't wander.
+
+   Clear, not frosted. `screen` at low alpha adds light the way a reflection
+   does, and the layer sits behind content (z-index 1 vs 2) so it can never
+   wash out text.
+   ============================================================ */
+@keyframes glassDrift{
+  0%   {background-position:0% 50%,100% 50%}
+  50%  {background-position:100% 50%,0% 50%}
+  100% {background-position:0% 50%,100% 50%}
+}
+
+/* PANES — static, no blend mode, very low contrast. Two crossing sets of
+   bevelled lines at odd angles so the cells read as irregular panels. */
+html:not([data-theme="dark"]) body::before{
+  content:'';position:fixed;inset:0;z-index:1;pointer-events:none;
+  background-image:
+    repeating-linear-gradient(64deg,
+      rgba(255,255,255,.55) 0 1px,
+      rgba(120,104,74,.05) 1px 3px,
+      transparent 3px 118px),
+    repeating-linear-gradient(-38deg,
+      rgba(255,255,255,.5) 0 1px,
+      rgba(120,104,74,.045) 1px 3px,
+      transparent 3px 143px),
+    repeating-linear-gradient(158deg,
+      rgba(255,255,255,.4) 0 1px,
+      rgba(120,104,74,.035) 1px 3px,
+      transparent 3px 97px);
+}
+
+/* SHEEN — the moving reflections */
+html:not([data-theme="dark"]) body::after{
+  content:'';position:fixed;inset:0;z-index:1;pointer-events:none;
+  mix-blend-mode:screen;opacity:.7;
+  background-repeat:no-repeat;
+  background-image:
+    linear-gradient(104deg,transparent 34%,rgba(255,255,255,.5) 46%,
+                    rgba(255,252,244,.66) 50%,rgba(255,255,255,.42) 54%,transparent 66%),
+    linear-gradient(72deg,transparent 40%,rgba(255,250,236,.3) 50%,transparent 60%);
+  background-size:260% 100%,300% 100%;
+  animation:glassDrift 26s linear infinite;
+}
+html:not([data-theme="dark"]) body.theme-gold::after{opacity:.8}
+
+/* A full-viewport fixed animated blend layer is real compositor cost on a
+   phone. Keep the panes (cheap, static); simplify the sheen. */
+@media(hover:none){
+  html:not([data-theme="dark"]) body::after{
+    opacity:.55;animation:none;
+    background-image:linear-gradient(104deg,transparent 32%,rgba(255,255,255,.42) 48%,transparent 64%);
+    background-size:100% 100%}
+}
+@media(prefers-reduced-motion:reduce){
+  html:not([data-theme="dark"]) body::after{animation:none}
 }
