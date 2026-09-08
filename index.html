@@ -31,7 +31,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
-<link rel="stylesheet" href="site.css?v=0d5744d300" />
+<link rel="stylesheet" href="site.css?v=dd52e112d7" />
 </head>
 <body>
 
@@ -127,8 +127,9 @@
       <div class="vid-grid reveal" id="vidGrid"></div>
     </section>
 
-    <!-- CATALOGUE SHOWCASE — single box previewing the /catalogue page -->
+    <!-- CATALOGUE SHOWCASE & COLLECTIONS TILES -->
     <section class="cat-sec" id="collections">
+      <div class="tile-grid reveal" id="grid"></div>
       <a class="cat-box reveal" id="catBox" href="/catalogue">
         <div class="cat-fan" id="catFan" aria-hidden="true"></div>
         <div class="cat-copy">
@@ -205,6 +206,15 @@
 
   </div><!-- /solid -->
 </div><!-- /wrap -->
+
+<!-- ===== New collection drop popover announcement ===== -->
+<div class="drop-popover" id="dropPopover" aria-live="polite">
+  <a class="drop-toast mag" href="/catalogue">
+    <span class="drop-badge">NEW DROP</span>
+    <span class="drop-text">New collection dropped — <em>Tap to explore</em> ↗</span>
+  </a>
+  <button class="drop-close mag" id="dropClose" aria-label="Close announcement">✕</button>
+</div>
 
 <!-- ===== Floating actions (WhatsApp + Enquire) ===== -->
 <div class="fab-stack">
@@ -1057,9 +1067,23 @@ window.addEventListener('scroll',navScrollHandler,{passive:true});
    ============================================================ */
 const cur=document.getElementById('cursor');
 const dot=document.getElementById('cursorDot');
-let mx=innerWidth/2,my=innerHeight/2,cx=mx,cy=my;
-addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;dot.style.transform=`translate(${mx}px,${my}px) translate(-50%,-50%)`;});
-(function curLoop(){cx+=(mx-cx)*0.18;cy+=(my-cy)*0.18;cur.style.transform=`translate(${cx}px,${cy}px) translate(-50%,-50%)`;requestAnimationFrame(curLoop);})();
+if(!matchMedia('(hover:none)').matches && cur && dot){
+  let mx=innerWidth/2,my=innerHeight/2,cx=mx,cy=my,curRaf=null;
+  function updateCur(){
+    cx+=(mx-cx)*0.18; cy+=(my-cy)*0.18;
+    cur.style.transform=`translate(${cx}px,${cy}px) translate(-50%,-50%)`;
+    if(Math.abs(mx-cx)>0.05 || Math.abs(my-cy)>0.05){
+      curRaf=requestAnimationFrame(updateCur);
+    } else {
+      curRaf=null;
+    }
+  }
+  addEventListener('mousemove',e=>{
+    mx=e.clientX; my=e.clientY;
+    dot.style.transform=`translate(${mx}px,${my}px) translate(-50%,-50%)`;
+    if(!curRaf) curRaf=requestAnimationFrame(updateCur);
+  },{passive:true});
+}
 
 function bindMagnets(){
   document.querySelectorAll('.mag').forEach(el=>{
@@ -1499,6 +1523,22 @@ function buildAll(C){
   }catch(e){ console.warn('build failed', e); }
 }
 
+function maybeShowDropPopover(){
+  try{ if(sessionStorage.getItem('kamal_drop_closed')) return; }catch(e){}
+  const pop=document.getElementById('dropPopover');
+  const cls=document.getElementById('dropClose');
+  if(!pop) return;
+  setTimeout(()=>{
+    pop.classList.add('show');
+  },1800);
+  if(cls){
+    cls.addEventListener('click',()=>{
+      pop.classList.remove('show');
+      try{ sessionStorage.setItem('kamal_drop_closed','1'); }catch(e){}
+    });
+  }
+}
+
 function boot(){
   const t0=Date.now();
   // Paint immediately with defaults — the page never waits on the network.
@@ -1520,6 +1560,7 @@ function boot(){
       setupReviewFloat();
       document.querySelectorAll('.hero .reveal').forEach((el,i)=>setTimeout(()=>el.classList.add('in'),i*180));
       maybeShowLead();
+      maybeShowDropPopover();
     },480);
   },wait);
 }
