@@ -741,13 +741,25 @@ footer{position:relative;z-index:2;background:linear-gradient(180deg,var(--black
 /* ── Mobile performance: reduce GPU-heavy effects on touch devices ── */
 @media(hover:none){
   /* Lighter blur on every glass surface — halves compositor work */
-  .tile{backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);background:rgba(14,11,8,.88)}
-  .gcard{backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);background:rgba(14,11,8,.88)}
-  .cat-box{backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);background:rgba(14,11,8,.88)}
-  .drop-toast{backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);background:rgba(14,11,8,.92)}
-  .feature .ftext{backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);background:rgba(14,11,8,.88)}
-  nav.scrolled{backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);background:rgba(10,8,7,.92)}
-  #srchInput{backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);background:rgba(20,16,12,.88)}
+  .tile, .gcard, .cat-box, .drop-toast, .feature .ftext, nav.scrolled, #srchInput {
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  }
+  html[data-theme="dark"] .tile,
+  html[data-theme="dark"] .gcard,
+  html[data-theme="dark"] .cat-box,
+  html[data-theme="dark"] .drop-toast,
+  html[data-theme="dark"] .feature .ftext,
+  html[data-theme="dark"] nav.scrolled {
+    background: rgba(14,11,8,.88);
+  }
+  html:not([data-theme="dark"]) .tile,
+  html:not([data-theme="dark"]) .gcard,
+  html:not([data-theme="dark"]) .cat-box,
+  html:not([data-theme="dark"]) .drop-toast,
+  html:not([data-theme="dark"]) .feature .ftext,
+  html:not([data-theme="dark"]) nav.scrolled {
+    background: rgba(255,253,248,.92);
+  }
   .srch-drop{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(14,10,6,.97)}
   /* Tighter hero gap on small screens */
   .hero .sub{margin-top:1.1rem}
@@ -970,6 +982,29 @@ html:not([data-theme="dark"]){
   & .sm-close{color:rgba(30,26,21,.5)}
   & .sm-wa{background:rgba(37,211,102,.12);border-color:rgba(20,150,70,.35);color:#0f6b37}
   & .sm-wa:hover{background:rgba(37,211,102,.22)}
+
+  /* ---------- Drop popover announcement ---------- */
+  & .drop-toast{
+    background:rgba(255,253,248,.94);
+    border-color:rgba(138,108,30,.35);
+    color:var(--cream);
+    box-shadow:0 12px 36px rgba(80,62,26,.18),0 0 24px rgba(138,108,30,.12);
+  }
+  & .drop-toast:hover{
+    border-color:rgba(138,108,30,.7);
+    box-shadow:0 18px 48px rgba(80,62,26,.26),0 0 36px rgba(138,108,30,.22);
+  }
+  & .drop-text{color:rgba(30,26,21,.92)}
+  & .drop-text em{color:var(--gold-bright)}
+  & .drop-close{
+    background:rgba(230,222,206,.7);
+    color:rgba(30,26,21,.65);
+    border-color:rgba(138,108,30,.25);
+  }
+  & .drop-close:hover{
+    background:rgba(138,108,30,.2);
+    color:var(--cream);
+  }
 
   /* Mobile: the search dropdown drops its blur, so it needs a solid ground */
   @media(hover:none){
