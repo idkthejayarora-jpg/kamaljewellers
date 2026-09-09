@@ -287,24 +287,27 @@
     startCrossfade();
   }
 
-  // Slowly dissolve between a tile's photos every 3s — skipped for
-  // reduced-motion, and for tiles that only have one photo (or none).
+  // Cascading dissolve between a tile's photos with 0.3s top-to-bottom flow —
+  // skipped for reduced-motion, and for tiles that only have one photo (or none).
   let crossfadeTimer = null;
   function startCrossfade(){
     if(crossfadeTimer){ clearInterval(crossfadeTimer); crossfadeTimer = null; }
     if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const cursors = new WeakMap();
     crossfadeTimer = setInterval(()=>{
-      document.querySelectorAll('#ltGrid .tile').forEach(tile=>{
+      const tiles = Array.from(document.querySelectorAll('#ltGrid .tile'));
+      tiles.forEach((tile, i)=>{
         const swatches = tile.querySelectorAll('.swatch');
         if(swatches.length < 2) return;
-        const cur = cursors.get(tile) || 0;
-        const next = (cur + 1) % swatches.length;
-        swatches[cur].style.opacity = '0';
-        swatches[next].style.opacity = '.95';
-        cursors.set(tile, next);
+        setTimeout(()=>{
+          const cur = cursors.get(tile) || 0;
+          const next = (cur + 1) % swatches.length;
+          swatches[cur].style.opacity = '0';
+          swatches[next].style.opacity = '.95';
+          cursors.set(tile, next);
+        }, i * 300); // 0.3s staggered delay per tile from top to bottom
       });
-    }, 3000);
+    }, 4500);
   }
 
   /* ============================================================
