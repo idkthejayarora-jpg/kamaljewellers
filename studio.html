@@ -1,7 +1,8 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">  <!-- Studio always runs on the dark tokens: its preview blocks and chrome are built against them (light Studio is body.studio-light on top) -->
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8" />
+<!-- <html data-theme="dark">: Studio never loads theme.js and site.css now defaults to light tokens, but Studio is built against the dark ones. One look, no toggle. -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <meta name="robots" content="noindex,nofollow" />
 <title>Kamal Jewellers — Studio</title>
@@ -35,7 +36,6 @@ body{cursor:auto!important}
 .ebar .ebrand img{width:26px;height:26px;border-radius:50%}
 .ebar .spacer{margin-left:auto}
 .ebar .build{font-size:.62rem;color:rgba(243,234,215,.35);white-space:nowrap;flex-shrink:0}
-body.studio-light .ebar .build{color:#8d857c}
 .ebar .state{font-size:.62rem;color:var(--gold);white-space:nowrap}
 .ebtn{padding:.46rem .85rem;border:1px solid var(--gold-deep);border-radius:30px;background:linear-gradient(150deg,var(--gold),var(--gold-deep));color:#1a1206;font-family:'Jost';font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;font-weight:500;cursor:pointer;white-space:nowrap;flex-shrink:0}
 .ebtn.ghost{background:transparent;color:var(--gold);border-color:rgba(216,178,94,.3)}
@@ -543,82 +543,6 @@ body{padding-top:52px}
 .lead-msg{font-size:.88rem !important}
 .vs-k{font-size:.8rem !important;font-weight:600 !important;text-transform:none !important}
 
-/* ============================================================
-   LIGHT MODE (Studio only)
-   Chrome goes light so it's easy to read in daylight; the preview
-   blocks stay dark on purpose, framed like inset screens, because they
-   must keep showing the site as visitors actually see it.
-   ============================================================ */
-body.studio-light{background:#f2efe9 !important;color:#1c1917}
-body.studio-light .ebar{
-  background:#fffdfa !important;border-bottom:1px solid #ded6c8 !important;
-  backdrop-filter:none !important;-webkit-backdrop-filter:none !important}
-body.studio-light .ebar .ebrand{color:#8a6a1f !important}
-body.studio-light .ebtn.ghost{
-  background:#fff !important;border-color:#d9cfbd !important;color:#4a4340 !important}
-body.studio-light .ebtn.ghost:hover{background:#f4efe4 !important}
-body.studio-light .state{color:#7a716a !important}
-body.studio-light .sale-sec-edit{
-  background:#fffdfa !important;border:1px solid #ded6c8;border-radius:14px;
-  margin:1.6rem auto;max-width:1100px;padding:1.6rem 1.4rem !important}
-body.studio-light .sale-sec-edit .head h3{color:#1c1917 !important}
-body.studio-light .sale-sec-edit .head .eyebrow,
-body.studio-light .drawer .dsub{color:#6b635a !important}
-body.studio-light .sale-sec-edit label,
-body.studio-light .drawer label,
-body.studio-light .fld label,
-body.studio-light .vs-form .fld label,
-body.studio-light .coll-cta-lbl{color:#5c534c !important}
-body.studio-light .sale-sec-edit input,
-body.studio-light .sale-sec-edit textarea,
-body.studio-light .sale-sec-edit select,
-body.studio-light .drawer input,
-body.studio-light .drawer textarea,
-body.studio-light .drawer select,
-body.studio-light .vs-form input,
-body.studio-light .vs-form textarea,
-body.studio-light .lt-row input,
-body.studio-light .coll-cta-inp{
-  background:#fff !important;border:1px solid #d4caba !important;color:#1c1917 !important}
-body.studio-light .vs-col,
-body.studio-light .lt-row,
-body.studio-light .st-card,
-body.studio-light .st-kpi,
-body.studio-light .lead-card,
-body.studio-light .si-card{
-  background:#fff !important;border-color:#e0d8ca !important}
-body.studio-light .st-kpi b,
-body.studio-light .st-card h4,
-body.studio-light .lead-name{color:#8a6a1f !important}
-body.studio-light .st-kpi span,
-body.studio-light .st-bar .lbl,
-body.studio-light .lead-msg,
-body.studio-light .vs-note,
-body.studio-light .st-msg{color:#4a433d !important}
-body.studio-light .st-bar .track{background:#e8e2d6 !important}
-/* Chart axis labels and bar values need real contrast on white — the cream
-   they use in dark mode is effectively invisible here. */
-body.studio-light .st-axis{fill:#6b635a}
-body.studio-light .st-bar .n{color:#8a6a1f !important}
-body.studio-light .st-range button{background:#fff !important;border-color:#d9cfbd !important;color:#4a4340 !important}
-body.studio-light .st-range button.on{background:#f0e4c6 !important;border-color:#c9ab5e !important;color:#7a5c17 !important}
-body.studio-light .mini-ed{background:#fff !important;border-color:#d9cfbd !important;color:#5c534c !important}
-body.studio-light .drawer{background:#fffdfa !important;border-left:1px solid #ded6c8}
-body.studio-light .drawer h2,
-body.studio-light .drawer .dgroup h3{color:#1c1917 !important}
-body.studio-light .dgroup{background:#fff !important;border-color:#e0d8ca !important}
-body.studio-light .cbx{color:#1c1917 !important}
-/* Preview blocks stay dark — framed so they read as "this is the site" */
-body.studio-light #studioHero,
-body.studio-light #collections,
-body.studio-light #panels,
-body.studio-light #reviews,
-body.studio-light #visit,
-body.studio-light footer{
-  background:#0a0807 !important;border-radius:14px;
-  margin-left:auto;margin-right:auto;max-width:1100px;
-  box-shadow:0 2px 18px rgba(0,0,0,.18)}
-body.studio-light .solid{background:transparent !important}
 
 /* ============================================================
    STUDIO SHELL v2 — section rail, calmer top bar, motion panel
@@ -697,21 +621,6 @@ body.is-dirty #saveBtn{animation:savePulse 2.2s ease-out infinite}
 .mo-demo.static .w>i,.mo-demo.static .sp-unit{transform:none;opacity:1;transition:none}
 .mo-hours{margin-top:.9rem;font-size:.82rem;line-height:1.5;color:rgba(243,234,215,.7)}
 .mo-hours.warn{color:#e0a23a}
-/* preview blocks stay dark in light Studio, so their headings need light ink — they inherited the page's dark ink */
-body.studio-light #studioHero,body.studio-light #collections,body.studio-light #panels,body.studio-light #reviews,body.studio-light #visit,body.studio-light footer{color:var(--cream)}
-body.studio-light .rail{background:#fffdfa;border-right-color:#ded6c8}
-body.studio-light .rail button{color:#4a4340}
-body.studio-light .rail button:hover{background:#f4efe4;color:#7a5c17}
-body.studio-light .rail button.on{background:#f0e4c6;color:#7a5c17}
-body.studio-light .rail button.on::before{background:#9a6f0e;box-shadow:none}
-body.studio-light .rail-grp{color:#8d857c}
-body.studio-light .rail-foot{border-top-color:#e0d8ca}
-body.studio-light .mo-levels button{background:#fff;border-color:#d9cfbd;color:#1c1917}
-body.studio-light .mo-levels button small,body.studio-light .vs-form .cbx small,body.studio-light .mo-hours{color:#6b635a}
-body.studio-light .mo-levels button.on{background:#f7ecd0;border-color:#c9ab5e;box-shadow:0 0 0 3px rgba(201,171,94,.2)}
-body.studio-light .mo-demo{border-color:#d9cfbd}
-body.studio-light .mo-demo h4{color:#1c1917}
-body.studio-light .mo-hours.warn{color:#a4600a}
 </style>
 </head>
 <body>
@@ -744,8 +653,6 @@ body.studio-light .mo-hours.warn{color:#a4600a}
   <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></symbol>
   <symbol id="i-inbox" viewBox="0 0 24 24"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5h13L22 12v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6z"/></symbol>
   <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></symbol>
-  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
-  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 13A9 9 0 1 1 11 3a7 7 0 0 0 10 10z"/></symbol>
   <symbol id="i-out" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></symbol>
 </defs></svg>
 
@@ -760,7 +667,7 @@ body.studio-light .mo-hours.warn{color:#a4600a}
   <span class="state" id="state"></span>
   <!-- Stamped by stamp-css-version.py on every build. If this doesn't match
        the newest deploy, you're looking at a cached page — reload. -->
-  <span class="build" id="buildStamp" title="Build this page was loaded from — reload if it looks old">build 30 Sep 09:23</span>
+  <span class="build" id="buildStamp" title="Build this page was loaded from — reload if it looks old">build 30 Sep 09:26</span>
   <a class="ebtn ghost" href="index.html" target="_blank">View site</a>
   <button class="ebtn" id="saveBtn">Save</button>
 </div>
@@ -782,8 +689,7 @@ body.studio-light .mo-hours.warn{color:#a4600a}
   <button type="button" id="leadsBtn"><svg aria-hidden="true"><use href="#i-inbox"/></svg><span class="lbl">Leads</span><span class="leads-badge" id="leadsBadge" style="display:none"></span></button>
   <div class="rail-foot">
     <button type="button" id="settingsBtn"><svg aria-hidden="true"><use href="#i-sliders"/></svg><span class="lbl">Settings</span></button>
-    <button type="button" id="lightBtn" title="Switch between light and dark Studio"><svg aria-hidden="true"><use href="#i-sun"/></svg><span class="lbl">Light mode</span></button>
-    <button type="button" id="logoutBtn"><svg aria-hidden="true"><use href="#i-out"/></svg><span class="lbl">Log out</span></button>
+      <button type="button" id="logoutBtn"><svg aria-hidden="true"><use href="#i-out"/></svg><span class="lbl">Log out</span></button>
   </div>
 </nav>
 
@@ -1992,19 +1898,6 @@ $('#addSaleItem').addEventListener('click',()=>{
 $('#jumpSaleBtn').addEventListener('click',()=>{
   document.getElementById('saleSecEdit').scrollIntoView({behavior:'smooth',block:'start'});
 });
-/* Light/dark for the Studio chrome. Remembered per browser, and applied
-   before first paint below so there's no flash of the wrong theme. */
-function applyStudioTheme(light){
-  document.body.classList.toggle('studio-light',light);
-  const b=$('#lightBtn');
-  if(b){ b.querySelector('.lbl').textContent = light ? 'Dark mode' : 'Light mode';
-         b.querySelector('use').setAttribute('href', light ? '#i-moon' : '#i-sun'); }
-  try{ localStorage.setItem('kj_studio_light', light?'1':'0'); }catch(e){}
-}
-$('#lightBtn').addEventListener('click',()=>{
-  applyStudioTheme(!document.body.classList.contains('studio-light'));
-});
-try{ if(localStorage.getItem('kj_studio_light')==='1') applyStudioTheme(true); }catch(e){}
 
 $('#jumpStatsBtn').addEventListener('click',()=>{
   document.getElementById('statsEdit').scrollIntoView({behavior:'smooth',block:'start'});
