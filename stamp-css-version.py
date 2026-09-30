@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
-Stamp site.css's content hash onto every <link> that loads it.
+Stamp site.css's content hash onto every <link> that loads it (and the same for
+motion.js and content-defaults.js on their <script> tags).
 
 Why this exists
 ---------------
@@ -22,29 +23,31 @@ import re
 import sys
 
 root = pathlib.Path(__file__).parent
-css = root / "site.css"
+# site.css was the original problem; motion.js and content-defaults.js have the
+# same 4-hour edge cache and are just as capable of pairing new HTML with old code.
+ASSETS = [("site.css", "href"), ("motion.js", "src"), ("content-defaults.js", "src")]
+PAGES = [root / "index.html", root / "studio.html",
+         root / "product.html", root / "catalogue" / "index.html"]
 
-if not css.exists():
-    sys.exit("site.css not found next to this script")
+for name, _ in ASSETS:
+    if not (root / name).exists():
+        sys.exit(f"{name} not found next to this script")
 
-digest = hashlib.sha256(css.read_bytes()).hexdigest()[:10]
-
-# Matches href="site.css", "../site.css", and any existing ?v=... stamp
-pattern = re.compile(r'(href=")((?:\.\./)?site\.css)(?:\?v=[^"]*)?(")')
-
-changed = []
-for page in [root / "index.html", root / "studio.html",
-             root / "product.html", root / "catalogue" / "index.html"]:
-    if not page.exists():
-        continue
-    text = page.read_text()
-    stamped, n = pattern.subn(rf'\1\2?v={digest}\3', text)
-    if n and stamped != text:
-        page.write_text(stamped)
-        changed.append(f"{page.relative_to(root)} ({n} ref{'s' if n > 1 else ''})")
-
-print(f"site.css hash: {digest}")
-print("updated: " + (", ".join(changed) if changed else "nothing (already current)"))
+for name, attr in ASSETS:
+    digest = hashlib.sha256((root / name).read_bytes()).hexdigest()[:10]
+    # Matches href="site.css", "../site.css", and any existing ?v=... stamp
+    pattern = re.compile(rf'({attr}=")((?:\.\./)?{re.escape(name)})(?:\?v=[^"]*)?(")')
+    changed = []
+    for page in PAGES:
+        if not page.exists():
+            continue
+        text = page.read_text()
+        stamped, n = pattern.subn(rf'\1\2?v={digest}\3', text)
+        if n and stamped != text:
+            page.write_text(stamped)
+            changed.append(f"{page.relative_to(root)} ({n} ref{'s' if n > 1 else ''})")
+    print(f"{name} hash: {digest}")
+    print("  updated: " + (", ".join(changed) if changed else "nothing (already current)"))
 
 # Stamp a visible build marker into Studio's top bar.
 #

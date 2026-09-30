@@ -113,6 +113,10 @@ window.KAMAL_DEFAULTS = {
   // Store photos shown in the "Visit our atelier" carousel.
   // Entries: { url, focal:{x,y}, caption }. Empty = fall back to storefront.jpg.
   storeImages:[],
+  // Site-wide motion. level: full | calm | off. calm = text/line reveals only
+  // (no cursor glints, drift or auto-play). Visitors with reduced-motion set
+  // always get off, and low-end phones are capped at calm — see motion.js.
+  motion:{level:'full', ribbon:true, openNow:true},
   // Each collection's `images` entries are objects: { url, title, text, side }
   // (side: "" auto-alternate | "left" | "right" — which side the text sits on).
   // Plain URL strings from older saves are still accepted and auto-upgraded.

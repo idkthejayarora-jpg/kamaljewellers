@@ -16,13 +16,14 @@ that talks to `/api/*` stays broken until the Worker is deployed by hand.
 ## Updating the website
 
 ```bash
-python3 stamp-css-version.py     # only needed when site.css changed
+python3 stamp-css-version.py     # needed when site.css, motion.js or content-defaults.js changed
 git add -A && git commit -m "..." && git push
 ```
 
 Live within a minute or two.
 
-`stamp-css-version.py` matters more than it looks. `site.css` is served with
+`stamp-css-version.py` matters more than it looks. (It versions `motion.js` and
+`content-defaults.js` the same way — they sit behind the same edge cache.) `site.css` is served with
 a 4-hour cache while the HTML is only cached 10 minutes, so without a fresh
 `?v=` stamp visitors get new markup pinned to an old stylesheet. The script
 also stamps the build time into Studio's top bar.

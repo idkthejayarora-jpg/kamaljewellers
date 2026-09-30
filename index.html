@@ -31,7 +31,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
-<link rel="stylesheet" href="site.css?v=b831fe81ec" />
+<link rel="stylesheet" href="site.css?v=c89a46ee16" />
 </head>
 <body>
 
@@ -108,6 +108,9 @@
 
   <!-- everything below sits on solid bg so the canvas only shows through the hero -->
   <div class="solid">
+
+    <!-- RIBBON — collection names drifting under the hero (motion.js fills + shows it) -->
+    <div class="ribbon" id="ribbon" aria-hidden="true" hidden><div class="rb-track" id="rbTrack"></div></div>
 
     <!-- FLASH SALE (shown only when admin has active sale items) -->
     <section class="sale-sec" id="saleSec">
@@ -309,8 +312,9 @@
 
 <!-- ===== Libraries ===== -->
 <script src="config.js"></script>
-<script src="content-defaults.js"></script>
+<script src="content-defaults.js?v=bb63bb4942"></script>
 <script src="tile-style.js"></script>
+<script src="motion.js?v=36bb7af26a"></script>
 <script src="track.js" defer></script>
 
 <script>
@@ -1545,6 +1549,7 @@ function buildAll(C){
     setupEnquiry(C);
     applyTileStyle(C);
     buildSearch(C);
+    if(window.KJMotion) KJMotion.apply(C);
     if(window.lenis) window.lenis.resize();
   }catch(e){ console.warn('build failed', e); }
 }

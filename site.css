@@ -1300,3 +1300,94 @@ html:not([data-theme="dark"]) body.theme-gold::after{opacity:.8}
   display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
   gap:clamp(1rem,2.8vw,2rem);max-width:1250px;margin:0 auto 2.5rem;
 }
+
+/* ============================================================
+   MOTION — luxe & restrained (motion.js sets html[data-motion])
+   full = everything · calm = reveals + hairlines only · off = untouched page.
+   Studio never loads motion.js, so none of this can fire in the editor.
+   ============================================================ */
+html{--glint:rgba(214,160,52,.22)}
+html[data-theme="dark"]{--glint:rgba(255,222,140,.2)}
+
+/* Scroll hairline — gold thread under the very top edge */
+.kj-progress{position:fixed;top:0;left:0;width:100%;height:2px;z-index:260;pointer-events:none;
+  transform:scaleX(0);transform-origin:0 50%;
+  background:linear-gradient(90deg,var(--gold-glint),var(--gold-bright) 60%,var(--gold-glint))}
+html[data-motion="off"] .kj-progress{display:none}
+
+/* Headings: each word rises out of its own mask; an <em> lifts as one unit
+   (see the note in motion.js on why its letters are never split). */
+.sp .w{display:inline-block;vertical-align:top;overflow:hidden;padding:.1em .06em .18em;margin:-.1em -.06em -.18em}
+.sp .w>i{display:inline-block;font-style:inherit}
+html[data-motion="full"] .sp .w>i,html[data-motion="calm"] .sp .w>i{
+  transform:translateY(112%);
+  transition:transform 1.15s var(--ease) calc(var(--i)*75ms + 80ms)}
+html[data-motion="full"] .sp .sp-unit,html[data-motion="calm"] .sp .sp-unit{
+  display:inline-block;opacity:0;transform:translateY(.35em);
+  transition:opacity 1.1s var(--ease) calc(var(--i)*75ms + 80ms),transform 1.3s var(--ease) calc(var(--i)*75ms + 80ms)}
+.hero h1.sp em.sp-unit{display:block}   /* the hero's second line stays its own line */
+.sp-in .w>i,.reveal.in .sp .w>i,.reveal.in.sp .w>i{transform:none!important}
+.sp-in .sp-unit,.reveal.in .sp .sp-unit,.reveal.in.sp .sp-unit{opacity:1!important;transform:none!important}
+
+/* Info rows: a brighter thread draws along each hairline as the block reveals */
+.info-row{position:relative}
+.info-row::before{content:'';position:absolute;left:0;top:-1px;width:100%;height:1.5px;pointer-events:none;
+  background:linear-gradient(90deg,var(--gold-glint),rgba(232,182,74,0) 88%);
+  transform:scaleX(0);transform-origin:0 50%;transition:transform 1.5s var(--ease)}
+.reveal.in .info-row::before{transform:none}
+.reveal.in .info-row:nth-child(4)::before{transition-delay:.15s}
+.reveal.in .info-row:nth-child(5)::before{transition-delay:.3s}
+.reveal.in .info-row:nth-child(6)::before{transition-delay:.45s}
+html[data-motion="off"] .info-row::before{display:none}
+
+/* Cursor glint — a soft pool of light that follows the pointer across a card */
+.glint-fx{position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:1;opacity:var(--go,0);
+  transition:opacity .5s var(--ease);
+  background:radial-gradient(340px circle at var(--gx,50%) var(--gy,50%),var(--glint),transparent 62%)}
+/* no will-change on [data-drift]: it blanks the storefront photo inside the scroll-snap track */
+html:not([data-motion="full"]) .glint-fx{display:none}
+@media(hover:none){.glint-fx{display:none}}
+
+/* Ribbon — the collection names, drifting slowly under the hero */
+.ribbon{position:relative;z-index:2;overflow:hidden;padding:1.05rem 0;margin:0 0 clamp(1.5rem,4vw,3rem);
+  border-block:1px solid rgba(216,178,94,.2);
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);
+          mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent)}
+.ribbon[hidden]{display:none}
+.rb-track{display:flex;width:max-content;animation:kjRibbon 70s linear infinite}
+.rb-track span{font-family:'Cormorant Garamond';font-style:italic;font-size:clamp(1rem,1.9vw,1.4rem);letter-spacing:.14em;color:var(--gold-bright);white-space:nowrap}
+.rb-track b{align-self:center;flex:0 0 auto;width:5px;height:5px;margin:0 clamp(1.6rem,3.2vw,2.8rem);transform:rotate(45deg);background:var(--gold-glint)}
+.ribbon:hover .rb-track{animation-play-state:paused}
+@keyframes kjRibbon{to{transform:translateX(-50%)}}
+
+/* The storefront comes alive: slow Ken Burns, a passing sheen of light on the
+   glass, a breathing warm glow at the bottom, and an "open now" pill. */
+.store-slide{overflow:hidden}   /* keep scaled/shifted photos clipped — otherwise they make the track scroll vertically */
+html[data-motion="full"] .store-slide img{transform:scale(1.08);animation:kjKen 24s ease-in-out infinite alternate}
+html[data-motion="full"] .store-slide:nth-child(even) img{animation-direction:alternate-reverse;transform-origin:30% 60%}
+@keyframes kjKen{from{transform:scale(1.08) translate3d(0,0,0)}to{transform:scale(1.2) translate3d(-1.5%,-1%,0)}}
+html[data-motion="full"] .store-card::after{content:'';position:absolute;inset:0;z-index:2;pointer-events:none;
+  background:linear-gradient(105deg,transparent 38%,rgba(255,246,220,.34) 50%,transparent 62%);
+  transform:translateX(-130%);animation:kjSheen 9s ease-in-out 2.5s infinite}
+@keyframes kjSheen{0%{transform:translateX(-130%)}30%,100%{transform:translateX(130%)}}
+html[data-motion="full"] .store-card::before{content:'';position:absolute;left:0;right:0;bottom:0;height:46%;z-index:1;pointer-events:none;
+  background:radial-gradient(ellipse 80% 90% at 50% 100%,rgba(255,196,96,.32),transparent 70%);
+  animation:kjGlow 7s ease-in-out infinite alternate}
+@keyframes kjGlow{from{opacity:.35}to{opacity:1}}
+
+.open-pill{position:absolute;top:.8rem;left:.8rem;z-index:4;display:inline-flex;align-items:center;gap:.5rem;
+  padding:.42rem .85rem .42rem .7rem;border-radius:40px;max-width:calc(100% - 1.6rem);
+  background:rgba(14,11,8,.78);border:1px solid rgba(255,255,255,.16);
+  backdrop-filter:blur(12px) saturate(150%);-webkit-backdrop-filter:blur(12px) saturate(150%);
+  font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:#f6efe0;white-space:nowrap;
+  animation:kjPillIn .9s var(--ease) .6s both}
+.open-pill[hidden]{display:none}
+.open-pill span{overflow:hidden;text-overflow:ellipsis}
+.open-pill i{flex:0 0 auto;width:7px;height:7px;border-radius:50%;background:#3ecf7c;box-shadow:0 0 0 0 rgba(62,207,124,.6);animation:kjPing 2.4s ease-out infinite}
+.open-pill.closed i{background:#e0a23a;box-shadow:none;animation:none}
+@keyframes kjPing{0%{box-shadow:0 0 0 0 rgba(62,207,124,.55)}70%,100%{box-shadow:0 0 0 9px rgba(62,207,124,0)}}
+@keyframes kjPillIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+
+@media(prefers-reduced-motion:reduce){
+  .rb-track,.store-slide img,.store-card::before,.store-card::after,.open-pill i{animation:none!important}
+}
