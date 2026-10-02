@@ -10,6 +10,6 @@ assert.strictEqual(statusAt(h,6,21*60).label,'Opens Mon · 11 AM');            /
 assert.strictEqual(statusAt(h,0,12*60).label,'Opens tomorrow · 11 AM');       // Sunday noon
 assert.deepStrictEqual(parseHours('Daily 10:30 AM – 9 PM'),{days:[0,1,2,3,4,5,6],open:630,close:1260});
 assert.strictEqual(parseHours('Open whenever'),null);
-assert.strictEqual(parseHours('11 AM – 8 PM'),null);                          // no days → don't guess
+assert.deepStrictEqual(parseHours('10 AM - 8 PM '),{days:[0,1,2,3,4,5,6],open:600,close:1200});   // the live site's real string: no days = every day
 assert.strictEqual(parseHours('Mon – Sat · 8 PM – 11 AM'),null);             // wraps midnight → not supported
 console.log('motion.test.js ok');

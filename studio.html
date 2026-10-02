@@ -667,7 +667,7 @@ body.is-dirty #saveBtn{animation:savePulse 2.2s ease-out infinite}
   <span class="state" id="state"></span>
   <!-- Stamped by stamp-css-version.py on every build. If this doesn't match
        the newest deploy, you're looking at a cached page — reload. -->
-  <span class="build" id="buildStamp" title="Build this page was loaded from — reload if it looks old">build 30 Sep 09:26</span>
+  <span class="build" id="buildStamp" title="Build this page was loaded from — reload if it looks old">build 02 Oct 21:26</span>
   <a class="ebtn ghost" href="index.html" target="_blank">View site</a>
   <button class="ebtn" id="saveBtn">Save</button>
 </div>
@@ -852,6 +852,7 @@ body.is-dirty #saveBtn{animation:savePulse 2.2s ease-out infinite}
       <label class="cbx" style="margin-bottom:.7rem"><input type="checkbox" id="moRibbon"><span>Collection ribbon under the hero</span></label>
       <label class="cbx"><input type="checkbox" id="moOpen"><span>Live “open now” badge on the storefront photo <small>— read from your Hours</small></span></label>
       <div class="mo-hours" id="moHours"></div>
+      <div class="fld" style="margin:1rem 0 .4rem"><label for="moWords">Ribbon words <span style="opacity:.6">— comma separated. Your collection names are used instead once you have any.</span></label><input type="text" id="moWords" placeholder="Bridal, Kundan &amp; Polki, Western"></div>
       <div class="mo-demo" id="moDemo">
         <h4 id="moDemoH">Worn like water, <em>treasured like time.</em></h4>
         <button type="button" class="mini-ed" id="moReplay">Replay</button>
@@ -947,8 +948,8 @@ body.is-dirty #saveBtn{animation:savePulse 2.2s ease-out infinite}
 
 <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js"></script>
 <script src="config.js"></script>
-<script src="content-defaults.js?v=bb63bb4942"></script>
-<script src="motion.js?v=36bb7af26a"></script>
+<script src="content-defaults.js?v=af704e786c"></script>
+<script src="motion.js?v=1571b9f773"></script>
 <script>
 /* ============================================================
    KAMAL JEWELLERS STUDIO — visual editor
@@ -2699,7 +2700,7 @@ function moHoursNote(){
   const h=KJMotion.parseHours(txt);
   const on=$('#moOpen').checked;
   n.classList.toggle('warn',on&&!h);
-  n.textContent = !on ? '' : h ? 'Reads your hours as: '+txt+'. The badge will show Open now or when you next open.'
+  n.textContent = !on ? '' : h ? 'Reads your hours as: '+txt+(h.days.length===7?' — every day (write days like Mon – Sat if you close one).':'.')+' The badge shows Open now, or when you next open.'
     : txt ? 'Couldn’t read “'+txt+'” — the badge stays hidden. Write it like: Mon – Sat · 11 AM – 8 PM'
           : 'No hours set (Storefront section above) — the badge stays hidden until there are.';
 }
@@ -2717,6 +2718,7 @@ function renderMotionEditor(){
     const i=$('#'+id); i.checked=m[key]!==false;
     i.onchange=()=>{ m[key]=i.checked; markDirty(); moHoursNote(); };
   }
+  bindInput('moWords', m, 'ribbonWords');
   KJMotion.split(h);
   const replay=()=>{ demo.classList.remove('play'); void demo.offsetWidth; demo.classList.add('play'); };
   $('#moReplay').onclick=replay;

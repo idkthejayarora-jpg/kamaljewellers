@@ -22,7 +22,7 @@ function parseHours(txt){
   let days=[0,1,2,3,4,5,6];
   const dm=t.match(/\b(mon|tue|wed|thu|fri|sat|sun)[a-z]*\s*[–—-]\s*(mon|tue|wed|thu|fri|sat|sun)/i);
   if(dm){ const a=DAYS.indexOf(dm[1].toLowerCase()), b=DAYS.indexOf(dm[2].toLowerCase()); days=[]; for(let d=a;;d=(d+1)%7){ days.push(d); if(d===b) break; } }
-  else if(!/daily|every\s*day|7\s*days/i.test(t)) return null;
+  // no days written (e.g. "10 AM - 8 PM") = every day; closing a day means saying so ("Mon – Sat")
   return close>open ? {days,open,close} : null;
 }
 // day = 0..6, mins = minutes since midnight, in the shop's clock (IST).
@@ -86,10 +86,11 @@ const dIO=new IntersectionObserver(es=>es.forEach(e=>{
 function ribbon(){
   const rb=document.getElementById('ribbon'), tr=document.getElementById('rbTrack');
   if(!rb||!tr) return;
-  const names=(CC.collections||[]).map(c=>c.name).filter(Boolean);
+  let names=(CC.collections||[]).map(c=>c.name).filter(Boolean);
+  if(!names.length) names=String(cfg.ribbonWords||'').split(',').map(w=>w.trim()).filter(Boolean);   // no collections → Studio's ribbon words
   const on=lvl==='full' && cfg.ribbon!==false && names.length;
   rb.hidden=!on;
-  if(!on) return;
+  if(!on){ tr.innerHTML=''; return; }
   const one=names.map(n=>`<span>${n.replace(/&/g,'&amp;').replace(/</g,'&lt;')}</span><b></b>`).join('');
   tr.innerHTML=one+one;   // two copies → translateX(-50%) loops seamlessly
 }

@@ -116,7 +116,7 @@ window.KAMAL_DEFAULTS = {
   // Site-wide motion. level: full | calm | off. calm = text/line reveals only
   // (no cursor glints, drift or auto-play). Visitors with reduced-motion set
   // always get off, and low-end phones are capped at calm — see motion.js.
-  motion:{level:'full', ribbon:true, openNow:true},
+  motion:{level:'full', ribbon:true, openNow:true, ribbonWords:'Bridal, Kundan & Polki, Western, Viral Reels, Handcrafted in Sadar Bazar'},
   // Each collection's `images` entries are objects: { url, title, text, side }
   // (side: "" auto-alternate | "left" | "right" — which side the text sits on).
   // Plain URL strings from older saves are still accepted and auto-upgraded.
