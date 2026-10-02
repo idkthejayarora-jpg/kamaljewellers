@@ -193,5 +193,5 @@ function apply(C){
   decorate(); ribbon(); autoplay(); frame();
 }
 
-window.KJMotion={apply,split,parseHours};   // split + parseHours: Studio's Motion panel
+window.KJMotion={apply,split,parseHours,statusAt,shopNow};   // split + parseHours: Studio's Motion panel; statusAt/shopNow: next/
 })();

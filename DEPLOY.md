@@ -83,3 +83,18 @@ previous Worker.
 
 `SETUP.md` describes a Supabase backend that is no longer used. The live
 stack is Cloudflare Workers + D1 + KV + R2, all on free tiers.
+
+---
+
+## Redesign draft — `/next`
+
+`next/` is the redesigned homepage ("The Shopfront"), live at
+`kamaljewellers.shop/next` but **not linked from anywhere and marked `noindex`**.
+It reads the same Studio content as the current homepage, so Studio edits show
+up in both. The current `index.html` is untouched.
+
+To make it the homepage: move `next/index.html`, `next/next.css` and
+`next/next.js` to the repo root, change the `../` prefixes in the HTML to
+nothing, delete the `<meta name="robots" content="noindex">` line, and run
+`python3 stamp-css-version.py` (add the new root paths to `ASSETS`/`PAGES`
+there first). The old `index.html` can stay as `index-old.html` for a rollback.

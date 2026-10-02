@@ -25,18 +25,21 @@ import sys
 root = pathlib.Path(__file__).parent
 # site.css was the original problem; motion.js and content-defaults.js have the
 # same 4-hour edge cache and are just as capable of pairing new HTML with old code.
-ASSETS = [("site.css", "href"), ("motion.js", "src"), ("content-defaults.js", "src")]
+# (file, attribute, name as written in the HTML)
+ASSETS = [("site.css", "href", "site.css"), ("motion.js", "src", "motion.js"),
+          ("content-defaults.js", "src", "content-defaults.js"),
+          ("next/next.css", "href", "next.css"), ("next/next.js", "src", "next.js")]
 PAGES = [root / "index.html", root / "studio.html",
-         root / "product.html", root / "catalogue" / "index.html"]
+         root / "product.html", root / "catalogue" / "index.html", root / "next" / "index.html"]
 
-for name, _ in ASSETS:
+for name, _, _ in ASSETS:
     if not (root / name).exists():
         sys.exit(f"{name} not found next to this script")
 
-for name, attr in ASSETS:
+for name, attr, ref in ASSETS:
     digest = hashlib.sha256((root / name).read_bytes()).hexdigest()[:10]
     # Matches href="site.css", "../site.css", and any existing ?v=... stamp
-    pattern = re.compile(rf'({attr}=")((?:\.\./)?{re.escape(name)})(?:\?v=[^"]*)?(")')
+    pattern = re.compile(rf'({attr}=")((?:\.\./)?{re.escape(ref)})(?:\?v=[^"]*)?(")')
     changed = []
     for page in PAGES:
         if not page.exists():
