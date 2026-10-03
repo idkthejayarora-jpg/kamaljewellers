@@ -151,7 +151,7 @@ function renderSale() {
 
 /* ---- pinned showcase ---- */
 // barely-there warm tints, one per collection — the page colour shifts, it never changes mood
-const TINTS = ['#F8F5EF', '#F3EEE3', '#F6F0E6', '#F1ECE0', '#F7F2E8', '#F2EDE2', '#F5EFE5', '#F0EBE0'];
+const TINTS = ['#171412', '#1B1613', '#191512', '#1D1814', '#18140F', '#1A1613', '#1C1713', '#161310'];
 let SH = null;
 function renderShowcase() {
   const items = links.filter(l => l.images.length).slice(0, 8);
