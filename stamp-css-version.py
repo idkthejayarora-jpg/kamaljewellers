@@ -28,9 +28,10 @@ root = pathlib.Path(__file__).parent
 # (file, attribute, name as written in the HTML)
 ASSETS = [("site.css", "href", "site.css"), ("motion.js", "src", "motion.js"),
           ("content-defaults.js", "src", "content-defaults.js"),
-          ("home.css", "href", "home.css"), ("home.js", "src", "home.js")]
+          ("home.css", "href", "home.css"), ("home.js", "src", "home.js"),
+          ("logo.png", "src", "logo.png"), ("logo-small.png", "src", "logo-small.png")]
 PAGES = [root / "index.html", root / "studio.html",
-         root / "product.html", root / "catalogue" / "index.html", root / "index-old.html"]
+         root / "product.html", root / "catalogue" / "index.html", root / "index-old.html", root / "admin.html"]
 
 for name, _, _ in ASSETS:
     if not (root / name).exists():

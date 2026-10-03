@@ -15,3 +15,6 @@ redrawn as clean vectors so it prints, foils and embosses identically at any siz
 Colours: gold gradient `#9A7127 → #D4A949 → #F2D88A → #FBEBB5`, disc `#050403`, flat gold `#C9A24B`.
 Print: keep the badge at least ~18 mm across; use the small version below that.
 Edit or regenerate everything with `python3 build-logo.py <outdir>`.
+
+**In use on the site (Oct 2026):** `logo.png` (full mark, 256 px) and `logo-small.png` (simplified, nav/footer/Studio),
+plus `favicon-64.png` and `apple-touch-icon.png` from this folder. `original-logo.png` is the previous artwork, kept for reference.

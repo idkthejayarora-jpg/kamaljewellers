@@ -97,7 +97,7 @@ function renderBasics() {
   if (seo.title) { document.title = seo.title; $('#ogTitle').content = seo.title; }
   if (seo.description) { $('#metaDesc').content = seo.description; $('#ogDesc').content = seo.description; }
   const ld = { '@context': 'https://schema.org', '@type': 'JewelryStore', name: 'Kamal Jewellers', description: seo.description || '',
-    image: 'https://kamaljewellers.shop/storefront.jpg', url: 'https://kamaljewellers.shop', telephone: c.phone1 || '',
+    image: 'https://kamaljewellers.shop/storefront.jpg', logo: 'https://kamaljewellers.shop/logo.png', url: 'https://kamaljewellers.shop', telephone: c.phone1 || '',
     address: { '@type': 'PostalAddress', streetAddress: (c.addressHtml || '').replace(/<br\s*\/?>/gi, ', '), addressLocality: 'Delhi', postalCode: '110006', addressCountry: 'IN' },
     sameAs: [norm(C.instagram)].filter(u => u && u !== '#') };
   if ((c.hours || '').trim()) ld.openingHours = c.hours.trim();
