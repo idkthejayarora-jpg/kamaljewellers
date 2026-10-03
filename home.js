@@ -239,8 +239,13 @@ function renderReel() {
   if (vid) new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { vid.play().catch(() => {}); } else vid.pause(); }), { threshold: .3 }).observe(vid);
 }
 
-/* ---- the shop ---- */
-function renderShop() {
+/* ---- the shop, as a film ---- */
+// A pinned widescreen frame: the camera tilts up the facade, then pans through the
+// interiors, with dissolves, subtitles drawn from the real address/hours/phone, grain
+// and a vignette. Scroll scrubs it; reduced-motion gets one still frame.
+let CN = null;
+const CAM = [{ y: 1 }, { x: 1, y: .25 }, { x: -1, y: -.2 }, { x: 1, y: .3 }, { x: -1 }];   // per shot: which way the camera drifts
+function renderCine() {
   const c = C.contact, rows = [];
   rows.push(['Address', c.addressHtml || '']);
   if ((c.hours || '').trim()) rows.push(['Hours', esc(c.hours.trim())]);
@@ -250,16 +255,56 @@ function renderShop() {
   if (c.instaLabel) rows.push(['Instagram', `<a href="${esc(norm(C.instagram) === '#' ? mapHref() : norm(C.instagram))}" target="_blank" rel="noopener">${esc(c.instaLabel)}</a>`]);
   $('#rows').innerHTML = rows.map(([k, v]) => `<div class="row"><div class="k">${k}</div><div class="v">${v}</div></div>`).join('');
   $('#mapCard').href = mapHref();
-  $$('.shop .display').forEach(split);
+  split($('#cineTitle h2'));
 
-  const imgs = (C.storeImages || []).filter(i => imgUrl(i));
+  const imgs = (C.storeImages || []).filter(i => imgUrl(i)).slice(0, 5);
   const list = imgs.length ? imgs : [{ url: '/storefront.jpg', focal: { x: 50, y: 20 } }];
-  const show = i => { const im = list[i], el = $('#sfImg'); el.src = abs(imgUrl(im)); const f = im.focal || {}; el.style.objectPosition = (f.x ?? 50) + '% ' + (f.y ?? 20) + '%'; $$('#thumbs button').forEach((b, k) => b.classList.toggle('on', k === i)); };
-  if (list.length > 1) {
-    $('#thumbs').innerHTML = list.slice(0, 5).map((im, i) => `<button type="button" aria-label="Show photo ${i + 1}"><img src="${esc(abs(imgUrl(im)))}" alt="" loading="lazy" /></button>`).join('');
-    $('#thumbs').addEventListener('click', e => { const b = e.target.closest('button'); if (b) show($$('#thumbs button').indexOf(b)); });
-  }
-  show(0);
+  const film = $('#cineFilm'), sec = $('#visit');
+  film.style.setProperty('--n', list.length);
+  const addr = (c.addressHtml || '').split(/<br\s*\/?>/i)[0].replace(/<[^>]+>/g, '').replace(/[,\s]+$/, '');
+  const pool = [addr, (c.hours || '').trim() && 'Open ' + c.hours.trim(), c.phone1 && 'Call ' + c.phone1, 'Come in'].filter(Boolean);
+  $('#cineShots').innerHTML = list.map((im, i) => `<div class="shot"><img src="${esc(abs(imgUrl(im)))}" alt="${i ? '' : 'The Kamal Jewellers shopfront on Main Road, Sadar Bazar'}" decoding="async" ${i ? 'loading="lazy"' : 'fetchpriority="high"'} /></div>`).join('');
+  $('#cineSubs').innerHTML = list.map((im, i) => `<span>${esc(im.caption || (i ? pool[(i - 1) % pool.length] : ''))}</span>`).join('');
+  if (rm) return;
+  CN = { sec, film, n: list.length, shots: $$('.shot', film), subs: $$('#cineSubs span'), frame: $('#cineFrame'), title: $('#cineTitle'), count: $('#cineCount'), k: -1, dim: [] };
+  CN.shots.forEach((el, i) => {
+    const im = $('img', el);
+    el.style.setProperty('--o', i ? 0 : 1);
+    const go = () => layoutShot(i);
+    im.complete && im.naturalWidth ? go() : im.addEventListener('load', go, { once: true });
+  });
+  addEventListener('resize', () => CN && CN.shots.forEach((_, i) => layoutShot(i)), { passive: true });
+}
+// size each photo to cover the frame with overscan, remember how far the camera may travel
+function layoutShot(i) {
+  const im = $('img', CN.shots[i]); if (!im.naturalWidth) return;
+  const fw = CN.frame.clientWidth, fh = CN.frame.clientHeight;
+  const sc = Math.max(fw / im.naturalWidth, fh / im.naturalHeight) * 1.14, w = im.naturalWidth * sc, h = im.naturalHeight * sc;
+  im.style.width = w + 'px'; im.style.height = h + 'px';
+  CN.dim[i] = { sx: (w - fw) / 2, sy: (h - fh) / 2 };
+  CN.sec.classList.add('cam');
+  tick();   // photos load lazily — re-run the scrub so camera and subtitles never wait for the next scroll
+}
+function scrubCine(vh) {
+  if (!CN) return;
+  const r = CN.film.getBoundingClientRect();
+  if (r.bottom < -vh || r.top > vh * 2) return;
+  const total = CN.film.offsetHeight - vh, P = clamp(-r.top / total), t = P * CN.n, OV = .2;
+  CN.shots.forEach((el, i) => {
+    const a = Math.abs(t - (i + .5));
+    let o = clamp((.5 + OV - a) / (2 * OV));
+    if (i === 0 && t < .5) o = 1; if (i === CN.n - 1 && t > CN.n - .5) o = 1;   // hold the first and last frame
+    el.style.setProperty('--o', o.toFixed(3));
+    CN.subs[i].style.opacity = clamp((.42 - a) / .12).toFixed(2);
+    const d = CN.dim[i], mv = CAM[i % CAM.length]; if (!d) return;
+    const lp = clamp((t - (i - OV)) / (1 + 2 * OV)) * 2 - 1;      // -1 → 1 across the shot
+    el.style.setProperty('--tx', ((mv.x || 0) * lp * d.sx).toFixed(1) + 'px');
+    el.style.setProperty('--ty', ((mv.y || 0) * lp * d.sy).toFixed(1) + 'px');
+  });
+  CN.title.style.setProperty('--to', clamp(1 - (P - .12) / .26).toFixed(3));
+  CN.frame.style.setProperty('--pp', P.toFixed(3));
+  const k = Math.min(CN.n - 1, Math.floor(t));
+  if (k !== CN.k) { CN.k = k; CN.count.textContent = 'Shot ' + String(k + 1).padStart(2, '0') + ' / ' + String(CN.n).padStart(2, '0'); }
 }
 
 /* ---- reviews ---- */
@@ -373,8 +418,7 @@ function frame() {
   }
   const phone = $('#phone');
   if (phone) { const r = $('#reel').getBoundingClientRect(); if (r.bottom > 0 && r.top < vh) phone.style.setProperty('--rp', clamp((vh - r.top) / (vh + r.height)).toFixed(3)); }
-  const sf = $('#sf');
-  if (sf && !rm) { const r = sf.getBoundingClientRect(); if (r.bottom > 0 && r.top < vh) { const t = clamp((vh * .94 - r.top) / (vh * .55)); $('#shopArt').style.setProperty('--sp', (1 - Math.pow(1 - t, 3)).toFixed(3)); } }
+  scrubCine(vh);
 }
 const tick = () => { if (!ticking) { ticking = true; requestAnimationFrame(frame); } };
 addEventListener('scroll', tick, { passive: true });
@@ -441,7 +485,7 @@ function intro() {
   if (ml === 'off' && !rm) { rm = true; document.documentElement.classList.add('rm'); }
   calm = ml === 'calm';
   const safe = f => { try { f(); } catch (e) { console.warn('section failed', f.name, e); } };
-  [renderBasics, renderSale, renderShowcase, renderCatalogue, renderReel, renderShop, renderReviews, wireDialogs].forEach(safe);
+  [renderBasics, renderSale, renderShowcase, renderCatalogue, renderReel, renderCine, renderReviews, wireDialogs].forEach(safe);
   watch(); initLenis(); tick();
   await Promise.race([document.fonts ? document.fonts.ready : Promise.resolve(), sleep(2000)]);
   await sleep(Math.max(0, 900 - (performance.now() - t0)));

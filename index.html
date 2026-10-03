@@ -21,7 +21,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Hanken+Grotesk:wght@300;400;500;600&family=Tiro+Devanagari+Hindi&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="home.css?v=733dd2e059" />
+<link rel="stylesheet" href="home.css?v=fe47eae248" />
 <noscript><style>[data-r],.split .w>i{opacity:1!important;transform:none!important}.shutter{display:none}.is-loading{overflow:auto}</style></noscript>
 </head>
 <body class="is-loading">
@@ -102,20 +102,30 @@
 
 <section class="reel" id="reel" hidden></section>
 
-<section class="shop" id="visit">
-  <div class="wrap shop-in">
-    <div class="shop-art" id="shopArt">
-      <div class="sf" id="sf">
-        <div class="sf-img"><img id="sfImg" src="storefront.jpg" alt="The Kamal Jewellers shopfront" loading="lazy" /></div>
-        <p class="live live-on" id="sLive" hidden><i></i><span></span></p>
+<section class="cine" id="visit" aria-label="The shop">
+  <div class="cine-film" id="cineFilm">
+    <div class="cine-pin">
+      <div class="cine-frame" id="cineFrame">
+        <div class="cine-shots" id="cineShots"></div>
+        <div class="cine-vig"></div>
+        <div class="grain" aria-hidden="true"></div>
+        <div class="cine-hud">
+          <div class="hud-top"><span id="cineCount">Shot 01</span><p class="live live-on" id="sLive" hidden><i></i><span></span></p></div>
+          <div class="cine-title" id="cineTitle">
+            <p class="eyebrow">The shop</p>
+            <h2 class="display">Come and see <em>them in the light.</em></h2>
+          </div>
+          <div class="cine-subs" id="cineSubs" aria-hidden="true"></div>
+        </div>
+        <i class="cine-prog" aria-hidden="true"></i>
       </div>
-      <div class="thumbs" id="thumbs"></div>
     </div>
-    <div class="shop-txt">
-      <p class="eyebrow" data-r>Visit the shop</p>
-      <h2 class="display">Come and see <em>them in the light.</em></h2>
+  </div>
+  <div class="cine-end">
+    <div class="wrap">
+      <p class="eyebrow" data-r>Visit</p>
       <div class="rows" id="rows" data-r></div>
-      <a class="btn solid map" id="mapCard" href="#" target="_blank" rel="noopener" data-track="directions" data-r>Get directions</a>
+      <a class="btn light map" id="mapCard" href="#" target="_blank" rel="noopener" data-track="directions" data-r>Get directions</a>
     </div>
   </div>
 </section>
@@ -199,6 +209,6 @@
 <script src="config.js"></script>
 <script src="track.js" defer></script>
 <script src="motion.js?v=ea343d47ac"></script>
-<script src="home.js?v=b9ba70a78e"></script>
+<script src="home.js?v=f4de2360f3"></script>
 </body>
 </html>

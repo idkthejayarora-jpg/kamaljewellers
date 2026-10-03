@@ -96,6 +96,7 @@ Grotesk), hairlines, one antique-brass accent, no dark/light toggle.
 | Homepage `/` | `index.html`, `home.css`, `home.js` |
 | Catalogue `/catalogue` (Instagram bio link) | `catalogue/index.html` + `home.css` |
 | Sale product page | `product.html` + `home.css` |
+| Logo kit (SVG/PNG, one-colour foil and emboss versions) | `brand/` — see `brand/README.md` |
 | Studio / Admin | `studio.html`, `admin.html` (still use `site.css`) |
 
 All of them read the same Studio content (`/api/content`). `home.css` is the
