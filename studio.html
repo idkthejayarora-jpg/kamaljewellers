@@ -667,7 +667,7 @@ body.is-dirty #saveBtn{animation:savePulse 2.2s ease-out infinite}
   <span class="state" id="state"></span>
   <!-- Stamped by stamp-css-version.py on every build. If this doesn't match
        the newest deploy, you're looking at a cached page — reload. -->
-  <span class="build" id="buildStamp" title="Build this page was loaded from — reload if it looks old">build 02 Oct 21:47</span>
+  <span class="build" id="buildStamp" title="Build this page was loaded from — reload if it looks old">build 03 Oct 23:12</span>
   <a class="ebtn ghost" href="index.html" target="_blank">View site</a>
   <button class="ebtn" id="saveBtn">Save</button>
 </div>
@@ -841,18 +841,16 @@ body.is-dirty #saveBtn{animation:savePulse 2.2s ease-out infinite}
   <section class="sale-sec-edit" id="motionEdit">
     <div class="head">
       <h3>Motion</h3>
-      <div class="eyebrow">How alive the public site feels — headings, cursor light, drifting cards and the storefront</div>
+      <div class="eyebrow">How much the public site moves — word-by-word headings, slow image reveals and the pinned collection gallery</div>
     </div>
     <div class="vs-form">
       <div class="mo-levels" id="moLevels" role="radiogroup" aria-label="Motion level">
-        <button type="button" role="radio" data-level="full"><b>Full</b><small>Headings rise word by word, cards catch the cursor and drift as you scroll, the collection ribbon runs and the storefront comes alive.</small></button>
-        <button type="button" role="radio" data-level="calm"><b>Calm</b><small>Headings and hairlines reveal as you scroll. Nothing follows the cursor or moves on its own.</small></button>
-        <button type="button" role="radio" data-level="off"><b>Off</b><small>A completely still page.</small></button>
+        <button type="button" role="radio" data-level="full"><b>Full</b><small>Headings rise word by word, images reveal slowly, the collections scroll as a pinned gallery, and the page scrolls smoothly.</small></button>
+        <button type="button" role="radio" data-level="calm"><b>Calm</b><small>The same reveals and gallery, with the browser's normal scrolling (no smooth-scroll effect).</small></button>
+        <button type="button" role="radio" data-level="off"><b>Off</b><small>A completely still page: no intro, no reveals, no pinned gallery. The catalogue grid still shows every collection.</small></button>
       </div>
-      <label class="cbx" style="margin-bottom:.7rem"><input type="checkbox" id="moRibbon"><span>Collection ribbon under the hero</span></label>
       <label class="cbx"><input type="checkbox" id="moOpen"><span>Live “open now” badge on the storefront photo <small>— read from your Hours</small></span></label>
       <div class="mo-hours" id="moHours"></div>
-      <div class="fld" style="margin:1rem 0 .4rem"><label for="moWords">Ribbon words <span style="opacity:.6">— comma separated. Your collection names are used instead once you have any.</span></label><input type="text" id="moWords" placeholder="Bridal, Kundan &amp; Polki, Western"></div>
       <div class="mo-demo" id="moDemo">
         <h4 id="moDemoH">Worn like water, <em>treasured like time.</em></h4>
         <button type="button" class="mini-ed" id="moReplay">Replay</button>
@@ -2693,7 +2691,7 @@ function openStoreFrame(im){
 
 /* ── Tile style (live CSS injection — same logic as index.html) ─ */
 /* ── Motion panel ───────────────────────────────────────────── */
-// C.motion = { level: full|calm|off, ribbon, openNow } — read by motion.js on the live site.
+// C.motion = { level: full|calm|off, ribbon, openNow } — read by home.js (and the rollback index-old.html) on the live site.
 function moHoursNote(){
   const n=$('#moHours'); if(!n) return;
   const txt=(C.contact&&C.contact.hours||'').trim();
@@ -2714,11 +2712,10 @@ function renderMotionEditor(){
     demo.classList.toggle('static', m.level==='off');
   };
   $('#moLevels').onclick=e=>{ const b=e.target.closest('[data-level]'); if(!b) return; m.level=b.dataset.level; markDirty(); paint(); replay(); };
-  for(const [id,key] of [['moRibbon','ribbon'],['moOpen','openNow']]){
+  for(const [id,key] of [['moOpen','openNow']]){
     const i=$('#'+id); i.checked=m[key]!==false;
     i.onchange=()=>{ m[key]=i.checked; markDirty(); moHoursNote(); };
   }
-  bindInput('moWords', m, 'ribbonWords');
   KJMotion.split(h);
   const replay=()=>{ demo.classList.remove('play'); void demo.offsetWidth; demo.classList.add('play'); };
   $('#moReplay').onclick=replay;

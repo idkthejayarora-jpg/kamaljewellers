@@ -2,417 +2,197 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<meta name="theme-color" content="#0a0807" />
-<!-- Theme boot: must be synchronous and before the stylesheet, or dark reloads flash white -->
-<script src="../theme.js"></script>
-<title>Kamal Jewellers — Links</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="theme-color" content="#F8F5EF" />
+<title>Kamal Jewellers — Catalogue</title>
 <meta name="description" content="All Kamal Jewellers collections, catalogue and contact — in one place." />
-
+<link rel="canonical" href="https://kamaljewellers.shop/catalogue" />
 <link rel="icon" type="image/png" href="../logo.png" />
 <link rel="apple-touch-icon" href="../logo.png" />
-
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="Kamal Jewellers" />
-<meta property="og:title" content="Kamal Jewellers — Links" />
+<meta property="og:title" content="Kamal Jewellers — Catalogue" />
 <meta property="og:description" content="All our collections, catalogue and contact — in one place." />
 <meta property="og:url" content="https://kamaljewellers.shop/catalogue" />
 <meta property="og:image" content="https://kamaljewellers.shop/storefront.jpg" />
 <meta name="twitter:card" content="summary_large_image" />
-
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-<!-- Same stylesheet the live site uses → the tile grid below is pixel-identical to the homepage collections grid -->
-<link rel="stylesheet" href="../site.css?v=c89a46ee16" />
-
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Hanken+Grotesk:wght@300;400;500;600&family=Tiro+Devanagari+Hindi&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../home.css?v=733dd2e059" />
 <style>
-  html,body{margin:0}
-  .lt-body{background:var(--black);min-height:100vh;min-height:100svh;position:relative;overflow-x:hidden}
-  /* Two layered glows: a broad ambient wash that slowly breathes, plus a
-     tighter spotlight directly behind the crest — more "boutique window
-     display" than a flat page tint. */
-  .lt-body::before{content:'';position:fixed;inset:-20%;z-index:0;pointer-events:none;
-    background:radial-gradient(ellipse 70% 50% at 50% 6%,rgba(255,217,102,.34),transparent 62%),
-               radial-gradient(ellipse 55% 42% at 50% 100%,rgba(161,27,63,.22),transparent 60%);
-    animation:ltGlowBreathe 9s ease-in-out infinite}
-  .lt-body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
-    background:radial-gradient(ellipse 40% 26% at 50% 15%,rgba(255,231,150,.16),transparent 70%),
-               radial-gradient(ellipse 120% 60% at 50% 100%,rgba(0,0,0,.55),transparent 60%)}
-  @keyframes ltGlowBreathe{0%,100%{opacity:.88;transform:scale(1)}50%{opacity:1;transform:scale(1.05)}}
-  @media(prefers-reduced-motion:reduce){.lt-body::before{animation:none}}
-  .lt-wrap{position:relative;z-index:1;max-width:680px;margin:0 auto;padding:clamp(2.6rem,8vh,4rem) 1rem 3rem;
-    display:flex;flex-direction:column;align-items:center;text-align:center;
-    animation:ltIn .6s cubic-bezier(.22,1,.36,1) both}
-  @keyframes ltIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
-  .lt-home{display:flex;flex-direction:column;align-items:center;text-decoration:none;cursor:pointer;transition:opacity .3s}
-  .lt-home:hover{opacity:.85}
-  .lt-logo{width:68px;height:68px;border-radius:50%;border:1px solid rgba(255,217,102,.55);
-    box-shadow:0 0 0 5px rgba(255,217,102,.06),0 0 34px rgba(255,217,102,.4),0 0 70px rgba(255,217,102,.16);
-    margin-bottom:1.1rem;animation:ltLogoPulse 4.5s ease-in-out infinite}
-  @keyframes ltLogoPulse{0%,100%{box-shadow:0 0 0 5px rgba(255,217,102,.06),0 0 34px rgba(255,217,102,.4),0 0 70px rgba(255,217,102,.16)}50%{box-shadow:0 0 0 8px rgba(255,217,102,.1),0 0 46px rgba(255,217,102,.55),0 0 96px rgba(255,217,102,.24)}}
-  @media(prefers-reduced-motion:reduce){.lt-logo{animation:none}}
-  .lt-name-row{display:flex;align-items:center;gap:.85rem}
-  .lt-name-row .fl{color:var(--gold);font-size:.62rem;opacity:.75;flex-shrink:0}
-  .lt-name{font-family:'Cormorant Garamond',serif;font-weight:400;font-size:clamp(1.7rem,7.5vw,2.15rem);color:var(--cream);letter-spacing:.045em;margin:0}
-  .lt-sub{font-size:.6rem;letter-spacing:.4em;text-transform:uppercase;color:var(--gold);margin-top:.55rem}
-  /* Ornamental rule — slim gold line with a centred diamond, invitation-card style */
-  .lt-divider{display:flex;align-items:center;gap:.9rem;width:100%;max-width:220px;margin:1.3rem auto 0}
-  .lt-divider::before,.lt-divider::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(255,217,102,.55))}
-  .lt-divider::after{background:linear-gradient(90deg,rgba(255,217,102,.55),transparent)}
-  .lt-divider span{color:var(--gold-bright);font-size:.55rem;flex-shrink:0;transform:rotate(45deg);display:inline-block}
-  .lt-tag{font-size:.8rem;color:rgba(243,234,215,.6);max-width:34ch;margin:1.3rem 0 .3rem;line-height:1.6}
-  .lt-grid-wrap{width:100%;margin-top:1.5rem}
-  .lt-empty{color:rgba(243,234,215,.4);font-size:.82rem;padding:2.5rem 0;grid-column:1/-1}
-  .lt-foot{margin-top:1.6rem;font-size:.54rem;letter-spacing:.22em;text-transform:uppercase;color:rgba(243,234,215,.35)}
-  /* .tile is a <button> on the homepage; here each tile IS the link, so it's an <a> —
-     same classes, same look, just a different tag underneath. Framed like a
-     jewellery display case: outer gold edge + a fine inset hairline, richer
-     glow on touch/hover than the plain homepage tile. */
-  a.tile{text-decoration:none;cursor:pointer}
-  #ltGrid .tile{
-    border:1px solid rgba(255,217,102,.45);
-    box-shadow:0 10px 36px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.1),0 0 22px rgba(255,217,102,.1);
-  }
-  #ltGrid .tile:hover,#ltGrid .tile:active{
-    border-color:rgba(255,217,102,.75);
-    box-shadow:0 18px 48px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.14),0 0 36px rgba(255,217,102,.28);
-  }
-  #ltGrid .tile::before{
-    content:'';position:absolute;inset:7px;border:1px solid rgba(255,217,102,.24);
-    border-radius:14px;pointer-events:none;z-index:2;
-  }
-  /* Numbered medallion instead of a plain corner label */
-  #ltGrid .tile .num{
-    top:.9rem;right:.9rem;width:26px;height:26px;display:flex;align-items:center;justify-content:center;
-    border:1px solid rgba(255,217,102,.5);border-radius:50%;background:rgba(8,6,4,.45);
-    backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
-    font-family:'Cormorant Garamond',serif;font-size:.72rem;letter-spacing:0;color:var(--gold-bright);
-  }
-  @media(max-width:420px){
-    .lt-wrap{padding:2.2rem .8rem 2.4rem}
-    .tile{padding:2.2rem 1.5rem;min-height:220px}
-  }
-  /* This page has no custom-cursor script (kept lightweight) — site.css's
-     cursor:none on these controls assumes one is running, so restore a normal
-     pointer here or the popup buttons look unclickable on desktop. */
-  .lead-skip,.lead-dismiss,.enq-submit{cursor:pointer}
-  /* Multi-photo tiles: slower, dissolve-like crossfade than the homepage's
-     hover-driven .6s — this one runs continuously and unprompted. */
-  #ltGrid .tile .swatch{transition:opacity 1.6s ease,transform 1.1s var(--ease)}
-
-  /* ── Velvet box reveal — page opens like a ring box lid parting ──────
-     Two velvet-lined halves cover the screen, sit still for a beat, then
-     part with a gold glint at the seam. Plays once per session; skipped
-     entirely for prefers-reduced-motion. */
-  .box-reveal{position:fixed;inset:0;z-index:9000;pointer-events:none}
-  .box-reveal.hide{display:none}
-  .box-lid{position:absolute;left:0;width:100%;height:50%;
-    background:
-      radial-gradient(ellipse 160% 130% at 50% 0%,rgba(255,217,102,.07),transparent 45%),
-      repeating-linear-gradient(115deg,rgba(255,255,255,.02) 0px,rgba(255,255,255,.02) 1px,transparent 1px,transparent 3px),
-      linear-gradient(180deg,#23070f 0%,#12030a 45%,#070203 100%)}
-  .box-lid-top{top:0;box-shadow:inset 0 -1px 0 rgba(255,217,102,.4)}
-  .box-lid-bottom{bottom:0;box-shadow:inset 0 1px 0 rgba(255,217,102,.4)}
-  .box-seam{position:absolute;left:6%;right:6%;top:50%;height:1px;transform:translateY(-.5px);
-    background:linear-gradient(90deg,transparent,rgba(255,217,102,.95) 22%,#fff 50%,rgba(255,217,102,.95) 78%,transparent);
-    box-shadow:0 0 26px 3px rgba(255,217,102,.75);opacity:0}
-  .box-reveal.opening .box-seam{animation:boxSeamFlash .55s ease-out .3s both}
-  .box-reveal.opening .box-lid-top{animation:boxLiftTop .85s cubic-bezier(.65,0,.35,1) .48s both}
-  .box-reveal.opening .box-lid-bottom{animation:boxLiftBottom .85s cubic-bezier(.65,0,.35,1) .48s both}
-  @keyframes boxSeamFlash{0%{opacity:0;transform:translateY(-.5px) scaleX(.25)}55%{opacity:1;transform:translateY(-.5px) scaleX(1)}100%{opacity:0;transform:translateY(-.5px) scaleX(1)}}
-  @keyframes boxLiftTop{to{transform:translateY(-100%)}}
-  @keyframes boxLiftBottom{to{transform:translateY(100%)}}
-
-  /* The switch floats here — this page has no nav bar to sit in */
-  .lt-sw{position:fixed;top:1rem;right:1rem;z-index:20;cursor:pointer}
-  @media(max-width:420px){.lt-sw{top:.75rem;right:.75rem}}
-
-  /* ── WHITE GOLD (default) ───────────────────────────────────────────
-     Same rule as site.css: this page is written black-first, so light is
-     the additive layer and dark needs nothing. */
-  html:not([data-theme="dark"]){
-    /* The ambient glows are light SOURCES on black; on pearl the same
-       gradients just fog the page, so they become soft tints instead. */
-    & .lt-body::before{
-      background:radial-gradient(ellipse 70% 50% at 50% 6%,rgba(200,165,80,.20),transparent 62%),
-                 radial-gradient(ellipse 55% 42% at 50% 100%,rgba(160,40,75,.10),transparent 60%)}
-    & .lt-body::after{
-      background:radial-gradient(ellipse 40% 26% at 50% 15%,rgba(230,200,120,.14),transparent 70%),
-                 radial-gradient(ellipse 120% 60% at 50% 100%,rgba(120,100,60,.10),transparent 60%)}
-    & .lt-logo{border-color:rgba(169,123,10,.45);
-      box-shadow:0 0 0 5px rgba(169,123,10,.06),0 8px 26px rgba(90,70,30,.18),0 0 0 1px rgba(169,123,10,.18);
-      animation:none}
-    & .lt-divider::before{background:linear-gradient(90deg,transparent,rgba(169,123,10,.6))}
-    & .lt-divider::after{background:linear-gradient(90deg,rgba(169,123,10,.6),transparent)}
-    & .lt-tag{color:rgba(30,26,21,.68)}
-    & .lt-empty{color:rgba(30,26,21,.45)}
-    & .lt-foot{color:rgba(30,26,21,.42)}
-    & #ltGrid .tile{border-color:rgba(169,123,10,.34);
-      box-shadow:0 10px 30px -12px rgba(80,62,26,.26),inset 0 1px 0 #fff}
-    & #ltGrid .tile:hover,& #ltGrid .tile:active{border-color:rgba(169,123,10,.65);
-      box-shadow:0 18px 44px -14px rgba(80,62,26,.34),inset 0 1px 0 #fff}
-    & #ltGrid .tile::before{border-color:rgba(169,123,10,.22)}
-    /* Medallion sits over the photo, so it stays dark-on-glass */
-    & #ltGrid .tile .num{border-color:rgba(255,255,255,.5);background:rgba(20,16,10,.42);color:#ffe08a}
-    /* Ivory box lids to match the homepage loader */
-    & .box-lid{
-      background:
-        radial-gradient(ellipse 160% 130% at 50% 0%,rgba(190,150,60,.08),transparent 45%),
-        repeating-linear-gradient(115deg,rgba(120,100,60,.03) 0px,rgba(120,100,60,.03) 1px,transparent 1px,transparent 3px),
-        linear-gradient(180deg,#fffdf8 0%,#f4efe4 45%,#e9e2d3 100%)}
-    & .box-lid-top{box-shadow:inset 0 -1px 0 rgba(169,123,10,.4)}
-    & .box-lid-bottom{box-shadow:inset 0 1px 0 rgba(169,123,10,.4)}
-    & .box-seam{
-      background:linear-gradient(90deg,transparent,rgba(169,123,10,.9) 22%,#fff 50%,rgba(169,123,10,.9) 78%,transparent);
-      box-shadow:0 0 22px 3px rgba(169,123,10,.5)}
-  }
-
-  /* Bolder, to match the rest of the site */
-  .lt-name{font-weight:600}
-  .lt-sub,.lt-foot{font-weight:600}
+/* Catalogue = the link-in-bio page. Same quiet system as the homepage; phone-first
+   (people arrive from Instagram), two tiles across at 360px. */
+.ct-wrap{max-width:1100px;margin:0 auto;padding:clamp(48px,9vh,88px) var(--pad) 130px;text-align:center}
+.ct-home{display:grid;justify-items:center;gap:10px}
+.ct-logo{width:72px;height:72px;border-radius:50%}
+.ct-home h1{margin-top:16px;font:600 12px/1.4 var(--ui);letter-spacing:.42em}
+.ct-home span{font:500 11px var(--ui);letter-spacing:.3em;text-transform:uppercase;color:var(--ink2)}
+.ct-div{width:48px;height:1px;background:var(--ink);margin:28px auto 0}
+.ct-tag{margin:26px auto 44px;max-width:420px;color:var(--ink2);font-size:15px}
+.ct-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:30px 12px;max-width:680px;margin:0 auto;text-align:left}
+@media(min-width:760px){.ct-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:48px 20px;max-width:1000px}}
+.ct-empty{grid-column:1/-1;color:var(--ink2);text-align:center}
+.ct .cc img,.ct .cc img+img,.ct .cc:hover img+img{opacity:0;transition:opacity 1.4s ease,transform 1.8s var(--ease)}
+.ct .cc .cc-in img.on{opacity:1}
+.ct-cta{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin:56px 0 18px}
+.ct-fine{margin-top:36px;padding-top:0;border:0;color:var(--ink2)}
+.ct .dock .enq{display:none}
 </style>
 </head>
-<body class="lt-body">
+<body class="ct">
 
-  <button class="theme-sw lt-sw" id="themeSw" type="button" role="switch" aria-checked="false" aria-label="Dark mode">
-    <span class="theme-sw-track"><span class="theme-sw-knob"></span></span>
-  </button>
-
-  <div class="box-reveal" id="boxReveal" aria-hidden="true">
-    <div class="box-lid box-lid-top"></div>
-    <div class="box-lid box-lid-bottom"></div>
-    <div class="box-seam"></div>
-  </div>
-
-  <div class="lt-wrap">
-    <a class="lt-home" href="https://kamaljewellers.shop" aria-label="Back to the main Kamal Jewellers site">
-      <img class="lt-logo" src="../logo.png" alt="Kamal Jewellers" />
-      <div class="lt-name-row"><span class="fl">✦</span><h1 class="lt-name">Kamal Jewellers</h1><span class="fl">✦</span></div>
-      <div class="lt-sub">Sadar Bazar · Delhi</div>
-      <div class="lt-divider" aria-hidden="true"><span>◆</span></div>
+<div class="ct-wrap">
+  <header>
+    <a class="ct-home" href="/" aria-label="Back to the Kamal Jewellers website">
+      <img class="ct-logo" src="../logo.png" alt="Kamal Jewellers" width="84" height="84" />
+      <h1>KAMAL JEWELLERS</h1>
+      <span>Sadar Bazar · Delhi</span>
     </a>
-    <p class="lt-tag">All our collections, catalogue &amp; more — tap a photo to open it</p>
-    <div class="lt-grid-wrap">
-      <div class="grid" id="ltGrid"><p class="lt-empty">Loading…</p></div>
-    </div>
-    <div class="lt-divider" aria-hidden="true"><span>◆</span></div>
-    <div class="lt-foot">© <span id="ltYr"></span> Kamal Jewellers</div>
+    <div class="ct-div" aria-hidden="true"></div>
+    <p class="ct-tag">All our collections, catalogue &amp; more. Tap a photo to open it.</p>
+  </header>
+  <main><div class="cat-grid ct-grid" id="ctGrid"><p class="ct-empty">Loading…</p></div></main>
+  <div class="ct-cta">
+    <a class="btn solid" id="ctWa" href="#" target="_blank" rel="noopener" data-track="whatsapp">Message on WhatsApp</a>
+    <a class="btn" href="/">Visit our website</a>
   </div>
+  <p class="fine ct-fine">© <span id="yr"></span> Kamal Jewellers · Sadar Bazar, Delhi</p>
+</div>
 
-  <!-- ===== Welcome lead-capture popup (mirrors the main site) ===== -->
-  <div class="lead-ov" id="leadOv" aria-hidden="true">
-    <div class="lead-modal">
-      <button class="lead-skip" id="leadSkip" aria-label="Close" title="Tap outside or here to skip">✕</button>
-      <div id="leadFormWrap">
-        <div class="eyebrow" id="leadEyebrow">Welcome to Kamal Jewellers</div>
-        <h4 id="leadHeading">Get our <em>latest looks &amp; offers</em></h4>
-        <p class="lead-intro" id="leadIntroTxt">Leave your details and we'll send you new arrivals, viral pieces and sale alerts first. Takes 10 seconds.</p>
-        <form id="leadForm">
-          <div class="field"><label>Your name</label><input name="name" required maxlength="80" autocomplete="name" placeholder="e.g. Aarti Sharma" /></div>
-          <div class="field"><label>Email or phone</label><input name="contact" required maxlength="120" autocomplete="email" placeholder="you@email.com or +91…" /></div>
-          <div class="field"><label>What are you looking for?</label>
-            <select name="interest" id="leadInterest"><option value="Just browsing">Just browsing</option></select>
-          </div>
-          <button class="enq-submit" type="submit" id="leadSubmit">Keep me posted</button>
-          <div class="enq-note" id="leadNote"></div>
-          <div class="lead-dismiss" id="leadDismiss">No thanks, just let me browse</div>
-        </form>
-      </div>
-      <div class="enq-done" id="leadDone" style="display:none">
-        <div class="tick">✦</div>
-        <p>You're on the list — thank you!</p>
-        <small>We'll be in touch with the good stuff. Enjoy browsing.</small>
-      </div>
-    </div>
+<div class="dock on" id="dock">
+  <a class="wa" id="dkWa" href="#" target="_blank" rel="noopener" data-track="whatsapp"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>WhatsApp</a>
+  <a class="call" id="dkCall" href="#" data-track="call"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg>Call</a>
+  <a class="mapb" id="dkMap" href="#" target="_blank" rel="noopener" data-track="directions"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>Map</a>
+</div>
+
+<dialog class="sheet" id="lead" aria-labelledby="leadH">
+  <button class="x" type="button" data-close aria-label="Close">✕</button>
+  <div id="leadForm">
+    <p class="eyebrow" id="leadEy">Welcome to Kamal Jewellers</p>
+    <h3 id="leadH" class="display">Get our latest looks &amp; offers</h3>
+    <p class="lede" id="leadIntro">Leave your details and we'll send you new arrivals and offers first.</p>
+    <form method="dialog" id="leadF" novalidate>
+      <label>Your name<input name="name" autocomplete="name" required /></label>
+      <label>Email or phone<input name="contact" autocomplete="email" required /></label>
+      <label>What are you looking for?<select name="interest" id="leadInt"><option>Just browsing</option></select></label>
+      <button class="btn solid" type="submit" id="leadGo">Keep me posted</button>
+      <p class="note" id="leadNote" role="status"></p>
+      <button type="button" class="skip" data-close>No thanks, just let me browse</button>
+    </form>
   </div>
+  <div id="leadDone" hidden><h3 class="display">Thank you.</h3><p>We'll be in touch.</p></div>
+</dialog>
 
 <script src="../config.js"></script>
-<script src="../content-defaults.js?v=af704e786c"></script>
-<script src="../tile-style.js"></script>
 <script src="../track.js" defer></script>
 <script>
-  const DEFAULTS = window.KAMAL_DEFAULTS || {};
-  let CONTENT = JSON.parse(JSON.stringify(DEFAULTS));
-  const API = ((window.KAMAL_CONFIG || {}).API_BASE) || '/api';
-  const esc = s => (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+(function () {
+'use strict';
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const esc = s => (s == null ? '' : String(s)).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+const API = ((window.KAMAL_CONFIG || {}).API_BASE) || '/api';
+const rm = matchMedia('(prefers-reduced-motion:reduce)').matches;
+const digits = s => String(s || '').replace(/[^0-9]/g, '');
+const norm = u => (/^https?:\/\//.test(u || '') ? u : u ? 'https://' + u : '#');
 
-  function deepMerge(base, over){
-    if(Array.isArray(over)) return over;
-    if(over && typeof over==='object'){
-      const out = Object.assign({}, base);
-      for(const k in over){ out[k] = deepMerge(base ? base[k] : undefined, over[k]); }
-      return out;
-    }
-    return over===undefined ? base : over;
-  }
+const FALLBACK = { contact: { phone1: '+91 98119 07365', whatsapp: '+91 74285 26559', mapUrl: 'https://www.google.com/maps/search/Kamal+Jewellers+Sadar+Bazar+Delhi' },
+                   linkTree: { links: [] }, leadPopup: { enabled: true, delaySec: 1, frequency: 'once' } };
+function merge(base, over) {
+  if (Array.isArray(over)) return over;
+  if (over && typeof over === 'object') { const o = Object.assign({}, base); for (const k in over) o[k] = merge(base ? base[k] : undefined, over[k]); return o; }
+  return over === undefined ? base : over;
+}
+let C = FALLBACK, links = [];
+async function load() {
+  try {
+    const ctrl = new AbortController(), t = setTimeout(() => ctrl.abort(), 3500);
+    const r = await fetch(API + '/content?_=' + Date.now(), { signal: ctrl.signal }); clearTimeout(t);
+    if (r.ok) { const { data } = await r.json(); if (data) return merge(FALLBACK, data); }
+  } catch (e) { console.warn('content fetch failed', e); }
+  return FALLBACK;
+}
 
-  async function loadContent(){
-    try{
-      // Cache-busting param rather than cache:'no-store' — see index.html.
-      const res = await fetch(API + '/content?_=' + Date.now());
-      if(!res.ok) return;
-      const { data } = await res.json();
-      if(data) CONTENT = deepMerge(DEFAULTS, data);
-    }catch(e){ console.warn('content fetch failed', e); }
+function render() {
+  $('#yr').textContent = new Date().getFullYear();
+  const c = C.contact, wa = 'https://wa.me/' + (digits(c.whatsapp) || digits(c.phone1)) + '?text=' + encodeURIComponent('Hi Kamal Jewellers, I have an enquiry.');
+  $('#ctWa').href = wa; $('#dkWa').href = wa;
+  $('#dkCall').href = 'tel:' + (c.phone1 || '').replace(/[^0-9+]/g, '');
+  $('#dkMap').href = c.mapUrl || '#';
+  // older saves may carry a single `image` string instead of `images`
+  links = ((C.linkTree && C.linkTree.links) || []).map(l => ({ ...l, images: (l.images && l.images.length) ? l.images : (l.image ? [l.image] : []) }));
+  const grid = $('#ctGrid');
+  if (!links.length) { grid.innerHTML = '<p class="ct-empty">No links yet. Add some from Studio.</p>'; return; }
+  grid.innerHTML = links.map((l, i) => {
+    const imgs = l.images;
+    return `<a class="cc${imgs.length ? '' : ' nophoto'}" href="${esc(norm(l.url))}" rel="noopener" data-r style="--d:${(i % 4) * 70}ms" data-track="catalogue:${esc(l.label || 'Untitled link')}">
+      <div class="cc-in">${imgs.map((u, k) => `<img class="${k ? '' : 'on'}" src="${esc(u)}" alt="" ${i < 4 && !k ? '' : 'loading="lazy"'} decoding="async" />`).join('')}</div>
+      <div class="cc-lab"><small>${String(i + 1).padStart(2, '0')}</small><span>${esc(l.label || 'Untitled link')}</span><b aria-hidden="true">↗</b></div></a>`;
+  }).join('');
+  $('#lead #leadInt').innerHTML = '<option>Just browsing</option>' + links.map(l => `<option>${esc(l.label)}</option>`).join('') + '<option>Custom / bespoke piece</option>';
+  // reveal as tiles scroll in
+  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold: .12 });
+  $$('[data-r]', grid).forEach(el => io.observe(el));
+  // slow staggered dissolve between a tile's photos, top to bottom
+  if (!rm) {
+    const cur = new WeakMap();
+    setInterval(() => $$('.cc', grid).forEach((tile, i) => {
+      const ims = $$('img', tile); if (ims.length < 2) return;
+      setTimeout(() => { const k = cur.get(tile) || 0, n = (k + 1) % ims.length; ims[k].classList.remove('on'); ims[n].classList.add('on'); cur.set(tile, n); }, i * 300);
+    }), 4500);
   }
+}
 
-  // Back-compat: older saves may still have a single `image` string.
-  const linkImages = l => (l.images && l.images.length) ? l.images : (l.image ? [l.image] : []);
-
-  function render(){
-    document.getElementById('ltYr').textContent = new Date().getFullYear();
-    const links = (CONTENT.linkTree && CONTENT.linkTree.links) || [];
-    const grid = document.getElementById('ltGrid');
-    grid.innerHTML = links.length
-      ? links.map((l,i)=>{
-          const n = String(i+1).padStart(2,'0');
-          const imgs = linkImages(l);
-          const swatches = imgs.length
-            ? imgs.map((url,si)=>`<div class="swatch" style="background:#0d0f12 url('${esc(url)}') center/cover no-repeat;opacity:${si===0?'.95':'0'}"></div>`).join('')
-            : `<div class="swatch" style="background:linear-gradient(150deg,#2a2217,#0d0907)"></div>`;
-          return `<a class="tile" href="${esc(l.url||'#')}" rel="noopener">
-            ${swatches}
-            <span class="num">${n}</span>
-            <h4>${esc(l.label||'Untitled link')}</h4>
-            <span class="enter">Open ↗</span>
-          </a>`;
-        }).join('')
-      : '<p class="lt-empty">No links yet — add some from Studio.</p>';
-
-    // The tiles live on this page now, so Studio's tile settings have to be
-    // applied here — without this the colour/border/font controls do nothing.
-    if (window.applyTileStyle) applyTileStyle(CONTENT);
-
-    startCrossfade();
-  }
-
-  // Cascading dissolve between a tile's photos with 0.3s top-to-bottom flow —
-  // skipped for reduced-motion, and for tiles that only have one photo (or none).
-  let crossfadeTimer = null;
-  function startCrossfade(){
-    if(crossfadeTimer){ clearInterval(crossfadeTimer); crossfadeTimer = null; }
-    if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const cursors = new WeakMap();
-    crossfadeTimer = setInterval(()=>{
-      const tiles = Array.from(document.querySelectorAll('#ltGrid .tile'));
-      tiles.forEach((tile, i)=>{
-        const swatches = tile.querySelectorAll('.swatch');
-        if(swatches.length < 2) return;
-        setTimeout(()=>{
-          const cur = cursors.get(tile) || 0;
-          const next = (cur + 1) % swatches.length;
-          swatches[cur].style.opacity = '0';
-          swatches[next].style.opacity = '.95';
-          cursors.set(tile, next);
-        }, i * 300); // 0.3s staggered delay per tile from top to bottom
-      });
-    }, 4500);
-  }
-
-  /* ============================================================
-     WELCOME LEAD-CAPTURE POPUP — mirrors index.html exactly, same
-     Studio settings (leadPopup) and same localStorage keys, so the
-     "seen/converted" state is shared across the whole site.
-     ============================================================ */
-  const nameWithEm = name => { const e=esc(name); const i=e.indexOf(' '); return i===-1 ? e : e.slice(0,i)+'<em> '+e.slice(i+1)+'</em>'; };
-  const LEAD_KEY='kj_lead_done';
-  const LEAD_TS='kj_lead_ts';
-  const leadOv=document.getElementById('leadOv');
-  function leadCfg(){ return (CONTENT.leadPopup)||{enabled:true,delaySec:1,frequency:'once'}; }
-  function leadClose(){ leadOv.classList.remove('open'); leadOv.setAttribute('aria-hidden','true'); }
-  function leadMarkSeen(){
-    const freq=leadCfg().frequency||'once';
-    try{
-      if(freq==='session') sessionStorage.setItem('kj_lead_seen','1');
-      else if(freq==='once') localStorage.setItem(LEAD_KEY,'1');
-      else if(freq==='day'||freq==='week') localStorage.setItem(LEAD_TS, String(Date.now()));
-    }catch(e){}
-  }
-  function leadSeenRecently(){
-    const freq=leadCfg().frequency||'once';
-    try{ if(localStorage.getItem(LEAD_KEY)==='1') return true; }catch(e){}
-    if(freq==='always') return false;
-    try{
-      if(freq==='session') return sessionStorage.getItem('kj_lead_seen')==='1';
-      if(freq==='once') return localStorage.getItem(LEAD_KEY)==='1';
-      const last=parseInt(localStorage.getItem(LEAD_TS)||'0',10);
-      const span=freq==='week'?7*864e5:864e5;
-      return (Date.now()-last) < span;
-    }catch(e){ return false; }
-  }
-  function leadOpen(){
-    const cfg=leadCfg();
-    if(cfg.eyebrow)  document.getElementById('leadEyebrow').textContent=cfg.eyebrow;
-    if(cfg.heading)  document.getElementById('leadHeading').innerHTML=nameWithEm(cfg.heading);
-    if(cfg.intro)    document.getElementById('leadIntroTxt').textContent=cfg.intro;
-    if(cfg.btnLabel) document.getElementById('leadSubmit').textContent=cfg.btnLabel;
-    const sel=document.getElementById('leadInterest');
-    if(sel && CONTENT.collections){
-      sel.innerHTML='<option value="Just browsing">Just browsing</option>'+
-        CONTENT.collections.map(c=>`<option value="${esc(c.name)}">${esc(c.name)}</option>`).join('')+
-        '<option value="A piece on sale">A piece on sale</option>'+
-        '<option value="Custom / bespoke piece">Custom / bespoke piece</option>';
-    }
-    leadOv.classList.add('open'); leadOv.removeAttribute('aria-hidden');
-    leadMarkSeen();
-  }
-  function maybeShowLead(){
-    const cfg=leadCfg();
-    if(cfg.enabled===false) return;
-    if(leadSeenRecently()) return;
-    const delay=Math.max(0,(cfg.delaySec!=null?cfg.delaySec:1)*1000);
-    setTimeout(leadOpen, delay);
-  }
-  leadOv.addEventListener('click', e=>{ if(e.target===leadOv){ leadClose(); } });
-  document.getElementById('leadSkip').addEventListener('click', leadClose);
-  document.getElementById('leadDismiss').addEventListener('click', leadClose);
-  document.addEventListener('keydown', e=>{ if(e.key==='Escape' && leadOv.classList.contains('open')){ leadClose(); } });
-  document.getElementById('leadForm').addEventListener('submit', async e=>{
+/* ---- welcome popup: same Studio settings and same storage keys as the homepage ---- */
+function openDlg(d) { if (d.showModal) d.showModal(); else d.setAttribute('open', ''); document.body.style.overflow = 'hidden'; }
+function closeDlg(d) { if (d.close) d.close(); else d.removeAttribute('open'); }
+function wireLead() {
+  const lead = $('#lead');
+  lead.addEventListener('close', () => { document.body.style.overflow = ''; });
+  lead.addEventListener('click', e => { if (e.target === lead || e.target.closest('[data-close]')) closeDlg(lead); });
+  $('#leadF').addEventListener('submit', async e => {
     e.preventDefault();
-    const f=e.target, btn=document.getElementById('leadSubmit'), note=document.getElementById('leadNote');
-    const name=f.name.value.trim(), contact=f.contact.value.trim(), interest=f.interest.value;
-    if(!name||!contact){ note.textContent='Please add your name and an email or phone.'; return; }
-    const isEmail=/@/.test(contact);
-    const payload={
-      name,
-      phone:contact,
-      email:isEmail?contact:null,
-      interest:'Link page popup · '+interest,
-      message:`New lead from the link page popup. Looking for: ${interest}. Reach them at: ${contact}.`
-    };
-    btn.disabled=true; note.textContent='Saving…';
-    try{
-      const res=await fetch(API+'/enquiries',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
-      if(!res.ok){ const d=await res.json().catch(()=>({})); throw new Error(d.error||res.statusText); }
-      try{ localStorage.setItem(LEAD_KEY,'1'); }catch(e){}
-      document.getElementById('leadFormWrap').style.display='none';
-      document.getElementById('leadDone').style.display='block';
-      setTimeout(leadClose, 2200);
-    }catch(err){
-      console.warn('lead failed', err);
-      note.textContent='Could not save right now — please try again.';
-      btn.disabled=false;
-    }
+    const f = e.target, note = $('#leadNote'), btn = $('#leadGo');
+    const name = f.name.value.trim(), contact = f.contact.value.trim(), interest = f.interest.value;
+    if (!name || !contact) { note.textContent = 'Please add your name and an email or phone.'; return; }
+    btn.disabled = true; note.textContent = 'Saving…';
+    try {
+      const r = await fetch(API + '/enquiries', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, phone: contact, email: /@/.test(contact) ? contact : null, interest: 'Welcome popup · ' + interest,
+          message: `New lead from the welcome popup. Looking for: ${interest}. Reach them at: ${contact}.` }) });
+      if (!r.ok) throw new Error(r.statusText);
+      try { localStorage.setItem('kj_lead_done', '1'); } catch (x) {}
+      $('#leadForm').hidden = true; $('#leadDone').hidden = false; setTimeout(() => closeDlg(lead), 2200);
+    } catch (err) { console.warn(err); note.textContent = 'Could not save right now. Please try again.'; btn.disabled = false; }
   });
+}
+function maybeLead() {
+  const cfg = C.leadPopup || {}; if (cfg.enabled === false) return;
+  const freq = cfg.frequency || 'once';
+  try {
+    if (localStorage.getItem('kj_lead_done') === '1') return;
+    if (freq === 'session' && sessionStorage.getItem('kj_lead_seen') === '1') return;
+    if (freq === 'day' || freq === 'week') { const last = +localStorage.getItem('kj_lead_ts') || 0; if (Date.now() - last < (freq === 'week' ? 7 : 1) * 864e5) return; }
+  } catch (e) {}
+  setTimeout(() => {
+    if (cfg.eyebrow) $('#leadEy').textContent = cfg.eyebrow;
+    if (cfg.heading) $('#leadH').textContent = cfg.heading;
+    if (cfg.intro) $('#leadIntro').textContent = cfg.intro;
+    if (cfg.btnLabel) $('#leadGo').textContent = cfg.btnLabel;
+    openDlg($('#lead'));
+    try { if (freq === 'session') sessionStorage.setItem('kj_lead_seen', '1'); else if (freq === 'once') localStorage.setItem('kj_lead_done', '1'); else if (freq !== 'always') localStorage.setItem('kj_lead_ts', String(Date.now())); } catch (e) {}
+  }, Math.max(0, (cfg.delaySec != null ? cfg.delaySec : 1) * 1000) + 600);
+}
 
-  (async()=>{ await loadContent(); render(); maybeShowLead(); })();
-
-  // Velvet box reveal — plays once per browser session so repeat visits
-  // (tapping back in from a collection, re-opening the tab) aren't slowed
-  // down by the same intro every time.
-  (function boxReveal(){
-    const el = document.getElementById('boxReveal');
-    if(!el) return;
-    let seen = false;
-    try{ seen = sessionStorage.getItem('kj_box_seen') === '1'; }catch(e){}
-    if(matchMedia('(prefers-reduced-motion: reduce)').matches || seen){ el.classList.add('hide'); return; }
-    requestAnimationFrame(()=>el.classList.add('opening'));
-    setTimeout(()=>{
-      el.classList.add('hide');
-      try{ sessionStorage.setItem('kj_box_seen','1'); }catch(e){}
-    }, 1500);
-  })();
+/* ---- tap tracking (same labels as before: catalogue:<name>) ---- */
+document.addEventListener('click', e => { const t = e.target.closest('[data-track]'); if (t && window.kjTrack) window.kjTrack('tap', t.dataset.track); }, true);
+(async function boot() {
+  C = await load();
+  try { render(); wireLead(); } catch (e) { console.warn(e); }
+  maybeLead();
+})();
+})();
 </script>
 </body>
 </html>

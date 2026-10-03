@@ -86,15 +86,22 @@ stack is Cloudflare Workers + D1 + KV + R2, all on free tiers.
 
 ---
 
-## Redesign draft — `/next`
+## The site (rebuilt Oct 2026)
 
-`next/` is the redesigned homepage ("The Shopfront"), live at
-`kamaljewellers.shop/next` but **not linked from anywhere and marked `noindex`**.
-It reads the same Studio content as the current homepage, so Studio edits show
-up in both. The current `index.html` is untouched.
+Quiet-luxury rebuild: ivory ground, ink type (Instrument Serif + Hanken
+Grotesk), hairlines, one antique-brass accent, no dark/light toggle.
 
-To make it the homepage: move `next/index.html`, `next/next.css` and
-`next/next.js` to the repo root, change the `../` prefixes in the HTML to
-nothing, delete the `<meta name="robots" content="noindex">` line, and run
-`python3 stamp-css-version.py` (add the new root paths to `ASSETS`/`PAGES`
-there first). The old `index.html` can stay as `index-old.html` for a rollback.
+| Page | Files |
+|---|---|
+| Homepage `/` | `index.html`, `home.css`, `home.js` |
+| Catalogue `/catalogue` (Instagram bio link) | `catalogue/index.html` + `home.css` |
+| Sale product page | `product.html` + `home.css` |
+| Studio / Admin | `studio.html`, `admin.html` (still use `site.css`) |
+
+All of them read the same Studio content (`/api/content`). `home.css` is the
+shared design system.
+
+**Rollback:** the previous homepage is kept as `index-old.html` (noindex, still
+works). To go back, swap the two filenames and push. `site.css`, `theme.js`,
+`tile-style.js` and `motion.js`'s `apply()` exist only for that rollback and for
+Studio's preview — delete them together with `index-old.html` once you're sure.

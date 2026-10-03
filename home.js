@@ -1,9 +1,9 @@
 /* ============================================================
-   KAMAL JEWELLERS — "The Shopfront" homepage
-   Reads the same Studio content as the current site (/api/content), so
-   every edit made in Studio shows up here. Sections with no content hide
-   themselves. Motion is scroll-driven (one rAF loop) + a few pointer
-   effects; all of it stands down for prefers-reduced-motion.
+   KAMAL JEWELLERS — homepage
+   Reads the same Studio content as always (/api/content), so every edit
+   made in Studio shows up here. Sections with no content hide themselves.
+   Motion is scroll-driven (one rAF loop) and deliberately quiet; all of it
+   stands down for prefers-reduced-motion and Studio → Motion = Off.
    ============================================================ */
 (function () {
 'use strict';
@@ -12,13 +12,14 @@ const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
 const esc = s => (s == null ? '' : String(s)).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const API = ((window.KAMAL_CONFIG || {}).API_BASE) || '/api';
-const rm = matchMedia('(prefers-reduced-motion:reduce)').matches;
+let rm = matchMedia('(prefers-reduced-motion:reduce)').matches;   // also set when Studio → Motion is Off
+let calm = false;                                                  // Studio → Motion: Calm = no smooth-scroll library
 const touch = matchMedia('(hover:none)').matches;
 const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
 const digits = s => String(s || '').replace(/[^0-9]/g, '');
 const sleep = ms => new Promise(r => setTimeout(r, ms));
-// storefront.jpg-style relative paths in content are relative to the site root, not /next/
-const abs = u => (/^(https?:|\/)/.test(u) ? u : '../' + u);
+// storefront.jpg-style relative paths in saved content are relative to the site root
+const abs = u => (/^(https?:|\/)/.test(u) ? u : '/' + u);
 const imgUrl = x => (x == null ? null : (typeof x === 'string' ? x : x.url || null));
 const norm = u => (/^https?:\/\//.test(u || '') ? u : u ? 'https://' + u : '#');
 if (rm) document.documentElement.classList.add('rm');
@@ -48,7 +49,7 @@ async function load() {
   return FALLBACK;
 }
 
-let C = FALLBACK, links = [], pics = [], lenis = null;
+let C = FALLBACK, links = [], lenis = null;
 
 /* ---------- split words ---------- */
 function split(el) {
@@ -75,6 +76,7 @@ const waHref = msg => 'https://wa.me/' + (digits(C.contact.whatsapp) || digits(C
 const mapHref = () => C.contact.mapUrl || 'https://www.google.com/maps/search/Kamal+Jewellers+Sadar+Bazar+Delhi';
 function ytId(u) { const m = String(u || '').match(/(?:youtu\.be\/|v=|shorts\/|embed\/)([\w-]{11})/); return m ? m[1] : null; }
 function shopStatus() {
+  if (C.motion && C.motion.openNow === false) return null;
   const K = window.KJMotion; if (!K || !K.parseHours || !K.statusAt) return null;
   const h = K.parseHours(C.contact.hours); if (!h) return null;
   const n = K.shopNow(); return K.statusAt(h, n.day, n.mins);
@@ -91,8 +93,16 @@ function paintLive() {
 /* ---------- renderers ---------- */
 function renderBasics() {
   const h = C.hero, c = C.contact;
-  document.title = (C.seo && C.seo.title) || 'Kamal Jewellers — Sadar Bazar, Delhi';
-  if (C.seo && C.seo.description) $('#metaDesc').content = C.seo.description;
+  const seo = C.seo || {};
+  if (seo.title) { document.title = seo.title; $('#ogTitle').content = seo.title; }
+  if (seo.description) { $('#metaDesc').content = seo.description; $('#ogDesc').content = seo.description; }
+  const ld = { '@context': 'https://schema.org', '@type': 'JewelryStore', name: 'Kamal Jewellers', description: seo.description || '',
+    image: 'https://kamaljewellers.shop/storefront.jpg', url: 'https://kamaljewellers.shop', telephone: c.phone1 || '',
+    address: { '@type': 'PostalAddress', streetAddress: (c.addressHtml || '').replace(/<br\s*\/?>/gi, ', '), addressLocality: 'Delhi', postalCode: '110006', addressCountry: 'IN' },
+    sameAs: [norm(C.instagram)].filter(u => u && u !== '#') };
+  if ((c.hours || '').trim()) ld.openingHours = c.hours.trim();
+  $('#ldJson').textContent = JSON.stringify(ld);
+
   $('#hEyebrow').textContent = h.eyebrow || '';
   $('#hT1').textContent = h.title || '';
   $('#hT2').textContent = h.titleEm || '';
@@ -115,17 +125,8 @@ function renderBasics() {
   $('#yr').textContent = new Date().getFullYear();
   $('#enqPh').textContent = c.phone1 || '';
 
-  // hero art: shopfront + up to three real catalogue photos floating around it
   const store = (C.storeImages || []).map(imgUrl).filter(Boolean);
   if (store[0]) $('#heroImg').src = abs(store[0]);
-  const picks = [0, 2, 4].map(i => pics[i] || pics[0]).filter(Boolean);
-  $$('.fl').forEach((fl, i) => {
-    const src = picks[i]; if (!src) return;
-    fl.hidden = false; fl.style.setProperty('--dx', fl.dataset.d);
-    fl.querySelector('img').src = src; fl.querySelector('img').loading = 'eager';
-  });
-  const sp = $('#sparks');
-  if (!rm) sp.innerHTML = Array.from({ length: 16 }, () => `<i style="left:${(Math.random() * 100).toFixed(1)}%;top:${(Math.random() * 90).toFixed(1)}%;animation-delay:${(-Math.random() * 5).toFixed(2)}s;animation-duration:${(3.5 + Math.random() * 4).toFixed(1)}s"></i>`).join('');
 
   // announcement bar (Studio → Settings)
   const a = C.announcement || {};
@@ -133,58 +134,48 @@ function renderBasics() {
   paintLive(); setInterval(paintLive, 60000);
 }
 
-function renderRibbon() {
-  if (!links.length || rm) return;
-  const one = links.map(l => `<span>${esc(l.label)}</span><b></b>`).join('');
-  $('#rbTrack').innerHTML = one + one;
-  $('#ribbon').hidden = false;
-}
-
 function renderSale() {
   const items = (C.saleItems || []).filter(i => i && i.active !== false && (i.stock || 0) > 0);
   if (!items.length) return;
   const sec = $('#sale'); sec.hidden = false;
   const hd = C.saleHead || {};
-  sec.innerHTML = `<div class="wrap"><p class="eyebrow" data-r><i></i><span>${esc(hd.eyebrow || 'Limited pieces · While stocks last')}</span></p>
-    <h2 class="display" style="margin-top:14px;font-size:clamp(36px,5vw,64px)">${esc(hd.title || 'Sale now on')}</h2></div>
+  sec.innerHTML = `<div class="wrap"><p class="eyebrow" data-r>${esc(hd.eyebrow || 'Limited pieces · While stocks last')}</p>
+    <h2 class="display" data-r>${esc(hd.title || 'Sale now on')}</h2></div>
     <div class="sale-row">${items.map(it => {
       const price = Math.round((it.originalPrice || 0) * (1 - (it.discountPct || 0) / 100));
       const im = imgUrl((it.images || [])[0]);
-      const msg = `Hi Kamal Jewellers, I'm interested in ${it.name}${it.sku ? ' (' + it.sku + ')' : ''}.`;
-      return `<article class="sc"><div class="ph" style="${im ? `background-image:url('${esc(abs(im))}')` : ''}"></div>${it.discountPct ? `<span class="off">${esc(it.discountPct)}% off</span>` : ''}
-        <div class="bd"><div class="nm">${esc(it.name)}</div><div><s>₹${(it.originalPrice || 0).toLocaleString('en-IN')}</s> <b>₹${price.toLocaleString('en-IN')}</b></div>
-        <a class="btn ghost" href="${esc(waHref(msg))}" target="_blank" rel="noopener" data-track="sale-item">Ask on WhatsApp</a></div></article>`;
+      return `<a class="sc" href="product.html?id=${encodeURIComponent(it.id)}" data-track="sale-item"><div class="ph" style="${im ? `background-image:url('${esc(abs(im))}')` : ''}"></div>${it.discountPct ? `<span class="off">${esc(it.discountPct)}% off</span>` : ''}
+        <div class="bd"><div class="nm">${esc(it.name)}</div><div><s>₹${(it.originalPrice || 0).toLocaleString('en-IN')}</s> <b>₹${price.toLocaleString('en-IN')}</b></div></div></a>`;
     }).join('')}</div>`;
 }
 
 /* ---- pinned showcase ---- */
-const TINTS = ['#3A2416', '#3B1B1B', '#33270F', '#2A2218', '#2C1A24', '#1F2A24', '#35200F', '#2B1B12'];
-let SH = null;   // showcase state
+// barely-there warm tints, one per collection — the page colour shifts, it never changes mood
+const TINTS = ['#F8F5EF', '#F3EEE3', '#F6F0E6', '#F1ECE0', '#F7F2E8', '#F2EDE2', '#F5EFE5', '#F0EBE0'];
+let SH = null;
 function renderShowcase() {
-  const items = links.filter(l => l.images && l.images.length).slice(0, 8);
+  const items = links.filter(l => l.images.length).slice(0, 8);
   const sec = $('#showcase');
   if (rm || items.length < 2) { sec.hidden = true; return; }
   sec.hidden = false; sec.style.setProperty('--n', items.length);
-  const pad = i => String(i + 1).padStart(2, '0');
+  const pad = i => String(i + 1).padStart(2, '0'), total = pad(items.length - 1);
   sec.innerHTML = `<div class="show-pin" id="pin"><div class="show-bg" id="showBg"></div>
     <div class="show-grid">
       <div class="show-txt">
-        <p class="eyebrow"><i></i><span>The collections</span></p>
+        <p class="eyebrow">The collections</p>
         <div class="tx-wrap">${items.map((l, i) => `<div class="tx${i ? '' : ' on'}" data-i="${i}">
-          <div class="idx" aria-hidden="true">${pad(i)}</div><h3>${esc(l.label)}</h3>
+          <div class="idx">${pad(i)} / ${total}</div><h3>${esc(l.label)}</h3>
           <p class="meta">${l.images.length} ${l.images.length === 1 ? 'look' : 'looks'} · see them on Instagram</p>
           <a class="btn solid" href="${esc(norm(l.url))}" target="_blank" rel="noopener" data-track="catalogue:${esc(l.label)}">Browse this collection</a></div>`).join('')}</div>
       </div>
       <div class="stage" aria-hidden="true">${items.map((l, i) => {
         const im = l.images;
-        return `<div class="scene${i ? '' : ' on'}" data-i="${i}"><i class="ring r1"></i><i class="ring r2"></i>
-          <div class="arch"><img data-src="${esc(im[0])}" alt="" /></div>
-          ${im[1] ? `<div class="sat s1"><img data-src="${esc(im[1])}" alt="" /></div>` : ''}${im[2] ? `<div class="sat s2"><img data-src="${esc(im[2])}" alt="" /></div>` : ''}</div>`;
+        return `<div class="scene${i ? '' : ' on'}" data-i="${i}"><div class="pic"><img data-src="${esc(im[0])}" alt="" /></div>${im[1] ? `<div class="alt"><img data-src="${esc(im[1])}" alt="" /></div>` : ''}</div>`;
       }).join('')}</div>
       <ol class="show-dots">${items.map((l, i) => `<li><button type="button" data-go="${i}" class="${i ? '' : 'on'}" aria-label="Go to ${esc(l.label)}"></button></li>`).join('')}</ol>
     </div></div>`;
   $$('.tx h3', sec).forEach(split);
-  SH = { sec, n: items.length, i: -1, items, pin: $('#pin'), bg: $('#showBg'), tx: $$('.tx', sec), sc: $$('.scene', sec), dots: $$('.show-dots button', sec) };
+  SH = { sec, n: items.length, i: -1, pin: $('#pin'), bg: $('#showBg'), tx: $$('.tx', sec), sc: $$('.scene', sec), dots: $$('.show-dots button', sec) };
   $('.show-dots', sec).addEventListener('click', e => { const b = e.target.closest('[data-go]'); if (b) goScene(+b.dataset.go); });
   loadScene(0); loadScene(1); setScene(0);
 }
@@ -199,36 +190,12 @@ function setScene(i) {
   SH.sc.forEach((s, k) => s.classList.toggle('on', k === i));
   SH.dots.forEach((d, k) => d.classList.toggle('on', k === i));
   SH.bg.style.setProperty('--tint', TINTS[i % TINTS.length]);
+  SH.pin.style.setProperty('--tint', TINTS[i % TINTS.length]);   // the secondary photo's matte follows the page colour
   loadScene(i); loadScene(i + 1);
 }
 function goScene(i) {
   const r = SH.sec.getBoundingClientRect(), top = r.top + scrollY + ((i + .5) / SH.n) * (SH.sec.offsetHeight - innerHeight);
   lenis ? lenis.scrollTo(top, { duration: 1.4 }) : window.scrollTo({ top, behavior: 'smooth' });
-}
-
-/* ---- reel ---- */
-function renderReel() {
-  const v = C.videoSection || {}, yid = ytId(v.youtubeUrl);
-  const hasReel = !!(v.reelClip || v.reelThumb || v.reelUrl);
-  const sec = $('#reel');
-  if (v.enabled === false || (!yid && !hasReel)) { $('#navReel').hidden = true; return; }
-  sec.hidden = false;
-  const chips = links.slice(0, 3).map((l, i) => `<span class="chip c${i + 1}">${esc(l.label)}</span>`).join('');
-  const screen = v.reelClip ? `<video src="${esc(v.reelClip)}" muted loop playsinline preload="none" disablepictureinpicture></video>`
-    : v.reelThumb ? `<img src="${esc(v.reelThumb)}" alt="" loading="lazy" />`
-    : `<div class="ph-ph"><img src="../logo.png" alt="" />Instagram reel</div>`;
-  sec.innerHTML = `<div class="wrap reel-in">
-    <div class="reel-txt">
-      <p class="eyebrow" data-r><i></i><span>${esc(v.eyebrow || 'On screen')}</span></p>
-      <h2 class="display" id="reelH">${esc(v.title || 'Latest from the studio')}</h2>
-      ${v.reelCaption ? `<p class="cap" data-r>${esc(v.reelCaption)}</p>` : ''}
-      ${v.reelUrl ? `<a class="btn solid" data-r href="${esc(v.reelUrl)}" target="_blank" rel="noopener" data-track="video:reel">Watch the reel</a>` : ''}
-      ${yid ? `<a class="yt" data-r href="https://www.youtube.com/watch?v=${esc(yid)}" target="_blank" rel="noopener" data-track="video:youtube"><img src="https://i.ytimg.com/vi/${esc(yid)}/hqdefault.jpg" alt="" loading="lazy" /><span class="pl"></span><span class="t">${esc(v.youtubeCaption || 'Watch the film')}</span></a>` : ''}
-    </div>
-    ${hasReel ? `<div class="stagephone" id="reelStage">${chips}<div class="phone" id="phone"><div class="scr">${screen}</div></div></div>` : ''}</div>`;
-  split($('#reelH'));
-  const vid = $('video', sec);
-  if (vid) new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { vid.play().catch(() => {}); } else vid.pause(); }), { threshold: .3 }).observe(vid);
 }
 
 /* ---- catalogue grid ---- */
@@ -240,22 +207,36 @@ function renderCatalogue() {
   if (eb.url) $('#catAll').href = eb.url;
   const pad = i => String(i + 1).padStart(2, '0');
   grid.innerHTML = links.map((l, i) => {
-    const a = l.images && l.images[0], b = l.images && l.images[1];
-    return `<a class="cc${a ? '' : ' nophoto'}" href="${esc(norm(l.url))}" target="_blank" rel="noopener" data-r style="--d:${(i % 4) * 70}ms" data-track="catalogue:${esc(l.label)}">
-      <div class="cc-in">${a ? `<img src="${esc(a)}" alt="" loading="lazy" decoding="async" />` : ''}${b ? `<img src="${esc(b)}" alt="" loading="lazy" decoding="async" />` : ''}
-      <div class="cc-lab"><small>${pad(i)}</small><span>${esc(l.label)}</span><b aria-hidden="true">↗</b></div></div></a>`;
-  }).join('') + `<a class="cc all" href="${esc($('#catAll').getAttribute('href'))}" data-r data-track="catalogue-pill"><div class="cc-in"><span>See the full catalogue</span><span class="btn solid">Open</span></div></a>`;
+    const a = l.images[0], b = l.images[1];
+    return `<a class="cc" href="${esc(norm(l.url))}" target="_blank" rel="noopener" data-r style="--d:${(i % 4) * 80}ms" data-track="catalogue:${esc(l.label)}">
+      <div class="cc-in">${a ? `<img src="${esc(a)}" alt="${esc(l.label)}" loading="lazy" decoding="async" />` : ''}${b ? `<img src="${esc(b)}" alt="" loading="lazy" decoding="async" />` : ''}</div>
+      <div class="cc-lab"><small>${pad(i)}</small><span>${esc(l.label)}</span><b aria-hidden="true">↗</b></div></a>`;
+  }).join('') + `<a class="cc all" href="${esc($('#catAll').getAttribute('href'))}" data-r data-track="catalogue-pill"><div class="cc-in"><span class="t">See the full catalogue</span><span class="btn">Open</span></div></a>`;
   split($('#catTitle'));
-  if (touch) return;
-  $$('.cc', grid).forEach(c => {
-    const inn = $('.cc-in', c);
-    c.addEventListener('pointermove', e => {
-      const r = c.getBoundingClientRect(), x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
-      inn.style.setProperty('--ry', ((x - .5) * 10).toFixed(2) + 'deg'); inn.style.setProperty('--rx', ((.5 - y) * 10).toFixed(2) + 'deg');
-      inn.style.setProperty('--gx', (x * 100).toFixed(1) + '%'); inn.style.setProperty('--gy', (y * 100).toFixed(1) + '%');
-    });
-    c.addEventListener('pointerleave', () => { inn.style.setProperty('--rx', '0deg'); inn.style.setProperty('--ry', '0deg'); });
-  });
+}
+
+/* ---- reel ---- */
+function renderReel() {
+  const v = C.videoSection || {}, yid = ytId(v.youtubeUrl);
+  const hasReel = !!(v.reelClip || v.reelThumb || v.reelUrl);
+  const sec = $('#reel');
+  if (v.enabled === false || (!yid && !hasReel)) { $('#navReel').hidden = true; return; }
+  sec.hidden = false;
+  const screen = v.reelClip ? `<video src="${esc(v.reelClip)}" muted loop playsinline preload="none" disablepictureinpicture></video>`
+    : v.reelThumb ? `<img src="${esc(v.reelThumb)}" alt="" loading="lazy" />`
+    : `<div class="ph-ph"><img src="/logo.png" alt="" />Instagram reel</div>`;
+  sec.innerHTML = `<div class="wrap reel-in">
+    <div class="reel-txt">
+      <p class="eyebrow" data-r>${esc(v.eyebrow || 'On screen')}</p>
+      <h2 class="display" id="reelH">${esc(v.title || 'Latest from the studio')}</h2>
+      ${v.reelCaption ? `<p class="cap" data-r>${esc(v.reelCaption)}</p>` : ''}
+      ${v.reelUrl ? `<a class="btn solid" data-r href="${esc(v.reelUrl)}" target="_blank" rel="noopener" data-track="video:reel">Watch the reel</a>` : ''}
+      ${yid ? `<a class="yt" data-r href="https://www.youtube.com/watch?v=${esc(yid)}" target="_blank" rel="noopener" data-track="video:youtube"><img src="https://i.ytimg.com/vi/${esc(yid)}/hqdefault.jpg" alt="" loading="lazy" /><span class="pl"></span><span class="t">${esc(v.youtubeCaption || 'Watch the film')}</span></a>` : ''}
+    </div>
+    ${hasReel ? `<div class="stagephone"><div class="phone" id="phone"><div class="scr">${screen}</div></div></div>` : ''}</div>`;
+  split($('#reelH'));
+  const vid = $('video', sec);
+  if (vid) new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { vid.play().catch(() => {}); } else vid.pause(); }), { threshold: .3 }).observe(vid);
 }
 
 /* ---- the shop ---- */
@@ -272,7 +253,7 @@ function renderShop() {
   $$('.shop .display').forEach(split);
 
   const imgs = (C.storeImages || []).filter(i => imgUrl(i));
-  const list = imgs.length ? imgs : [{ url: '../storefront.jpg', focal: { x: 50, y: 20 } }];
+  const list = imgs.length ? imgs : [{ url: '/storefront.jpg', focal: { x: 50, y: 20 } }];
   const show = i => { const im = list[i], el = $('#sfImg'); el.src = abs(imgUrl(im)); const f = im.focal || {}; el.style.objectPosition = (f.x ?? 50) + '% ' + (f.y ?? 20) + '%'; $$('#thumbs button').forEach((b, k) => b.classList.toggle('on', k === i)); };
   if (list.length > 1) {
     $('#thumbs').innerHTML = list.slice(0, 5).map((im, i) => `<button type="button" aria-label="Show photo ${i + 1}"><img src="${esc(abs(imgUrl(im)))}" alt="" loading="lazy" /></button>`).join('');
@@ -329,7 +310,7 @@ function wireDialogs() {
     if (!p.name || !p.phone || !p.message) { note.textContent = 'Please add your name, phone and a message.'; return; }
     btn.disabled = true; note.textContent = 'Sending…';
     try { await post(p); $('#enqForm').hidden = true; $('#enqDone').hidden = false; }
-    catch (err) { console.warn(err); note.textContent = 'Could not send right now — please call ' + (C.contact.phone1 || 'us') + '.'; btn.disabled = false; }
+    catch (err) { console.warn(err); note.textContent = 'Could not send right now. Please call ' + (C.contact.phone1 || 'us') + '.'; btn.disabled = false; }
   });
   $('#leadF').addEventListener('submit', async e => {
     e.preventDefault();
@@ -342,16 +323,15 @@ function wireDialogs() {
                    message: `New lead from the welcome popup. Looking for: ${interest}. Reach them at: ${contact}.` });
       try { localStorage.setItem('kj_lead_done', '1'); } catch (x) {}
       $('#leadForm').hidden = true; $('#leadDone').hidden = false; setTimeout(() => closeDlg(lead), 2200);
-    } catch (err) { console.warn(err); note.textContent = 'Could not save right now — please try again.'; btn.disabled = false; }
+    } catch (err) { console.warn(err); note.textContent = 'Could not save right now. Please try again.'; btn.disabled = false; }
   });
 }
-// same frequency rules as the current site: once | day | week | session | always
+// same frequency rules as before: once | day | week | session | always
 function maybeLead() {
   const cfg = C.leadPopup || {}; if (cfg.enabled === false) return;
   const freq = cfg.frequency || 'once';
   try {
     if (localStorage.getItem('kj_lead_done') === '1') return;
-    if (freq === 'once' && localStorage.getItem('kj_lead_done') === '1') return;
     if (freq === 'session' && sessionStorage.getItem('kj_lead_seen') === '1') return;
     if (freq === 'day' || freq === 'week') { const last = +localStorage.getItem('kj_lead_ts') || 0; if (Date.now() - last < (freq === 'week' ? 7 : 1) * 864e5) return; }
   } catch (e) {}
@@ -394,25 +374,11 @@ function frame() {
   const phone = $('#phone');
   if (phone) { const r = $('#reel').getBoundingClientRect(); if (r.bottom > 0 && r.top < vh) phone.style.setProperty('--rp', clamp((vh - r.top) / (vh + r.height)).toFixed(3)); }
   const sf = $('#sf');
-  if (sf) { const r = sf.getBoundingClientRect(); if (r.bottom > 0 && r.top < vh) { const t = clamp((vh * .94 - r.top) / (vh * .5)); $('#shopArt').style.setProperty('--sp', (1 - Math.pow(1 - t, 3)).toFixed(3)); } }
-  const ft = $('.foot').getBoundingClientRect();
-  if (ft.top < vh) $('#mark').style.setProperty('--fp', clamp((vh - ft.top) / (vh + ft.height * .5)).toFixed(3));
+  if (sf && !rm) { const r = sf.getBoundingClientRect(); if (r.bottom > 0 && r.top < vh) { const t = clamp((vh * .94 - r.top) / (vh * .55)); $('#shopArt').style.setProperty('--sp', (1 - Math.pow(1 - t, 3)).toFixed(3)); } }
 }
 const tick = () => { if (!ticking) { ticking = true; requestAnimationFrame(frame); } };
 addEventListener('scroll', tick, { passive: true });
 addEventListener('resize', tick, { passive: true });
-
-/* ---------- pointer: hero parallax + cursor light ---------- */
-let tx = 0, ty = 0, cx = 0, cy = 0, praf = 0;
-function pstep() {
-  cx += (tx - cx) * .08; cy += (ty - cy) * .08;
-  const a = $('#heroArt'); a.style.setProperty('--mx', cx.toFixed(3)); a.style.setProperty('--my', cy.toFixed(3));
-  praf = (Math.abs(tx - cx) > .002 || Math.abs(ty - cy) > .002) ? requestAnimationFrame(pstep) : 0;
-}
-if (!touch && !rm) addEventListener('pointermove', e => {
-  const s = $('#spot'); s.style.setProperty('--cx', e.clientX + 'px'); s.style.setProperty('--cy', e.clientY + 'px');
-  if (scrollY < innerHeight) { tx = (e.clientX / innerWidth - .5) * 2; ty = (e.clientY / innerHeight - .5) * 2; if (!praf) praf = requestAnimationFrame(pstep); }
-}, { passive: true });
 
 /* ---------- reveals, anchors, menu, tracking ---------- */
 const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold: .15 });
@@ -439,7 +405,7 @@ $('#burger').addEventListener('click', () => {
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && document.body.classList.contains('menu-open')) { document.body.classList.remove('menu-open'); $('#burger').setAttribute('aria-expanded', 'false'); } });
 
 function initLenis() {
-  if (touch || rm) return;
+  if (touch || rm || calm) return;
   const s = document.createElement('script');
   s.src = 'https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js';
   s.onload = () => {
@@ -449,9 +415,8 @@ function initLenis() {
   document.head.appendChild(s);
 }
 
-/* ---------- intro: the shutter lifts ---------- */
+/* ---------- intro: the mark, then the page ---------- */
 function lit() {
-  document.body.classList.add('lit');
   $$('.hero [data-r]').forEach(el => el.classList.add('in'));
   $('#hTitle').classList.add('in');
 }
@@ -462,8 +427,8 @@ function intro() {
   if (rm || seen) { lit(); done(); return; }
   try { sessionStorage.setItem('kn_intro', '1'); } catch (e) {}
   sh.classList.add('up');
-  setTimeout(lit, 450);
-  setTimeout(done, 1700);
+  setTimeout(lit, 350);
+  setTimeout(done, 1500);
 }
 
 /* ---------- boot ---------- */
@@ -471,13 +436,15 @@ function intro() {
   const t0 = performance.now();
   C = await load();
   links = ((C.linkTree && C.linkTree.links) || []).filter(l => l && l.label).map(l => ({ ...l, images: (l.images || []).filter(Boolean) }));
-  pics = links.flatMap(l => l.images.slice(0, 1));
   annoH = (C.announcement && C.announcement.enabled && C.announcement.text) ? 38 : 0;
+  const ml = (C.motion && C.motion.level) || 'full';
+  if (ml === 'off' && !rm) { rm = true; document.documentElement.classList.add('rm'); }
+  calm = ml === 'calm';
   const safe = f => { try { f(); } catch (e) { console.warn('section failed', f.name, e); } };
-  [renderBasics, renderRibbon, renderSale, renderShowcase, renderReel, renderCatalogue, renderShop, renderReviews, wireDialogs].forEach(safe);
+  [renderBasics, renderSale, renderShowcase, renderCatalogue, renderReel, renderShop, renderReviews, wireDialogs].forEach(safe);
   watch(); initLenis(); tick();
   await Promise.race([document.fonts ? document.fonts.ready : Promise.resolve(), sleep(2000)]);
-  await sleep(Math.max(0, 1000 - (performance.now() - t0)));
+  await sleep(Math.max(0, 900 - (performance.now() - t0)));
   intro();
 })();
 })();

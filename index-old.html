@@ -1,0 +1,1603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#0a0807" />
+<!-- Theme boot: must be synchronous and before the stylesheet, or dark reloads flash white -->
+<script src="theme.js"></script>
+<title>Kamal Jewellers — Worn Like Water, Treasured Like Time</title>
+<meta name="robots" content="noindex" />   <!-- rollback copy of the previous homepage -->
+<meta name="description" id="metaDesc" content="Kamal Jewellers — Sadar Bazar, Delhi. Bridal, Kundan, Polki, Western & viral jewellery crafted to bring out your inner radiance." />
+
+<!-- Favicon — brand lotus monogram -->
+<link rel="icon" type="image/png" href="logo.png" />
+<link rel="apple-touch-icon" href="logo.png" />
+
+<!-- Social share (Open Graph / Twitter) -->
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Kamal Jewellers" />
+<meta property="og:title" id="ogTitle" content="Kamal Jewellers — Worn Like Water, Treasured Like Time" />
+<meta property="og:description" id="ogDesc" content="Handcrafted bridal, kundan & polki and viral jewellery in Sadar Bazar, Delhi." />
+<meta property="og:url" content="https://kamaljewellers.shop" />
+<meta property="og:image" content="https://kamaljewellers.shop/storefront.jpg" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:image" content="https://kamaljewellers.shop/storefront.jpg" />
+
+<!-- Structured data for Google (filled from content on load) -->
+<script type="application/ld+json" id="ldJson"></script>
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+<link rel="stylesheet" href="site.css?v=c89a46ee16" />
+</head>
+<body>
+
+<!-- ===== Announcement bar (admin-controlled) ===== -->
+<div class="anno" id="anno">
+  <span id="annoText"></span>
+  <span class="x" id="annoClose" title="Dismiss">✕</span>
+</div>
+
+<!-- ===== SVG filters: water displacement + liquid ripple ===== -->
+<svg class="hidden-defs" aria-hidden="true">
+  <defs>
+    <filter id="water">
+      <feTurbulence type="fractalNoise" baseFrequency="0.008 0.012" numOctaves="2" seed="7" result="noise">
+        <animate attributeName="baseFrequency" dur="22s" values="0.008 0.012;0.014 0.008;0.008 0.012" repeatCount="indefinite"/>
+      </feTurbulence>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="14" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </defs>
+</svg>
+
+<!-- ===== Loader — velvet jewellery box opening ===== -->
+<div class="loader" id="loader">
+  <div class="vbox" aria-hidden="true">
+    <div class="vbox-lid vbox-top"><span class="vbox-nap"></span><span class="vbox-pipe"></span></div>
+    <div class="vbox-lid vbox-bot"><span class="vbox-nap"></span><span class="vbox-pipe"></span></div>
+    <span class="vbox-glow"></span>
+    <span class="vbox-seam"></span>
+  </div>
+  <img class="logoMark" src="logo.png" alt="Kamal Jewellers" />
+</div>
+
+<!-- ===== Cursor ===== -->
+<div class="cursor" id="cursor"></div>
+<div class="cursor-dot" id="cursorDot"></div>
+
+<!-- ===== WebGL hero water ===== -->
+<canvas id="gl"></canvas>
+
+<!-- ===== Nav ===== -->
+<nav id="nav">
+  <a class="brand mag" href="#top" data-link><img class="brand-logo" src="logo.png" alt="" /><span class="brand-text">Kamal Jewellers<small>Sadar Bazar · Delhi</small></span></a>
+  <div class="nav-right">
+    <button class="theme-sw" id="themeSw" type="button" role="switch" aria-checked="false" aria-label="Dark mode">
+      <span class="theme-sw-track"><span class="theme-sw-knob"></span></span>
+    </button>
+    <div class="nav-toggle mag" id="navToggle"><span>Collections</span><span class="lines"><i></i><i></i></span></div>
+  </div>
+</nav>
+
+<!-- ===== Menu overlay ===== -->
+<div class="menu" id="menu">
+  <div class="eyebrow">Ten Worlds of Adornment</div>
+  <ol id="menuList"></ol>
+</div>
+
+<!-- ===== MAIN WRAP ===== -->
+<div class="wrap" id="top">
+
+  <!-- HERO -->
+  <header class="hero">
+    <div class="eyebrow reveal" id="heroEyebrow">Est. in the heart of Old Delhi</div>
+    <h1 class="reveal"><span id="heroTitle">Worn like water,</span><em id="heroTitleEm">treasured like time.</em></h1>
+    <p class="sub reveal" id="heroSub">Handcrafted bridal, kundan & polki, and the pieces breaking the internet — each one made to bring out your inner radiance.</p>
+    <div class="srch-wrap reveal" id="srchWrap">
+      <div class="srch-bar" id="srchBar">
+        <svg class="srch-ico" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" id="srchInput" placeholder="Search collections — bridal, earrings, viral…" autocomplete="off" spellcheck="false" />
+        <div class="srch-drop" id="srchDrop" aria-hidden="true"></div>
+      </div>
+    </div>
+    <div class="scroll-cue"><span>Scroll</span><span class="line"></span></div>
+  </header>
+
+  <!-- everything below sits on solid bg so the canvas only shows through the hero -->
+  <div class="solid">
+
+    <!-- RIBBON — collection names drifting under the hero (motion.js fills + shows it) -->
+    <div class="ribbon" id="ribbon" aria-hidden="true" hidden><div class="rb-track" id="rbTrack"></div></div>
+
+    <!-- FLASH SALE (shown only when admin has active sale items) -->
+    <section class="sale-sec" id="saleSec">
+      <div class="sale-head reveal">
+        <span class="eyebrow" id="saleEyebrow">Limited pieces · While stocks last</span>
+        <h2 id="saleTitle">Sale <em>now on</em></h2>
+      </div>
+      <div class="sale-track" id="saleGrid"></div>
+    </section>
+
+    <!-- VIDEO STRIP — wide YouTube feature + vertical reel -->
+    <section class="vid-sec" id="vidSec">
+      <div class="vid-head reveal">
+        <span class="eyebrow" id="vidEyebrow">On screen</span>
+        <h2 id="vidTitle">Latest from the <em>studio</em></h2>
+      </div>
+      <div class="vid-grid reveal" id="vidGrid"></div>
+    </section>
+
+    <!-- CATALOGUE SHOWCASE & COLLECTIONS TILES -->
+    <section class="cat-sec" id="collections">
+      <div class="tile-grid reveal" id="grid"></div>
+      <a class="cat-box reveal" id="catBox" href="/catalogue">
+        <div class="cat-fan" id="catFan" aria-hidden="true"></div>
+        <div class="cat-copy">
+          <span class="eyebrow" id="catEyebrow">Everything in one place</span>
+          <h2 id="catTitle">Check our <em>catalogue</em></h2>
+          <p id="catText">Every collection, every look — browse the full catalogue in one place.</p>
+          <span class="cat-cta" id="catCta">Open the catalogue <i>↗</i></span>
+        </div>
+      </a>
+    </section>
+
+    <!-- COLLECTION DETAIL PANELS (injected) -->
+    <div id="panels"></div>
+
+    <!-- REVIEWS -->
+    <!-- VISIT -->
+    <section class="visit" id="visit">
+      <div class="reveal">
+        <div class="eyebrow">Come see them shimmer</div>
+        <h3>Visit our <em>atelier</em></h3>
+        <div class="info-row"><div class="k">Address</div><div class="v" id="visitAddress">132, Main Road, Sadar Bazar,<br/>Delhi — 110006</div></div>
+        <div class="info-row" id="hoursRow"><div class="k">Hours</div><div class="v" id="visitHours">Mon – Sat · 11 AM – 8 PM</div></div>
+        <div class="info-row"><div class="k">Call</div><div class="v" id="visitPhones"><a href="tel:+919999925670" data-hover>+91 99999 25670</a><br/><a href="tel:+919811907365" data-hover>+91 98119 07365</a></div></div>
+        <div class="info-row"><div class="k">Follow</div><div class="v"><a id="visitInsta" href="https://linktr.ee/kamaljewellers_instagram" target="_blank" rel="noopener" data-hover>@kamaljewellers · Instagram ↗</a></div></div>
+      </div>
+      <div class="visit-right reveal">
+        <div class="store-card" id="storeCard">
+          <div class="store-track" id="storeTrack"></div>
+          <button class="store-nav prev" id="storePrev" aria-label="Previous photo">‹</button>
+          <button class="store-nav next" id="storeNext" aria-label="Next photo">›</button>
+          <div class="cap" id="storeCap">Our store · Sadar Bazar</div>
+          <div class="store-dots" id="storeDots"></div>
+        </div>
+        <div class="map-card" id="mapCard">
+          <iframe id="mapFrame"
+            src="https://maps.google.com/maps?q=28.6578042,77.2151573&z=17&output=embed"
+            loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Kamal Jewellers location"></iframe>
+          <a class="map-open" id="mapOpen" href="https://www.google.com/maps/place/Kamal+Jewellers/@28.6578042,77.2151573,17z" target="_blank" rel="noopener">Open in Google Maps ↗</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="reviews" id="reviews">
+      <div class="center reveal">
+        <div class="eyebrow">In their words</div>
+        <h3>Loved across Delhi</h3>
+      </div>
+      <div class="review-field" id="reviewField"></div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+      <div class="f-top">
+        <div class="f-brand"><img class="footLogo" src="logo.png" alt="Kamal Jewellers" />Kamal Jewellers
+          <p id="footBrandText">Where heritage craftsmanship meets the pieces everyone's saving on their feeds. Crafted from fine materials to bring out your inner radiance.</p>
+        </div>
+        <div class="f-col">
+          <h5>Reach Us</h5>
+          <div id="footPhones">
+            <a href="tel:+919999925670" data-hover>+91 99999 25670</a>
+            <a href="tel:+919811907365" data-hover>+91 98119 07365</a>
+          </div>
+          <p id="footAddress">132, Main Road, Sadar Bazar, Delhi — 110006</p>
+        </div>
+        <div class="f-col" id="footCols">
+          <h5>Collections</h5>
+        </div>
+      </div>
+      <div class="f-bottom">
+        <span>© <span id="yr"></span> Kamal Jewellers · Sadar Bazar, Delhi</span>
+        <a id="footInsta" href="https://linktr.ee/kamaljewellers_instagram" target="_blank" rel="noopener" data-hover>Full Collection on Instagram ↗</a>
+      </div>
+    </footer>
+
+  </div><!-- /solid -->
+</div><!-- /wrap -->
+
+<!-- ===== New collection drop popover announcement ===== -->
+<div class="drop-popover" id="dropPopover" aria-live="polite">
+  <a class="drop-toast mag" href="/catalogue">
+    <span class="drop-badge">NEW DROP</span>
+    <span class="drop-text">New collection dropped — <em>Tap to explore</em> ↗</span>
+  </a>
+  <button class="drop-close mag" id="dropClose" aria-label="Close announcement">✕</button>
+</div>
+
+<!-- ===== Floating actions (WhatsApp + Enquire) ===== -->
+<div class="fab-stack">
+  <a class="wa-btn mag" id="waBtn" target="_blank" rel="noopener" href="#"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3C9.4 3 4 8.3 4 14.9c0 2.3.6 4.4 1.8 6.3L4 29l8-2.1c1.8 1 3.8 1.5 6 1.5 6.6 0 12-5.3 12-11.9S22.6 3 16 3zm0 21.7c-1.9 0-3.7-.5-5.3-1.5l-.4-.2-4.7 1.2 1.3-4.6-.3-.4a9.6 9.6 0 0 1-1.5-5.2c0-5.4 4.5-9.8 10-9.8s10 4.4 10 9.8-4.5 9.9-10 9.9zm5.5-7.4c-.3-.2-1.8-.9-2-1-.3-.1-.5-.2-.7.1-.2.3-.8 1-.9 1.1-.2.2-.3.2-.6.1-.3-.2-1.3-.5-2.4-1.5-.9-.8-1.5-1.8-1.7-2.1-.2-.3 0-.5.1-.6l.5-.5c.2-.2.2-.3.3-.5.1-.2 0-.4 0-.5l-.9-2.2c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.2.2 2.1 3.3 5.1 4.6.7.3 1.3.5 1.7.6.7.2 1.4.2 1.9.1.6-.1 1.8-.7 2-1.4.3-.7.3-1.3.2-1.4-.1-.2-.3-.2-.6-.4z"/></svg><span class="lbl">WhatsApp</span></a>
+  <button class="enq-btn mag" id="enqBtn"><span class="dotpulse"></span><span class="lbl">Enquire</span></button>
+</div>
+<div class="enq-overlay" id="enqOverlay">
+  <div class="enq-modal">
+    <div class="x mag" id="enqClose">✕</div>
+    <div id="enqFormWrap">
+      <div class="eyebrow">We'd love to hear from you</div>
+      <h4>Make an <em>enquiry</em></h4>
+      <p class="intro2">Tell us what caught your eye — a bridal set, a viral look, a custom piece — and we'll get back to you personally.</p>
+      <form id="enqForm">
+        <div class="field"><label>Your name</label><input name="name" required maxlength="80" autocomplete="name" /></div>
+        <div class="field"><label>Phone / WhatsApp</label><input name="phone" required maxlength="30" autocomplete="tel" inputmode="tel" /></div>
+        <div class="field"><label>Email <span style="opacity:.5">(optional)</span></label><input name="email" type="email" maxlength="120" autocomplete="email" /></div>
+        <div class="field"><label>Interested in</label><select name="interest" id="enqInterest"><option value="General enquiry">General enquiry</option></select></div>
+        <div class="field"><label>Message</label><textarea name="message" required maxlength="1000" placeholder="I'd love to know more about…"></textarea></div>
+        <button class="enq-submit mag" type="submit" id="enqSubmit">Send enquiry</button>
+        <div class="enq-note" id="enqNote"></div>
+      </form>
+    </div>
+    <div class="enq-done" id="enqDone" style="display:none">
+      <div class="tick">✦</div>
+      <p>Thank you — your enquiry is with us.</p>
+      <small>We'll reach out shortly. For anything urgent, call <span id="enqDonePhone">+91 99999 25670</span>.</small>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Welcome lead-capture popup (shows once on first visit) ===== -->
+<div class="lead-ov" id="leadOv" aria-hidden="true">
+  <div class="lead-modal">
+    <button class="lead-skip" id="leadSkip" aria-label="Close" title="Tap outside or here to skip">✕</button>
+    <div id="leadFormWrap">
+      <div class="eyebrow" id="leadEyebrow">Welcome to Kamal Jewellers</div>
+      <h4 id="leadHeading">Get our <em>latest looks &amp; offers</em></h4>
+      <p class="lead-intro" id="leadIntroTxt">Leave your details and we'll send you new arrivals, viral pieces and sale alerts first. Takes 10 seconds.</p>
+      <form id="leadForm">
+        <div class="field"><label>Your name</label><input name="name" required maxlength="80" autocomplete="name" placeholder="e.g. Aarti Sharma" /></div>
+        <div class="field"><label>Email or phone</label><input name="contact" required maxlength="120" autocomplete="email" placeholder="you@email.com or +91…" /></div>
+        <div class="field"><label>What are you looking for?</label>
+          <select name="interest" id="leadInterest"><option value="Just browsing">Just browsing</option></select>
+        </div>
+        <button class="enq-submit mag" type="submit" id="leadSubmit">Keep me posted</button>
+        <div class="enq-note" id="leadNote"></div>
+        <div class="lead-dismiss" id="leadDismiss">No thanks, just let me browse</div>
+      </form>
+    </div>
+    <div class="enq-done" id="leadDone" style="display:none">
+      <div class="tick">✦</div>
+      <p>You're on the list — thank you!</p>
+      <small>We'll be in touch with the good stuff. Enjoy browsing.</small>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Sale item modal ===== -->
+<div class="sale-ov" id="saleOv" aria-hidden="true">
+  <div class="sale-modal">
+    <button class="sm-close mag" id="saleClose" aria-label="Close">✕</button>
+    <div class="sm-img" id="smImg"></div>
+    <div class="sm-body">
+      <div class="sm-off" id="smOff"></div>
+      <h3 class="sm-name" id="smName"></h3>
+      <p class="sm-note" id="smNote" style="display:none"></p>
+      <div class="sm-prices">
+        <span class="sm-orig" id="smOrig"></span>
+        <span class="sm-price" id="smPrice"></span>
+      </div>
+      <div class="sm-stock" id="smStock"></div>
+      <a class="sm-wa mag" id="smWa" target="_blank" rel="noopener">
+        <svg width="17" height="17" viewBox="0 0 32 32" fill="currentColor" aria-hidden="true"><path d="M16 3C9.4 3 4 8.3 4 14.9c0 2.3.6 4.4 1.8 6.3L4 29l8-2.1c1.8 1 3.8 1.5 6 1.5 6.6 0 12-5.3 12-11.9S22.6 3 16 3zm5.5 16.3c-.3-.2-1.8-.9-2-1-.3-.1-.5-.2-.7.1-.2.3-.8 1-.9 1.1-.2.2-.3.2-.6.1-.3-.2-1.3-.5-2.4-1.5-.9-.8-1.5-1.8-1.7-2.1-.2-.3 0-.5.1-.6l.5-.5c.2-.2.2-.3.3-.5.1-.2 0-.4 0-.5l-.9-2.2c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.2.2 2.1 3.3 5.1 4.6.7.3 1.3.5 1.7.6.7.2 1.4.2 1.9.1.6-.1 1.8-.7 2-1.4.3-.7.3-1.3.2-1.4-.1-.2-.3-.2-.6-.4z"/></svg>
+        Reserve via WhatsApp
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Collection preview card ===== -->
+<div class="tile-preview" id="tilePreview" aria-hidden="true">
+  <div class="tp-inner">
+    <button class="tp-close mag" id="tpClose" aria-label="Close">✕</button>
+    <div class="eyebrow" id="tpTag"></div>
+    <h3 id="tpName"></h3>
+    <p id="tpLede"></p>
+    <button class="catalogue-pill tp-cta" id="tpEnter">Enter now →</button>
+    <div class="tp-load" aria-hidden="true"><span></span></div>
+  </div>
+</div>
+
+<!-- ===== Libraries ===== -->
+<script src="config.js"></script>
+<script src="content-defaults.js?v=af704e786c"></script>
+<script src="tile-style.js"></script>
+<script src="motion.js?v=ea343d47ac"></script>
+<script src="track.js" defer></script>
+
+<script>
+/* ============================================================
+   CONTENT MODEL
+   Defaults live in content-defaults.js (shared with admin.html).
+   Admin saves overrides via the Cloudflare Worker (/api/content).
+   On load we fetch and deep-merge over defaults.
+   ============================================================ */
+const DEFAULTS = window.KAMAL_DEFAULTS || {};
+let CONTENT = JSON.parse(JSON.stringify(DEFAULTS));
+
+const API = ((window.KAMAL_CONFIG || {}).API_BASE) || '/api';
+
+function deepMerge(base, over){
+  if(Array.isArray(over)) return over;
+  if(over && typeof over==='object'){
+    const out = Object.assign({}, base);
+    for(const k in over){ out[k] = deepMerge(base ? base[k] : undefined, over[k]); }
+    return out;
+  }
+  return over===undefined ? base : over;
+}
+
+async function loadContent(){
+  try{
+    // A throwaway query param beats the cache without cache:'no-store',
+    // which Safari can fail outright on. That failure would be silent here —
+    // the catch below would fall back to defaults and visitors would quietly
+    // get the wrong content — so it's worth avoiding entirely.
+    const res = await fetch(API + '/content?_=' + Date.now());
+    if(!res.ok) return;
+    const { data } = await res.json();
+    if(data) CONTENT = deepMerge(DEFAULTS, data);
+  }catch(e){ console.warn('content fetch failed', e); }
+}
+
+/* ============================================================
+   RENDER HELPERS
+   ============================================================ */
+const grid = document.getElementById('grid');
+const menuList = document.getElementById('menuList');
+const panels = document.getElementById('panels');
+const footCols = document.getElementById('footCols');
+const reviewField = document.getElementById('reviewField');
+document.getElementById('yr').textContent = new Date().getFullYear();
+
+const esc = s => (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const telDigits = p => (p||'').replace(/[^0-9+]/g,'');
+const brToComma = h => (h||'').replace(/<br\s*\/?>/gi,', ');
+function setText(id,v){ const el=document.getElementById(id); if(el && v!=null) el.textContent=v; }
+function nameWithEm(name){ const e=esc(name); const i=e.indexOf(' '); return i===-1 ? e : e.slice(0,i)+'<em> '+e.slice(i+1)+'</em>'; }
+
+const waDigits = n => (n||'').replace(/[^0-9]/g,'');
+const imgUrl = x => (x==null ? null : (typeof x==='string' ? x : x.url||null));
+
+function applyContent(C){
+  setText('heroEyebrow',C.hero.eyebrow);
+  setText('heroTitle',C.hero.title);
+  setText('heroTitleEm',C.hero.titleEm);
+  setText('heroSub',C.hero.sub);
+
+  const it=document.getElementById('introText');
+  if(it){ const t=C.intro.text||'', h=C.intro.highlight;
+    it.innerHTML = (h && t.indexOf(h)>-1) ? esc(t).replace(esc(h),`<span>${esc(h)}</span>`) : esc(t); }
+
+  const addr=brToComma(C.contact.addressHtml);
+  const va=document.getElementById('visitAddress'); if(va) va.innerHTML=C.contact.addressHtml;
+  const phoneLinks = sep => `<a href="tel:${telDigits(C.contact.phone1)}" data-hover>${esc(C.contact.phone1)}</a>`+
+    (C.contact.phone2 ? `${sep}<a href="tel:${telDigits(C.contact.phone2)}" data-hover>${esc(C.contact.phone2)}</a>` : '');
+  const vp=document.getElementById('visitPhones'); if(vp) vp.innerHTML=phoneLinks('<br/>');
+  const vi=document.getElementById('visitInsta'); if(vi){ vi.href=C.instagram; vi.textContent=C.contact.instaLabel; }
+
+  // Hours
+  const hours=(C.contact.hours||'').trim();
+  const hRow=document.getElementById('hoursRow');
+  if(hRow){ if(hours){ setText('visitHours',hours); hRow.style.display=''; } else hRow.style.display='none'; }
+
+  // Map — iframe stays pinned to Sadar Bazar coordinates; button uses admin's chosen link
+  const mo=document.getElementById('mapOpen'); if(mo && C.contact.mapUrl) mo.href=C.contact.mapUrl;
+
+  setText('footBrandText',C.contact.footerBrand);
+  const fp=document.getElementById('footPhones'); if(fp) fp.innerHTML=phoneLinks('');
+  const fad=document.getElementById('footAddress'); if(fad) fad.textContent=addr;
+  const fi=document.getElementById('footInsta'); if(fi) fi.href=C.instagram;
+  const dl=document.getElementById('dirCatalogueLink');
+  if(dl){ dl.href=C.catalogueUrl||C.instagram; dl.textContent='✦ '+(C.catalogueLabel||'See Catalogue'); }
+  // Sale section heading
+  if(C.saleHead){
+    const se=document.getElementById('saleEyebrow'); if(se&&C.saleHead.eyebrow) se.textContent=C.saleHead.eyebrow;
+    const st=document.getElementById('saleTitle'); if(st&&C.saleHead.title) st.innerHTML=nameWithEm(C.saleHead.title);
+  }
+  setText('enqDonePhone',C.contact.phone1);
+
+  // WhatsApp floating button
+  const wa=waDigits(C.contact.whatsapp);
+  const waBtn=document.getElementById('waBtn');
+  if(waBtn){
+    if(wa){ waBtn.href=`https://wa.me/${wa}?text=${encodeURIComponent('Hi Kamal Jewellers, I have an enquiry.')}`; waBtn.classList.add('show'); }
+    else waBtn.classList.remove('show');
+  }
+
+  applySEO(C, addr);
+}
+
+function applySEO(C, addr){
+  const seo=C.seo||{};
+  if(seo.title){ document.title=seo.title; const o=document.getElementById('ogTitle'); if(o) o.content=seo.title; }
+  if(seo.description){
+    const m=document.getElementById('metaDesc'); if(m) m.content=seo.description;
+    const o=document.getElementById('ogDesc'); if(o) o.content=seo.description;
+  }
+  const ld=document.getElementById('ldJson');
+  if(ld){
+    const data={
+      "@context":"https://schema.org","@type":"JewelryStore",
+      name:"Kamal Jewellers",
+      description:seo.description||'',
+      image:"https://kamaljewellers.shop/storefront.jpg",
+      url:"https://kamaljewellers.shop",
+      telephone:C.contact.phone1||'',
+      address:{"@type":"PostalAddress",streetAddress:addr,addressLocality:"Delhi",postalCode:"110006",addressCountry:"IN"},
+      sameAs:[C.instagram].filter(Boolean)
+    };
+    if((C.contact.hours||'').trim()) data.openingHours=C.contact.hours;
+    ld.textContent=JSON.stringify(data);
+  }
+}
+
+/* Announcement bar — admin toggles it; visitor can dismiss until text changes */
+function initAnnouncement(C){
+  const a=C.announcement||{};
+  const bar=document.getElementById('anno');
+  if(!bar) return;
+  const txt=(a.text||'').trim();
+  const key='kj_anno_'+(txt.length+'_'+txt.slice(0,24));
+  if(!a.enabled || !txt || localStorage.getItem(key)==='1'){
+    bar.classList.remove('show'); document.body.classList.remove('has-anno'); return;
+  }
+  const span=document.getElementById('annoText');
+  span.innerHTML = a.link
+    ? `<a href="${esc(a.link)}" target="_blank" rel="noopener">${esc(txt)}</a>`
+    : esc(txt);
+  bar.classList.add('show'); document.body.classList.add('has-anno');
+  document.documentElement.style.setProperty('--anno-h', bar.offsetHeight+'px');
+  document.getElementById('annoClose').onclick=()=>{
+    bar.classList.remove('show'); document.body.classList.remove('has-anno');
+    try{ localStorage.setItem(key,'1'); }catch(e){}
+    if(window.lenis) lenis.resize();
+  };
+}
+
+const TILE_THEMES={
+  western:'gold',bridal:'ruby',kundan:'gold',earrings:'emerald',
+  rings:'gold',bracelets:'gold',viral:'ruby',popculture:'emerald',
+  mangalsutra:'ruby',hair:'emerald'
+};
+let collectionMap={};
+
+/* The "Collections" menu now opens the catalogue, matching the homepage —
+   the tile grid was replaced by the catalogue box, so the menu lists the
+   same entries as the /catalogue page rather than the raw collections. */
+function buildMenu(C){
+  if(!menuList) return;
+  menuList.innerHTML='';
+  const links=(C.linkTree&&C.linkTree.links)||[];
+  links.forEach(l=>{
+    const li=document.createElement('li');
+    li.innerHTML=`<a href="${esc(l.url||'#')}" target="_blank" rel="noopener">${esc(l.label||'Untitled')}</a>`;
+    menuList.appendChild(li);
+  });
+  // Always finish with a way into the full catalogue page itself
+  const last=document.createElement('li');
+  const cbUrl=(C.catalogueBox&&C.catalogueBox.url)||'/catalogue';
+  last.innerHTML=`<a href="${esc(cbUrl)}">See the full catalogue</a>`;
+  menuList.appendChild(last);
+
+  const eb=document.querySelector('#menu .eyebrow');
+  if(eb) eb.textContent=(C.catalogueBox&&C.catalogueBox.eyebrow)||'Everything in one place';
+}
+
+function buildCollections(C){
+  if(grid) grid.innerHTML='';
+  panels.innerHTML='';
+  footCols.querySelectorAll('a').forEach(a=>a.remove());
+  collectionMap={};
+
+  C.collections.forEach((c,i)=>{
+    collectionMap[c.id]=c;
+    const n=String(i+1).padStart(2,'0');
+    const cover=(c.images&&c.images.length)?imgUrl(c.images[0]):null;
+    const th=TILE_THEMES[c.id]||'gold';
+    const swatch = cover
+      ? `background:#0d0f12 url('${cover}') center/cover no-repeat`
+      : `background:transparent`;
+
+    // The homepage tile grid was replaced by the catalogue showcase box, so
+    // there's no #grid to fill — collections are now reached via the catalogue
+    // page, the nav menu, hero search and footer, all still built below.
+    if(grid){
+      const tile=document.createElement('button');
+      tile.className='tile mag'; tile.dataset.open=c.id; tile.dataset.theme=th;
+      const imgs=(c.images&&c.images.length)?c.images:[];
+      const swatches=imgs.length
+        ? imgs.map((u,si)=>`<div class="swatch" style="background:#0d0f12 url('${esc(imgUrl(u))}') center/cover no-repeat;opacity:${si===0?'.95':'0'}"></div>`).join('')
+        : `<div class="swatch" style="${swatch}"></div>`;
+      tile.innerHTML=`${swatches}<span class="num">${n}</span><h4>${esc(c.name)}</h4><span class="enter">Explore →</span>`;
+      grid.appendChild(tile);
+    }
+
+    const fa=document.createElement('a');
+    fa.dataset.open=c.id; fa.textContent=c.name; fa.setAttribute('data-hover','');
+    footCols.appendChild(fa);
+
+    // Build vertical feature panels (up to 6 photos, or 6 placeholders)
+    const imgs=c.images&&c.images.length ? c.images : [];
+    const list=imgs.length ? imgs : Array.from({length:6});
+    let features='';
+    list.forEach((entry,s)=>{
+      const url=entry ? imgUrl(entry) : null;
+      const meta=(entry && typeof entry==='object') ? entry : {};
+      const side=meta.side==='left' ? 'left' : (meta.side==='right' ? 'right' : (s%2 ? 'left' : 'right'));
+      const eyebrow=meta.eyebrow ? esc(meta.eyebrow) : `Look ${String(s+1).padStart(2,'0')} · ${esc(c.tag)}`;
+      const title=meta.title ? esc(meta.title) : nameWithEm(c.name);
+      const text=meta.text ? esc(meta.text) : (url ? '' : 'Add photos &amp; text in the admin panel');
+      // Photos are lazy-hydrated on first open (see hydrateFeatureImages) —
+      // up to 60 full-size photos across 10 collections would otherwise all
+      // start downloading on page load, most of which the visitor never sees.
+      const bg=`background:linear-gradient(${130+s*30}deg,${c.c1},${c.c2})`;
+      const bgData=url ? ` data-bg="${esc(url)}"` : '';
+      const lnk=(meta.link&&url) ? esc(meta.link) : '';
+      const ftag=lnk ? 'a' : 'div';
+      const fattr=lnk ? ` href="${lnk}" target="_blank" rel="noopener"` : '';
+      const px=meta.pos?.x ?? 50;
+      const py=meta.pos?.y ?? 80;
+      const pxm=meta.posMobile?.x ?? px;
+      const pym=meta.posMobile?.y ?? py;
+      const fx=meta.focal?.x ?? 50;
+      const fy=meta.focal?.y ?? 50;
+      const fxm=meta.focalMobile?.x ?? fx;
+      const fym=meta.focalMobile?.y ?? fy;
+      const fsw=meta.cardW!=null?`--fs-w:${meta.cardW}%;`:'';
+      const fswm=meta.cardWm!=null?`--fs-wm:${meta.cardWm}%;`:'';
+      const fsh=meta.cardH!=null?`--fs-h:${meta.cardH}px;`:'';
+      const fshm=meta.cardHm!=null?`--fs-hm:${meta.cardHm}px;`:'';
+      const showCard = meta.showCard !== false;
+      const showEyebrow = meta.showEyebrow !== false;
+      const showText = meta.showText !== false;
+      if(s>0) features+=`<div class="seam-blur" aria-hidden="true"></div>`;
+      features+=`<${ftag} class="feature reveal"${fattr}>
+        <div class="fimg"${bgData} style="${bg};--fi-x:${fx}%;--fi-y:${fy}%;--fi-xm:${fxm}%;--fi-ym:${fym}%"><span class="veil"></span></div>
+        ${showCard?`<div class="ftext" style="--fp-x:${px}%;--fp-y:${py}%;--fp-xm:${pxm}%;--fp-ym:${pym}%;${fsw}${fswm}${fsh}${fshm}">
+          ${showEyebrow?`<div class="eyebrow">${eyebrow}</div>`:''}
+          <h3>${title}</h3>
+          ${(text&&showText)?`<p>${text}</p>`:''}
+          ${lnk?`<span class="feat-link-cue">View →</span>`:''}
+        </div>`:''}
+      </${ftag}>`;
+    });
+
+    const sec=document.createElement('section');
+    sec.className='collection'; sec.id='c-'+c.id;
+    sec.innerHTML=`
+      <div class="topline">
+        <a class="back mag" data-back>← All collections</a>
+        <a class="catalogue-pill" href="${c.catalogueUrl||C.instagram}" target="_blank" rel="noopener">✦ ${c.catalogueCta||'Check Catalogue'}</a>
+        <span class="eyebrow">${n} / 10</span>
+      </div>
+      <div class="eyebrow">${esc(c.tag)}</div>
+      <h2>${nameWithEm(c.name)}</h2>
+      <p class="lede">${esc(c.lede)}</p>
+      <div class="showcase-stack">${features}</div>`;
+    panels.appendChild(sec);
+  });
+  startHomepageCrossfade();
+}
+
+let hpCrossfadeTimer = null;
+function startHomepageCrossfade(){
+  if(hpCrossfadeTimer){ clearInterval(hpCrossfadeTimer); hpCrossfadeTimer = null; }
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const cursors = new WeakMap();
+  hpCrossfadeTimer = setInterval(()=>{
+    const tiles = Array.from(document.querySelectorAll('#grid .tile'));
+    tiles.forEach((tile, i)=>{
+      const swatches = tile.querySelectorAll('.swatch');
+      if(swatches.length < 2) return;
+      setTimeout(()=>{
+        const cur = cursors.get(tile) || 0;
+        const next = (cur + 1) % swatches.length;
+        swatches[cur].style.opacity = '0';
+        swatches[next].style.opacity = '.95';
+        cursors.set(tile, next);
+      }, i * 300); // 0.3s staggered delay per tile from top to bottom
+    });
+  }, 4500);
+}
+
+function buildReviews(C){
+  reviewField.innerHTML='';
+  (C.reviews||[]).forEach(r=>{
+    const d=document.createElement('div'); d.className='gcard';
+    d.innerHTML=`<div class="stars">★ ★ ★ ★ ★</div><p>“${esc(r.t)}”</p><div class="who">${esc(r.w)} · 5.0</div>`;
+    reviewField.appendChild(d);
+  });
+}
+
+function setupReviewFloat(){
+  if(matchMedia('(prefers-reduced-motion:reduce)').matches) return;
+  document.querySelectorAll('.gcard').forEach((c,i)=>{
+    c.animate([
+      {transform:'translateY(0)'},{transform:'translateY(-14px)'},{transform:'translateY(0)'}
+    ],{duration:5200+i*900,iterations:Infinity,easing:'ease-in-out',delay:i*400});
+  });
+}
+
+/* ============================================================
+   FLASH SALE
+   ============================================================ */
+const saleOv = document.getElementById('saleOv');
+let _saleWa = null; // href set per item
+
+function openSaleModal(item){
+  const sp = Math.round(item.originalPrice * (1 - item.discountPct/100));
+  document.getElementById('smOff').textContent = `−${item.discountPct}% OFF`;
+  document.getElementById('smName').textContent = item.name;
+  const note = document.getElementById('smNote');
+  if(item.note){ note.textContent=item.note; note.style.display=''; }
+  else note.style.display='none';
+  document.getElementById('smOrig').textContent = `₹${item.originalPrice.toLocaleString('en-IN')}`;
+  document.getElementById('smPrice').textContent = `₹${sp.toLocaleString('en-IN')}`;
+  const stk = document.getElementById('smStock');
+  if(item.stock > 0 && item.stock <= 3){ stk.textContent=`Only ${item.stock} left!`; stk.classList.add('show'); }
+  else stk.classList.remove('show');
+  const si = document.getElementById('smImg');
+  si.innerHTML = item.photo ? `<img src="${esc(item.photo)}" alt="${esc(item.name)}" />` : '';
+  const wa = waDigits(CONTENT.contact.whatsapp);
+  const msg = encodeURIComponent(`Hi Kamal Jewellers! I'm interested in "${item.name}" (Sale price: ₹${sp.toLocaleString('en-IN')}). Is it available?`);
+  document.getElementById('smWa').href = wa ? `https://wa.me/${wa}?text=${msg}` : '#';
+  saleOv.classList.add('open'); saleOv.removeAttribute('aria-hidden');
+  if(window.lenis) window.lenis.stop();
+}
+function closeSaleModal(){
+  saleOv.classList.remove('open'); saleOv.setAttribute('aria-hidden','true');
+  if(window.lenis) window.lenis.start();
+}
+document.getElementById('saleClose').addEventListener('click', closeSaleModal);
+saleOv.addEventListener('click', e=>{ if(e.target===saleOv) closeSaleModal(); });
+document.addEventListener('keydown', e=>{ if(e.key==='Escape' && saleOv.classList.contains('open')) closeSaleModal(); });
+
+function buildSale(C){
+  const sec = document.getElementById('saleSec');
+  const track = document.getElementById('saleGrid');
+  const items = (C.saleItems||[]).filter(i=>i.active && i.stock > 0);
+  sec.classList.toggle('live', items.length > 0);
+  if(!items.length){ track.innerHTML=''; return; }
+  const cover = it => (it.images && it.images[0]) || it.photo || '';
+  track.innerHTML = items.map(item=>{
+    const sp = Math.round(item.originalPrice * (1 - item.discountPct/100));
+    const low = item.stock > 0 && item.stock <= 3;
+    const img = cover(item);
+    return `<a class="sale-card mag" href="product.html?id=${encodeURIComponent(item.id)}" data-sale-id="${esc(item.id)}">
+      <div class="sc-off">−${item.discountPct}% OFF</div>
+      <div class="sc-img">${img?`<img src="${esc(img)}" alt="${esc(item.name)}" loading="lazy"/>`:'<div style="height:100%"></div>'}</div>
+      <div class="sc-body">
+        <h4 class="sc-name">${esc(item.name)}</h4>
+        ${item.note?`<p class="sc-note">${esc(item.note)}</p>`:''}
+        <div class="sc-prices">
+          <span class="sc-orig">₹${item.originalPrice.toLocaleString('en-IN')}</span>
+          <span class="sc-sale">₹${sp.toLocaleString('en-IN')}</span>
+        </div>
+        ${low?`<div class="sc-stock show">Only ${item.stock} left!</div>`:''}
+        <span class="sc-btn">View piece →</span>
+      </div>
+    </a>`;
+  }).join('');
+}
+
+/* ============================================================
+   ENQUIRY WIDGET
+   ============================================================ */
+function setupEnquiry(C){
+  const sel=document.getElementById('enqInterest');
+  if(sel){
+    sel.innerHTML='<option value="General enquiry">General enquiry</option>'+
+      C.collections.map(c=>`<option value="${esc(c.name)}">${esc(c.name)}</option>`).join('')+
+      '<option value="Custom / bespoke piece">Custom / bespoke piece</option>';
+  }
+}
+const enqOverlay=document.getElementById('enqOverlay');
+function openEnq(v){ enqOverlay.classList.toggle('open',v); if(window.lenis){ v?lenis.stop():lenis.start(); } }
+document.getElementById('enqBtn').addEventListener('click',()=>openEnq(true));
+document.getElementById('enqClose').addEventListener('click',()=>openEnq(false));
+enqOverlay.addEventListener('click',e=>{ if(e.target===enqOverlay) openEnq(false); });
+document.getElementById('enqForm').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const f=e.target, btn=document.getElementById('enqSubmit'), note=document.getElementById('enqNote');
+  const payload={
+    name:f.name.value.trim(), phone:f.phone.value.trim(),
+    email:f.email.value.trim()||null, interest:f.interest.value,
+    message:f.message.value.trim()
+  };
+  if(!payload.name||!payload.phone||!payload.message){ note.textContent='Please add your name, phone and a message.'; return; }
+  btn.disabled=true; note.textContent='Sending…';
+  try{
+    const res = await fetch(API + '/enquiries', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if(!res.ok){ const d=await res.json().catch(()=>({})); throw new Error(d.error||res.statusText); }
+    document.getElementById('enqFormWrap').style.display='none';
+    document.getElementById('enqDone').style.display='block';
+  }catch(err){
+    console.warn('enquiry failed', err);
+    note.textContent='Could not send right now — please call us at '+CONTENT.contact.phone1+'.';
+    btn.disabled=false;
+  }
+});
+
+/* ============================================================
+   WELCOME LEAD-CAPTURE POPUP
+   Timing + frequency are admin-controlled via Settings → Welcome popup.
+   Submits into the same enquiries inbox as the Enquire form.
+   ============================================================ */
+const LEAD_KEY='kj_lead_done';   // legacy "once" flag
+const LEAD_TS='kj_lead_ts';      // last-shown timestamp for day/week
+const leadOv=document.getElementById('leadOv');
+function leadCfg(){ return (CONTENT.leadPopup)||{enabled:true,delaySec:1,frequency:'once'}; }
+function leadClose(){ leadOv.classList.remove('open'); leadOv.setAttribute('aria-hidden','true'); if(window.lenis) lenis.start(); }
+function leadMarkSeen(){
+  const freq=leadCfg().frequency||'once';
+  try{
+    if(freq==='session') sessionStorage.setItem('kj_lead_seen','1');
+    else if(freq==='once') localStorage.setItem(LEAD_KEY,'1');
+    else if(freq==='day'||freq==='week') localStorage.setItem(LEAD_TS, String(Date.now()));
+    // 'always' records nothing
+  }catch(e){}
+}
+function leadSeenRecently(){
+  const freq=leadCfg().frequency||'once';
+  try{ if(localStorage.getItem(LEAD_KEY)==='1') return true; }catch(e){} // already converted/opted out → never again
+  if(freq==='always') return false;
+  try{
+    if(freq==='session') return sessionStorage.getItem('kj_lead_seen')==='1';
+    if(freq==='once') return localStorage.getItem(LEAD_KEY)==='1';
+    const last=parseInt(localStorage.getItem(LEAD_TS)||'0',10);
+    const span=freq==='week'?7*864e5:864e5; // day default
+    return (Date.now()-last) < span;
+  }catch(e){ return false; }
+}
+function leadOpen(){
+  // apply editable copy from Studio
+  const cfg=leadCfg();
+  if(cfg.eyebrow)  document.getElementById('leadEyebrow').textContent=cfg.eyebrow;
+  if(cfg.heading)  document.getElementById('leadHeading').innerHTML=nameWithEm(cfg.heading);
+  if(cfg.intro)    document.getElementById('leadIntroTxt').textContent=cfg.intro;
+  if(cfg.btnLabel) document.getElementById('leadSubmit').textContent=cfg.btnLabel;
+  // fill "what are you looking for" from the live collections
+  const sel=document.getElementById('leadInterest');
+  if(sel && CONTENT.collections){
+    sel.innerHTML='<option value="Just browsing">Just browsing</option>'+
+      CONTENT.collections.map(c=>`<option value="${esc(c.name)}">${esc(c.name)}</option>`).join('')+
+      '<option value="A piece on sale">A piece on sale</option>'+
+      '<option value="Custom / bespoke piece">Custom / bespoke piece</option>';
+  }
+  leadOv.classList.add('open'); leadOv.removeAttribute('aria-hidden');
+  leadMarkSeen();  // count this view against the chosen frequency
+  if(window.lenis) lenis.stop();
+}
+function maybeShowLead(){
+  const cfg=leadCfg();
+  if(cfg.enabled===false) return;
+  if(leadSeenRecently()) return;
+  const delay=Math.max(0,(cfg.delaySec!=null?cfg.delaySec:1)*1000);
+  setTimeout(leadOpen, delay);
+}
+// dismiss: click backdrop, ✕, "no thanks" link, or Esc
+leadOv.addEventListener('click', e=>{ if(e.target===leadOv){ leadClose(); } });
+document.getElementById('leadSkip').addEventListener('click', leadClose);
+document.getElementById('leadDismiss').addEventListener('click', leadClose);
+document.addEventListener('keydown', e=>{ if(e.key==='Escape' && leadOv.classList.contains('open')){ leadClose(); } });
+document.getElementById('leadForm').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const f=e.target, btn=document.getElementById('leadSubmit'), note=document.getElementById('leadNote');
+  const name=f.name.value.trim(), contact=f.contact.value.trim(), interest=f.interest.value;
+  if(!name||!contact){ note.textContent='Please add your name and an email or phone.'; return; }
+  const isEmail=/@/.test(contact);
+  const payload={
+    name,
+    phone:contact,                 // endpoint requires a phone field — store the contact here
+    email:isEmail?contact:null,
+    interest:'Welcome popup · '+interest,
+    message:`New lead from the welcome popup. Looking for: ${interest}. Reach them at: ${contact}.`
+  };
+  btn.disabled=true; note.textContent='Saving…';
+  try{
+    const res=await fetch(API+'/enquiries',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    if(!res.ok){ const d=await res.json().catch(()=>({})); throw new Error(d.error||res.statusText); }
+    try{ localStorage.setItem(LEAD_KEY,'1'); }catch(e){}  // a converted visitor never sees it again
+    document.getElementById('leadFormWrap').style.display='none';
+    document.getElementById('leadDone').style.display='block';
+    setTimeout(leadClose, 2200);
+  }catch(err){
+    console.warn('lead failed', err);
+    note.textContent='Could not save right now — please try again.';
+    btn.disabled=false;
+  }
+});
+
+/* ============================================================
+   LENIS SMOOTH (liquid momentum) SCROLL
+   Loaded on demand, desktop only — mobile uses native scroll (faster,
+   and skips the ~15KB fetch entirely) and never even requests the file.
+   ============================================================ */
+let vel=0, lenis;
+// Nav-bg-on-scroll + parallax: native listener covers mobile always, and
+// desktop until Lenis (if any) finishes loading — see initScroll below.
+function navScrollHandler(){ nav.classList.toggle('scrolled',window.scrollY>40); runParallax(); }
+window.addEventListener('scroll',navScrollHandler,{passive:true});
+(function initScroll(){
+  if(matchMedia('(hover:none)').matches) return;
+  const s=document.createElement('script');
+  s.src='https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js';
+  s.onload=()=>{
+    lenis=new Lenis({
+      duration:1.5,
+      easing:t=>Math.min(1,1.001-Math.pow(2,-10*t)),
+      smoothWheel:true,
+      wheelMultiplier:0.95
+    });
+    function raf(t){ lenis.raf(t); requestAnimationFrame(raf); }
+    requestAnimationFrame(raf);
+    window.lenis=lenis;
+    window.removeEventListener('scroll',navScrollHandler);
+    lenis.on('scroll',({scroll,velocity})=>{
+      vel=velocity;
+      nav.classList.toggle('scrolled',scroll>40);
+      runParallax();
+    });
+  };
+  document.head.appendChild(s);
+})();
+
+/* ============================================================
+   WEBGL — molten gold caustic water (hero background)
+   ============================================================ */
+(function(){
+  const cv=document.getElementById('gl');
+  const gl=cv.getContext('webgl');
+  if(!gl){
+    // No WebGL: a flat gradient stands in, and it still has to follow the theme.
+    const paint=()=>{ cv.style.background=(window.KJTheme&&KJTheme.get()==='dark')
+      ? 'radial-gradient(circle at 50% 40%,#2a1f0c,#0a0807)'
+      : 'radial-gradient(circle at 50% 40%,#fdfaf3,#efe7d6)'; };
+    paint(); addEventListener('kj:theme',paint); return;
+  }
+
+  const vs=`attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}`;
+  const fs=`
+  precision highp float;
+  uniform vec2 R; uniform float T; uniform float V;
+  // 0.0 = black gold, 1.0 = white gold. Mixed rather than branched so the
+  // switch can be animated across themes instead of snapping.
+  uniform float L;
+
+  mat2 rot(float a){float c=cos(a),s=sin(a);return mat2(c,-s,s,c);}
+
+  // Per-cell randomness for the glass panes.
+  float hash21(vec2 p){
+    p=fract(p*vec2(123.34,456.21));
+    p+=dot(p,p+45.32);
+    return fract(p.x*p.y);
+  }
+
+  // The flowing gold field. Pulled out into a function because the glass
+  // above it has to sample it MORE THAN ONCE — refracted, and once per
+  // colour channel — which is the whole basis of the effect below.
+  float field(vec2 uv,float t){
+    vec2 q=uv*3.0;
+    float acc=0.0;
+    for(int i=0;i<5;i++){
+      float fi=float(i);
+      q*=rot(0.5+fi*0.3);
+      q+=vec2(sin(t+fi*1.3), cos(t*0.8+fi));
+      acc += abs(sin(q.x+t)*cos(q.y - t*0.7))/(fi+1.0);
+    }
+    return pow(acc*0.6,1.9);
+  }
+
+  // Height of the glass sheet at a point — two slow crossing swells. Kept
+  // deliberately smooth and low-frequency: this is a poured, polished pane
+  // catching light, not rippling water.
+  float glassH(vec2 uv,float t){
+    return sin(uv.x*2.1+t*0.5)*cos(uv.y*1.7-t*0.42)*0.6
+         + sin((uv.x+uv.y)*3.3-t*0.34)*0.4;
+  }
+
+  vec3 ramp(float c,float L){
+    vec3 deep  =mix(vec3(0.05,0.035,0.02), vec3(0.973,0.953,0.906), L);
+    vec3 gold  =mix(vec3(0.95,0.70,0.22),  vec3(0.898,0.831,0.678), L);
+    vec3 bright=mix(vec3(1.0,0.88,0.48),   vec3(0.643,0.482,0.157), L);
+    vec3 col=mix(deep,gold,clamp(c,0.0,1.0));
+    return mix(col,bright,clamp(c-0.6,0.0,1.0));
+  }
+
+  void main(){
+    vec2 uv=(gl_FragCoord.xy-0.5*R)/R.y;
+    float t=T*0.15 + V*0.0009;
+
+    // ---- Clear glass over the gradient ----
+    // The pane's surface normal, from the gradient of its height. Everything
+    // else here derives from this one vector: which way each patch of glass
+    // is tilted decides where it bends the gold behind it and where it throws
+    // a highlight back at you.
+    float e=0.012;
+    float h =glassH(uv,T);
+    float hx=glassH(uv+vec2(e,0.0),T);
+    float hy=glassH(uv+vec2(0.0,e),T);
+    vec2 slope=vec2(hx-h,hy-h)/e;
+    vec3 N=normalize(vec3(-slope*0.05,1.0));
+
+    // Refraction: look at the gold THROUGH the glass, so the gradient bends
+    // as the sheet undulates instead of sitting flat behind it.
+    vec2 bend=slope*0.035;
+
+    // Dispersion — each channel bends by a slightly different amount. This is
+    // the single detail that separates "clear glass" from "a blurry overlay":
+    // real glass splits what it transmits.
+    float cr=field(uv+bend*1.12,t);
+    float cg=field(uv+bend*1.00,t);
+    float cb=field(uv+bend*0.88,t);
+    vec3 col=vec3(ramp(cr,L).r,ramp(cg,L).g,ramp(cb,L).b);
+
+    float vig=smoothstep(1.25,0.2,length(uv));
+    // Dark: multiply the edges down to black. Light: multiplying would grey
+    // the ground into something dingy, so fade toward the page colour instead.
+    col*=mix(vig*1.25,1.0,L);
+    col=mix(col,vec3(0.973,0.949,0.898),(1.0-vig)*L*0.85);
+
+    // ---- Reflections ----
+    // A specular lobe from a light that drifts overhead. Tight exponent so it
+    // reads as a hard glint on a polished surface rather than a soft glow.
+    vec3 Ldir=normalize(vec3(sin(T*0.16)*0.7,cos(T*0.13)*0.55,0.85));
+    float spec=pow(max(0.0,dot(N,Ldir)),42.0);
+
+    // A broad reflection sweeping slowly across the pane — the moving band
+    // you see travel over glass as you pass it.
+    float sweepPos=fract((uv.x*0.55+uv.y*0.42)*0.32 - T*0.028);
+    float sweep=pow(smoothstep(1.0,0.0,abs(sweepPos-0.5)*2.6),3.0);
+
+    // Fresnel: glass reflects hardest where it is tilted away from you, which
+    // is what puts a bright rim on every swell.
+    float fres=pow(1.0-max(0.0,N.z),2.2);
+
+    // The reflection is TINTED BY THE GRADIENT it sits on, not flat white —
+    // a reflection that ignores what it is reflecting reads as fog.
+    vec3 tint=mix(vec3(1.0,0.94,0.78),col*1.35+0.25,0.55);
+    col+=tint*(spec*mix(0.5,0.34,L) + sweep*mix(0.10,0.07,L) + fres*mix(0.12,0.07,L));
+
+    // ---- Panes ----
+    // The sheet is cut into panels. Triangular cells, because square ones read
+    // as tiling the moment you look at them.
+    vec2 fq=rot(0.45)*(uv*4.2);
+    vec2 fid=floor(fq); vec2 ff=fract(fq);
+    float tri=step(ff.x+ff.y,1.0);
+    float fh=hash21(fid+tri*23.1);
+    float edge=min(min(ff.x,ff.y),abs(1.0-ff.x-ff.y));
+
+    // Each edge is a BEVEL, not a line: a crisp bright rim exactly on the cut,
+    // with a soft shaded band just inside it. That pairing is what makes an
+    // edge read as clear glass having thickness. A single dark line — which is
+    // what this was before — reads as a crease in paper instead.
+    float rim  =smoothstep(0.020,0.0,edge);
+    float inner=smoothstep(0.070,0.020,edge)*(1.0-rim);
+    col+=rim  *mix(vec3(0.26,0.23,0.15),vec3(0.13,0.13,0.125),L);
+    col-=inner*mix(vec3(0.022,0.020,0.014),vec3(0.055,0.052,0.044),L);
+
+    // Panes are never perfectly matched — a hair of variation in how much
+    // light each one lets through.
+    col+=(fh-0.5)*mix(0.030,0.020,L);
+
+    // Ruby/emerald glints from the jewellery world.
+    float gr=pow(max(0.0,sin(uv.x*4.0+t*2.0)),8.0);
+    float ge=pow(max(0.0,cos(uv.y*5.0-t*1.5)),8.0);
+    // On black these are added as coloured LIGHT. On pearl adding light does
+    // nothing (it is already near 1.0) and subtracting inverts the hue —
+    // taking red and blue out of white leaves green, which is what turned the
+    // hero into pink and green blotches. Tinting toward the stone is the only
+    // version that stays the colour it is named after.
+    vec3 add=vec3(0.18,0.0,0.06)*gr+vec3(0.0,0.14,0.07)*ge;
+    vec3 tinted=mix(col,vec3(0.870,0.706,0.741),gr*0.16);
+    tinted=mix(tinted,vec3(0.729,0.835,0.780),ge*0.13);
+    col=mix(col+add,tinted,L);
+
+    gl_FragColor=vec4(clamp(col,0.0,1.0),1.0);
+  }`;
+
+  // A shader that fails to compile draws nothing and says nothing, so the
+  // symptom is a blank hero with a clean console — which is a genuinely
+  // confusing thing to debug. Report it, and fall back to a flat gradient so
+  // the page still looks deliberate.
+  function sh(type,src){
+    const s=gl.createShader(type);
+    gl.shaderSource(s,src); gl.compileShader(s);
+    if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)){
+      console.error('[hero] shader failed to compile:\n'+gl.getShaderInfoLog(s));
+      return null;
+    }
+    return s;
+  }
+  const vsh=sh(gl.VERTEX_SHADER,vs), fsh=sh(gl.FRAGMENT_SHADER,fs);
+  if(!vsh||!fsh){
+    const paint=()=>{ cv.style.background=(window.KJTheme&&KJTheme.get()==='dark')
+      ? 'radial-gradient(circle at 50% 40%,#2a1f0c,#0a0807)'
+      : 'radial-gradient(circle at 50% 40%,#fdfaf3,#efe7d6)'; };
+    paint(); addEventListener('kj:theme',paint); return;
+  }
+  const prog=gl.createProgram();
+  gl.attachShader(prog,vsh);
+  gl.attachShader(prog,fsh);
+  gl.linkProgram(prog);
+  if(!gl.getProgramParameter(prog,gl.LINK_STATUS)){
+    console.error('[hero] shader link failed:\n'+gl.getProgramInfoLog(prog));
+  }
+  gl.useProgram(prog);
+
+  const buf=gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
+  const loc=gl.getAttribLocation(prog,'p');
+  gl.enableVertexAttribArray(loc);
+  gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
+
+  const uR=gl.getUniformLocation(prog,'R');
+  const uT=gl.getUniformLocation(prog,'T');
+  const uV=gl.getUniformLocation(prog,'V');
+  const uL=gl.getUniformLocation(prog,'L');
+
+  // Theme, eased rather than snapped — the hero is the largest thing on
+  // screen and an instant palette flip reads as a glitch. lightTarget is
+  // the truth, lightMix chases it a frame at a time.
+  let lightTarget=(window.KJTheme && KJTheme.get()==='dark')?0:1;
+  let lightMix=lightTarget;
+  addEventListener('kj:theme',e=>{ lightTarget=e.detail.theme==='dark'?0:1; });
+
+  function size(){
+    const dpr=matchMedia('(hover:none)').matches?Math.min(devicePixelRatio||1,.6):Math.min(devicePixelRatio||1,1.0);
+    cv.width=innerWidth*dpr; cv.height=innerHeight*dpr;
+    gl.viewport(0,0,cv.width,cv.height);
+  }
+  size(); addEventListener('resize',size);
+
+  let smoothV=0, glPaused=false;
+  const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+  const start=performance.now();
+  new IntersectionObserver(([e])=>{ glPaused=!e.isIntersecting; },{threshold:0})
+    .observe(cv);
+  function draw(now){
+    smoothV+=((Math.abs(vel)*40)-smoothV)*0.05;
+    lightMix+=(lightTarget-lightMix)*0.08;
+    if(Math.abs(lightTarget-lightMix)<0.002) lightMix=lightTarget;
+    gl.uniform2f(uR,cv.width,cv.height);
+    gl.uniform1f(uT,(now-start)/1000);
+    gl.uniform1f(uV,smoothV);
+    gl.uniform1f(uL,lightMix);
+    gl.drawArrays(gl.TRIANGLES,0,3);
+  }
+  (function loop(now){
+    if(!glPaused) draw(now);
+    if(!reduce) requestAnimationFrame(loop); // reduced-motion: render one static frame
+  })(start);
+  // Under reduced motion nothing is animating, so a theme switch would
+  // otherwise leave the hero painted in the old palette until a resize.
+  if(reduce) addEventListener('kj:theme',()=>{ lightMix=lightTarget; draw(performance.now()); });
+})();
+
+/* ============================================================
+   CUSTOM CURSOR + MAGNETIC HOVER
+   ============================================================ */
+const cur=document.getElementById('cursor');
+const dot=document.getElementById('cursorDot');
+if(!matchMedia('(hover:none)').matches && cur && dot){
+  let mx=innerWidth/2,my=innerHeight/2,cx=mx,cy=my,curRaf=null;
+  function updateCur(){
+    cx+=(mx-cx)*0.18; cy+=(my-cy)*0.18;
+    cur.style.transform=`translate(${cx}px,${cy}px) translate(-50%,-50%)`;
+    if(Math.abs(mx-cx)>0.05 || Math.abs(my-cy)>0.05){
+      curRaf=requestAnimationFrame(updateCur);
+    } else {
+      curRaf=null;
+    }
+  }
+  addEventListener('mousemove',e=>{
+    mx=e.clientX; my=e.clientY;
+    dot.style.transform=`translate(${mx}px,${my}px) translate(-50%,-50%)`;
+    if(!curRaf) curRaf=requestAnimationFrame(updateCur);
+  },{passive:true});
+}
+
+function bindMagnets(){
+  document.querySelectorAll('.mag').forEach(el=>{
+    if(el.dataset.mag)return; el.dataset.mag='1';
+    const strength=el.classList.contains('brand')?12:22;
+    el.addEventListener('mousemove',e=>{
+      const r=el.getBoundingClientRect();
+      const x=e.clientX-(r.left+r.width/2);
+      const y=e.clientY-(r.top+r.height/2);
+      el.style.transition='transform .15s var(--ease)';
+      el.style.transform=`translate(${x/r.width*strength}px,${y/r.height*strength}px)`;
+      cur.classList.add('grow');
+    });
+    el.addEventListener('mouseleave',()=>{
+      el.style.transition='transform .6s var(--ease)';
+      el.style.transform='';
+      cur.classList.remove('grow');
+    });
+  });
+  document.querySelectorAll('[data-hover]').forEach(el=>{
+    if(el.dataset.h)return; el.dataset.h='1';
+    el.addEventListener('mouseenter',()=>cur.classList.add('grow'));
+    el.addEventListener('mouseleave',()=>cur.classList.remove('grow'));
+  });
+}
+
+/* ============================================================
+   SCROLL REVEAL
+   ============================================================ */
+const io=new IntersectionObserver(es=>{
+  es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} });
+},{threshold:0.15});
+function watchReveals(scope=document){ scope.querySelectorAll('.reveal').forEach(el=>io.observe(el)); }
+
+/* ============================================================
+   MENU
+   ============================================================ */
+const navToggle=document.getElementById('navToggle');
+const menu=document.getElementById('menu');
+function toggleMenu(open){
+  document.body.classList.toggle('menu-open',open);
+  if(lenis){ open?lenis.stop():lenis.start(); }
+}
+navToggle.addEventListener('click',()=>toggleMenu(!document.body.classList.contains('menu-open')));
+// Catalogue links open in a new tab, so close the overlay behind them —
+// otherwise you come back to a menu still covering the page.
+menuList.addEventListener('click',e=>{ if(e.target.closest('a')) toggleMenu(false); });
+
+/* ============================================================
+   ROUTING (instant, no transition overlay)
+   ============================================================ */
+const nav=document.getElementById('nav');
+let lastScroll=0;
+
+/* Feature-image parallax — only the active collection's images, desktop only */
+const reduceMotion=matchMedia('(prefers-reduced-motion:reduce)').matches;
+let activeFimgs=[];
+function setupParallax(sec){
+  activeFimgs=(reduceMotion||innerWidth<=760) ? [] : [...sec.querySelectorAll('.fimg')];
+  runParallax();
+}
+function runParallax(){
+  if(!activeFimgs.length) return;
+  const vh=innerHeight;
+  for(const el of activeFimgs){
+    const r=el.getBoundingClientRect();
+    const off=((r.top+r.height/2)-vh/2)/vh; // -0.5 .. +0.5 across the viewport
+    el.style.transform=`translate3d(0,${(-off*46).toFixed(1)}px,0)`;
+  }
+}
+
+// Photo URLs are held in data-bg (see buildCollections) instead of the
+// initial inline style, so the browser never fetches them until the
+// collection they belong to is actually opened.
+function hydrateFeatureImages(sec){
+  sec.querySelectorAll('.fimg[data-bg]').forEach(el=>{
+    el.style.backgroundImage=`url('${el.dataset.bg}')`;
+    el.removeAttribute('data-bg');
+  });
+}
+
+// `pushState:false` is used when we're reacting to browser navigation
+// (popstate) or a deep link — the history entry already exists, or the
+// hash is already in the URL, so pushing again would create a duplicate.
+function openCollection(id, opts={}){
+  const sec=document.getElementById('c-'+id);
+  if(!sec) return;
+  if(document.body.classList.contains('menu-open')) toggleMenu(false);
+  if(!document.body.classList.contains('viewing')) lastScroll=lenis?lenis.scroll:window.scrollY;
+  document.querySelectorAll('.collection').forEach(s=>s.classList.remove('active'));
+  sec.classList.add('active');
+  hydrateFeatureImages(sec);
+  document.body.classList.add('viewing');
+  const th=TILE_THEMES[id]||'gold';
+  document.body.classList.remove('theme-gold','theme-ruby','theme-emerald');
+  document.body.classList.add('theme-'+th);
+  if(opts.pushState!==false) history.pushState({kjCollection:id},'','#'+id);
+  if(lenis){ lenis.resize(); lenis.scrollTo(0,{immediate:true}); }
+  else window.scrollTo({top:0,behavior:'instant'});
+  watchReveals(sec);   // features fade in on scroll via IntersectionObserver
+  bindMagnets();
+  setupParallax(sec);
+}
+
+function closeCollection(opts={}){
+  clearTileTheme();
+  document.querySelectorAll('.collection').forEach(s=>s.classList.remove('active'));
+  document.body.classList.remove('viewing');
+  activeFimgs=[];
+  if(opts.pushState!==false && location.hash) history.pushState({},'',location.pathname+location.search);
+  if(lenis){ lenis.resize(); lenis.scrollTo(lastScroll,{immediate:true}); }
+  else window.scrollTo({top:lastScroll,behavior:'instant'});
+}
+
+// Phone/browser back while a collection is open closes it instead of
+// exiting the site — same effect as tapping "← All collections".
+function leaveCollection(){
+  if(location.hash) history.back();
+  else closeCollection();
+}
+window.addEventListener('popstate',()=>{
+  const id=location.hash.slice(1);
+  if(id && collectionMap[id]){
+    if(!document.getElementById('c-'+id)?.classList.contains('active')) openCollection(id,{pushState:false});
+  } else if(document.querySelector('.collection.active')){
+    closeCollection({pushState:false});
+  }
+});
+
+/* Single-tap intro: tile → themed loading card (3s) → blends into the collection */
+let introId=null, loadTimer=null;
+const INTRO_MS=1500;
+function clearLoadTimer(){ if(loadTimer){ clearTimeout(loadTimer); loadTimer=null; } }
+
+function startIntro(tile){
+  clearLoadTimer();
+  document.querySelectorAll('.tile.selected').forEach(t=>t.classList.remove('selected'));
+  tile.classList.add('selected');
+  const th=tile.dataset.theme||'gold';
+  document.body.classList.remove('theme-gold','theme-ruby','theme-emerald');
+  document.body.classList.add('theme-'+th);
+  introId=tile.dataset.open;
+  const c=collectionMap[introId];
+  if(c){
+    document.getElementById('tpTag').textContent=c.tag;
+    document.getElementById('tpName').innerHTML=nameWithEm(c.name);
+    const lede=c.lede||'';
+    const parts=lede.split('. ');
+    document.getElementById('tpLede').textContent=parts.slice(0,2).join('. ')+(parts.length>2?'.':'');
+  }
+  const p=document.getElementById('tilePreview');
+  // restart the 3s progress fill from zero
+  const fill=p.querySelector('.tp-load span');
+  if(fill){ fill.style.animation='none'; void fill.offsetWidth; fill.style.animation=''; }
+  p.classList.add('show'); p.removeAttribute('aria-hidden');
+  loadTimer=setTimeout(enterIntro,INTRO_MS);
+}
+
+function enterIntro(){
+  clearLoadTimer();
+  if(!introId) return;
+  const id=introId; introId=null;
+  openCollection(id);                       // collection rendered underneath
+  const p=document.getElementById('tilePreview');
+  p.classList.remove('show');               // dissolve the loading card → blend reveal
+  setTimeout(()=>{
+    p.setAttribute('aria-hidden','true');
+    document.querySelectorAll('.tile.selected').forEach(t=>t.classList.remove('selected'));
+    document.body.classList.remove('theme-gold','theme-ruby','theme-emerald');
+  },650);
+}
+
+function clearTileTheme(){
+  clearLoadTimer(); introId=null;
+  document.querySelectorAll('.tile.selected').forEach(t=>t.classList.remove('selected'));
+  document.body.classList.remove('theme-gold','theme-ruby','theme-emerald');
+  const p=document.getElementById('tilePreview');
+  if(p){ p.classList.remove('show'); p.setAttribute('aria-hidden','true'); }
+}
+
+document.addEventListener('click',e=>{
+  const openEl=e.target.closest('[data-open]');
+  const backEl=e.target.closest('[data-back]');
+  const linkEl=e.target.closest('[data-link]');
+  if(openEl){
+    e.preventDefault();
+    openCollection(openEl.dataset.open);
+    return;
+  }
+  if(backEl){ e.preventDefault(); leaveCollection(); return; }
+  if(linkEl){ e.preventDefault();
+    if(document.querySelector('.collection.active')) leaveCollection();
+    if(lenis) lenis.scrollTo(0); else window.scrollTo({top:0,behavior:'smooth'});
+    return;
+  }
+});
+
+document.getElementById('tpEnter').addEventListener('click',enterIntro);   // skip the wait
+document.getElementById('tpClose').addEventListener('click',clearTileTheme);
+
+/* ============================================================
+   LOADER
+   ============================================================ */
+/* ============================================================
+   BOOT — resolve content (defaults ⊕ saved overrides), then build
+   ============================================================ */
+function buildStore(C){
+  const track=document.getElementById('storeTrack');
+  const dotsWrap=document.getElementById('storeDots');
+  const prev=document.getElementById('storePrev');
+  const next=document.getElementById('storeNext');
+  if(!track) return;
+  let imgs=(C.storeImages||[]).filter(i=>i&&i.url);
+  if(!imgs.length) imgs=[{url:'storefront.jpg',focal:{x:50,y:22},caption:'Our store · Sadar Bazar'}];
+  track.innerHTML=imgs.map((im,i)=>{
+    const fx=im.focal?.x??50, fy=im.focal?.y??22;
+    return `<div class="store-slide"><img src="${esc(im.url)}" alt="Kamal Jewellers store photo ${i+1}" loading="lazy" style="object-position:${fx}% ${fy}%" /></div>`;
+  }).join('');
+  // dots
+  dotsWrap.innerHTML = imgs.length>1 ? imgs.map((_,i)=>`<button class="store-dot${i===0?' on':''}" data-i="${i}" aria-label="Go to photo ${i+1}"></button>`).join('') : '';
+  const multi = imgs.length>1;
+  prev.style.display = multi?'':'none';
+  next.style.display = multi?'':'none';
+  // caption follows the active slide
+  const cap=document.getElementById('storeCap');
+  const setCap=i=>{ const c=imgs[i]?.caption; if(c){ cap.textContent=c; cap.style.display=''; } else cap.style.display='none'; };
+  setCap(0);
+  // sync dots + caption on scroll
+  const slideW=()=>track.querySelector('.store-slide')?.offsetWidth||1;
+  let active=0;
+  const onScroll=()=>{
+    const i=Math.round(track.scrollLeft/slideW());
+    if(i!==active){ active=i;
+      dotsWrap.querySelectorAll('.store-dot').forEach((d,di)=>d.classList.toggle('on',di===i));
+      setCap(i);
+    }
+  };
+  track.onscroll=onScroll;
+  const go=i=>{ active=Math.max(0,Math.min(imgs.length-1,i)); track.scrollTo({left:active*slideW(),behavior:'smooth'}); };
+  dotsWrap.querySelectorAll('.store-dot').forEach(d=>d.addEventListener('click',()=>go(Number(d.dataset.i))));
+  prev.onclick=()=>go(active-1);
+  next.onclick=()=>go(active+1);
+}
+function buildSearch(C){
+  const input=document.getElementById('srchInput');
+  const drop=document.getElementById('srchDrop');
+  if(!input||!drop) return;
+  const cols=C.collections||[];
+  let activeIdx=-1;
+
+  function renderDrop(items){
+    activeIdx=-1;
+    if(!items.length){
+      drop.innerHTML='<div class="srch-empty">No collections found</div>';
+    } else {
+      drop.innerHTML=items.map(c=>{
+        const cover=(c.images&&c.images.length)?imgUrl(c.images[0]):null;
+        return `<div class="srch-item" data-id="${esc(c.id)}">
+          <div class="srch-thumb">${cover?`<img src="${esc(cover)}" alt="" loading="lazy">`:''}
+          </div>
+          <div class="srch-info">
+            <div class="srch-name">${esc(c.name)}</div>
+            <div class="srch-tag">${esc(c.tag)}</div>
+          </div>
+          <span class="srch-arr">→</span>
+        </div>`;
+      }).join('');
+    }
+    drop.classList.add('open'); drop.removeAttribute('aria-hidden');
+  }
+
+  function hideDrop(){ drop.classList.remove('open'); drop.setAttribute('aria-hidden','true'); activeIdx=-1; }
+
+  function goTo(id){
+    openCollection(id);
+    input.value=''; hideDrop(); input.blur();
+  }
+
+  input.addEventListener('input',()=>{
+    const q=input.value.trim().toLowerCase();
+    if(!q){ hideDrop(); return; }
+    renderDrop(cols.filter(c=>
+      c.name.toLowerCase().includes(q)||
+      (c.tag||'').toLowerCase().includes(q)||
+      (c.desc||'').toLowerCase().includes(q)||
+      (c.lede||'').toLowerCase().includes(q)
+    ).slice(0,6));
+  });
+
+  input.addEventListener('keydown',e=>{
+    const items=[...drop.querySelectorAll('.srch-item')];
+    if(!items.length) return;
+    if(e.key==='ArrowDown'){ e.preventDefault(); activeIdx=Math.min(activeIdx+1,items.length-1); items.forEach((el,i)=>el.classList.toggle('sr-active',i===activeIdx)); }
+    else if(e.key==='ArrowUp'){ e.preventDefault(); activeIdx=Math.max(activeIdx-1,0); items.forEach((el,i)=>el.classList.toggle('sr-active',i===activeIdx)); }
+    else if(e.key==='Enter'){ e.preventDefault(); const t=activeIdx>=0?items[activeIdx]:items[0]; if(t) goTo(t.dataset.id); }
+    else if(e.key==='Escape'){ hideDrop(); input.blur(); }
+  });
+
+  drop.addEventListener('click',e=>{ const t=e.target.closest('.srch-item'); if(t) goTo(t.dataset.id); });
+  document.addEventListener('click',e=>{ if(!e.target.closest('#srchBar')) hideDrop(); },{passive:true});
+}
+
+/* ============================================================
+   VIDEO STRIP — wide YouTube feature + vertical Instagram reel
+   YouTube thumbnails come straight off img.youtube.com (no API key,
+   no cost). Clicking swaps in a privacy-mode embed rather than
+   loading an iframe on every page view. Instagram publishes no
+   thumbnail, so that one is uploaded in Studio and links out.
+   ============================================================ */
+function ytId(url){
+  const m=String(url||'').match(/(?:youtu\.be\/|v=|\/shorts\/|\/embed\/)([A-Za-z0-9_-]{11})/);
+  return m?m[1]:null;
+}
+function buildVideos(C){
+  const sec=document.getElementById('vidSec'), wrap=document.getElementById('vidGrid');
+  if(!sec||!wrap) return;
+  const v=C.videoSection||{};
+  const id=ytId(v.youtubeUrl);
+  const hasReel=!!(v.reelUrl||v.reelThumb);
+  // Nothing set up yet (or switched off) → the whole strip stays out of the page
+  if(v.enabled===false || (!id && !hasReel)){ sec.classList.add('empty'); wrap.innerHTML=''; return; }
+  sec.classList.remove('empty');
+  setText('vidEyebrow', v.eyebrow||'On screen');
+  const vt=document.getElementById('vidTitle');
+  if(vt) vt.innerHTML=nameWithEm(v.title||'Latest from the studio');
+
+  // A short muted clip beats a still: it shows motion, and for Instagram —
+  // which publishes no thumbnail at all — it's the only way to preview
+  // anything without embedding their whole heavyweight iframe.
+  const clipMedia = (url) =>
+    `<video class="vid-thumb vid-clip" src="${esc(url)}" muted loop playsinline
+            preload="none" disablepictureinpicture aria-hidden="true"></video>`;
+
+  let html='';
+  if(id){
+    const media = v.youtubeClip
+      ? clipMedia(v.youtubeClip)
+      : `<img class="vid-thumb" src="https://i.ytimg.com/vi/${esc(id)}/maxresdefault.jpg"
+              onerror="this.src='https://i.ytimg.com/vi/${esc(id)}/hqdefault.jpg'"
+              alt="" loading="lazy" />`;
+    html+=`<a class="vid-card vid-main" id="ytCard" href="https://www.youtube.com/watch?v=${esc(id)}" target="_blank" rel="noopener" data-yt="${esc(id)}">
+      ${media}
+      <span class="vid-shade"></span>
+      <span class="vid-play" aria-hidden="true"></span>
+      <span class="vid-cap"><span class="k">YouTube</span><span class="t">${esc(v.youtubeCaption||'Watch the film')}</span></span>
+    </a>`;
+  }
+  if(hasReel){
+    let media, empty='';
+    if(v.reelClip)        media = clipMedia(v.reelClip);
+    else if(v.reelThumb)  media = `<img class="vid-thumb" src="${esc(v.reelThumb)}" alt="" loading="lazy" />`;
+    else {
+      // No clip and no cover — say so plainly instead of showing a black void
+      media = `<span class="vid-ph">Add a preview clip or cover photo<br>in Studio → Videos</span>`;
+      empty = ' is-empty';
+    }
+    html+=`<a class="vid-card vid-reel${empty}" href="${esc(v.reelUrl||'#')}" target="_blank" rel="noopener">
+      ${media}
+      <span class="vid-shade"></span>
+      <span class="vid-play" aria-hidden="true"></span>
+      <span class="vid-cap"><span class="k">Instagram</span><span class="t">${esc(v.reelCaption||'Latest reel')}</span></span>
+    </a>`;
+  }
+  wrap.innerHTML=html;
+
+  // Clips play only while on screen and pause when they scroll away — no
+  // point burning a visitor's battery and data on a video nobody is looking at.
+  const clips=[...wrap.querySelectorAll('.vid-clip')];
+  if(clips.length){
+    if('IntersectionObserver' in window){
+      const cio=new IntersectionObserver(entries=>{
+        entries.forEach(en=>{
+          const el=en.target;
+          if(en.isIntersecting){ el.preload='auto'; el.play().catch(()=>{}); }
+          else el.pause();
+        });
+      },{threshold:0.25});
+      clips.forEach(c=>cio.observe(c));
+    } else {
+      clips.forEach(c=>{ c.preload='auto'; c.play().catch(()=>{}); });
+    }
+  }
+
+  // Click-to-play: swap the facade for the real embed, so the page never
+  // ships a YouTube iframe to visitors who don't press play.
+  const card=document.getElementById('ytCard');
+  if(card) card.addEventListener('click',e=>{
+    e.preventDefault();
+    const vid=card.dataset.yt;
+    card.innerHTML=`<iframe src="https://www.youtube-nocookie.com/embed/${vid}?autoplay=1&rel=0"
+      title="YouTube video" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture"
+      allowfullscreen></iframe>`;
+  });
+}
+
+/* ============================================================
+   CATALOGUE SHOWCASE — one box that previews the /catalogue page
+   ============================================================ */
+function buildCatalogueBox(C){
+  const box=document.getElementById('catBox'); if(!box) return;
+  const cb=C.catalogueBox||{};
+  box.href = cb.url || '/catalogue';
+  setText('catEyebrow', cb.eyebrow||'Everything in one place');
+  const t=document.getElementById('catTitle');
+  if(t) t.innerHTML=nameWithEm(cb.title||'Check our catalogue');
+  setText('catText', cb.text||'');
+  const cta=document.getElementById('catCta');
+  if(cta) cta.innerHTML=`${esc(cb.cta||'Open the catalogue')} <i>↗</i>`;
+
+  // Fan of three real photos pulled from the catalogue page's own links,
+  // falling back to collection covers so the box is never empty.
+  const fan=document.getElementById('catFan'); if(!fan) return;
+  const fromLinks=((C.linkTree&&C.linkTree.links)||[])
+    .map(l=>(l.images&&l.images[0])||l.image).filter(Boolean);
+  const fromCols=(C.collections||[]).map(c=>c.images&&c.images.length?imgUrl(c.images[0]):null).filter(Boolean);
+  const pics=[...fromLinks,...fromCols].slice(0,3);
+  fan.innerHTML=[0,1,2].map(i=>
+    `<span class="pv">${pics[i]?`<img src="${esc(pics[i])}" alt="" loading="lazy">`:''}</span>`
+  ).join('');
+}
+
+function buildAll(C){
+  try{
+    applyContent(C);
+    initAnnouncement(C);
+    buildSale(C);
+    buildVideos(C);
+    buildCatalogueBox(C);
+    buildMenu(C);
+    buildStore(C);
+    buildCollections(C);
+    buildReviews(C);
+    setupEnquiry(C);
+    applyTileStyle(C);
+    buildSearch(C);
+    if(window.KJMotion) KJMotion.apply(C);
+    if(window.lenis) window.lenis.resize();
+  }catch(e){ console.warn('build failed', e); }
+}
+
+function maybeShowDropPopover(){
+  try{ if(sessionStorage.getItem('kamal_drop_closed')) return; }catch(e){}
+  const pop=document.getElementById('dropPopover');
+  const cls=document.getElementById('dropClose');
+  if(!pop) return;
+  setTimeout(()=>{
+    pop.classList.add('show');
+  },1800);
+  if(cls){
+    cls.addEventListener('click',()=>{
+      pop.classList.remove('show');
+      try{ sessionStorage.setItem('kamal_drop_closed','1'); }catch(e){}
+    });
+  }
+}
+
+function boot(){
+  const t0=Date.now();
+  // Paint immediately with defaults — the page never waits on the network.
+  buildAll(CONTENT);
+  // Re-paint if the Worker has saved overrides (resolves under the loader; falls back silently).
+  loadContent().then(()=>{
+    buildAll(CONTENT);
+    // Deep link straight into a collection, e.g. kamaljewellers.shop/#bridal
+    const deepId=location.hash.slice(1);
+    if(deepId && collectionMap[deepId]) openCollection(deepId,{pushState:false});
+  }).catch(e=>console.warn(e));
+  // Loader dismissal is on a guaranteed timer, never tied to the fetch.
+  const wait=Math.max(0,1100-(Date.now()-t0));
+  setTimeout(()=>{
+    document.getElementById('loader').classList.add('done');
+    setTimeout(()=>{
+      watchReveals();
+      bindMagnets();
+      setupReviewFloat();
+      document.querySelectorAll('.hero .reveal').forEach((el,i)=>setTimeout(()=>el.classList.add('in'),i*180));
+      maybeShowLead();
+      maybeShowDropPopover();
+    },480);
+  },wait);
+}
+boot();
+</script>
+
+</body>
+</html>
