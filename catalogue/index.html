@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<meta name="theme-color" content="#171412" />
+<meta name="theme-color" content="#0A0807" />
 <title>Kamal Jewellers — Catalogue</title>
 <meta name="description" content="All Kamal Jewellers collections, catalogue and contact — in one place." />
 <link rel="canonical" href="https://kamaljewellers.shop/catalogue" />
-<link rel="icon" type="image/png" sizes="64x64" href="../brand/favicon-64.png" />
-<link rel="apple-touch-icon" href="../brand/apple-touch-icon.png" />
+<link rel="icon" type="image/png" href="../logo.png" />
+<link rel="apple-touch-icon" href="../logo.png" />
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="Kamal Jewellers" />
 <meta property="og:title" content="Kamal Jewellers — Catalogue" />
@@ -18,17 +18,18 @@
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Hanken+Grotesk:wght@300;400;500;600&family=Tiro+Devanagari+Hindi&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="../home.css?v=be5e8b1a9e" />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Jost:wght@300;400;500;600&family=Tiro+Devanagari+Hindi&display=swap" rel="stylesheet" />
+<script>try{if(sessionStorage.getItem('kn_intro'))document.documentElement.classList.add('nointro')}catch(e){}</script>
+<link rel="stylesheet" href="../home.css?v=e33d99b8e1" />
 <style>
 /* Catalogue = the link-in-bio page. Same quiet system as the homepage; phone-first
    (people arrive from Instagram), two tiles across at 360px. */
 .ct-wrap{max-width:1100px;margin:0 auto;padding:clamp(48px,9vh,88px) var(--pad) 130px;text-align:center}
 .ct-home{display:grid;justify-items:center;gap:10px}
-.ct-logo{width:72px;height:72px;border-radius:50%}
+.ct-logo{width:84px;height:84px;border-radius:50%;box-shadow:0 0 60px rgba(201,162,75,.35)}
 .ct-home h1{margin-top:16px;font:600 12px/1.4 var(--ui);letter-spacing:.42em}
 .ct-home span{font:500 11px var(--ui);letter-spacing:.3em;text-transform:uppercase;color:var(--ink2)}
-.ct-div{width:48px;height:1px;background:var(--ink);margin:28px auto 0}
+.ct-div{width:80px;height:1px;background:linear-gradient(90deg,transparent,var(--gold2),transparent);margin:28px auto 0}
 .ct-tag{margin:26px auto 44px;max-width:420px;color:var(--ink2);font-size:15px}
 .ct-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:30px 12px;max-width:680px;margin:0 auto;text-align:left}
 @media(min-width:760px){.ct-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:48px 20px;max-width:1000px}}
@@ -40,12 +41,17 @@
 .ct .dock .enq{display:none}
 </style>
 </head>
-<body class="ct">
+<body class="ct is-loading">
+
+<div class="shutter" id="shutter" aria-hidden="true">
+  <i class="lid lid-t"></i><i class="lid lid-b"></i><i class="seam"></i>
+  <div class="sh-in"><img src="../logo.png?v=6c46df24f6" alt="" width="96" height="96" /><span class="gt">KAMAL JEWELLERS</span></div>
+</div>
 
 <div class="ct-wrap">
   <header>
     <a class="ct-home" href="/" aria-label="Back to the Kamal Jewellers website">
-      <img class="ct-logo" src="../logo.png?v=c1c885df9a" alt="Kamal Jewellers" width="84" height="84" />
+      <img class="ct-logo" src="../logo.png?v=6c46df24f6" alt="Kamal Jewellers" width="84" height="84" />
       <h1>KAMAL JEWELLERS</h1>
       <span>Sadar Bazar · Delhi</span>
     </a>
@@ -187,10 +193,24 @@ function maybeLead() {
 
 /* ---- tap tracking (same labels as before: catalogue:<name>) ---- */
 document.addEventListener('click', e => { const t = e.target.closest('[data-track]'); if (t && window.kjTrack) window.kjTrack('tap', t.dataset.track); }, true);
+/* ---- the opening: a jewellery box (same as the homepage; once per visit) ---- */
+function dust(sh) {
+  sh.insertAdjacentHTML('beforeend', Array.from({ length: 26 }, () => {
+    const a = Math.random() * Math.PI * 2, r = 120 + Math.random() * 260;
+    return `<b style="--x:${(Math.cos(a) * r).toFixed(0)}px;--y:${(Math.sin(a) * r * .8 - 40).toFixed(0)}px;--d:${(Math.random() * .7).toFixed(2)}"></b>`;
+  }).join(''));
+}
 (async function boot() {
+  let seen = null; try { seen = sessionStorage.getItem('kn_intro'); } catch (e) {}
+  const quick = !!seen || rm, sh = $('#shutter');
+  const finish = () => { sh && sh.remove(); document.body.classList.remove('is-loading'); maybeLead(); };
+  if (sh && !quick) dust(sh);
   C = await load();
   try { render(); wireLead(); } catch (e) { console.warn(e); }
-  maybeLead();
+  if (quick) { finish(); return; }
+  try { sessionStorage.setItem('kn_intro', '1'); } catch (e) {}
+  await new Promise(r => setTimeout(r, Math.max(0, 2150 - performance.now())));
+  sh.classList.add('up'); setTimeout(finish, 1700);
 })();
 })();
 </script>

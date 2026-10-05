@@ -29,7 +29,7 @@ root = pathlib.Path(__file__).parent
 ASSETS = [("site.css", "href", "site.css"), ("motion.js", "src", "motion.js"),
           ("content-defaults.js", "src", "content-defaults.js"),
           ("home.css", "href", "home.css"), ("home.js", "src", "home.js"),
-          ("logo.png", "src", "logo.png"), ("logo-small.png", "src", "logo-small.png")]
+          ("logo.png", "src", "logo.png")]
 PAGES = [root / "index.html", root / "studio.html",
          root / "product.html", root / "catalogue" / "index.html", root / "index-old.html", root / "admin.html"]
 

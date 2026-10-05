@@ -128,6 +128,9 @@ function renderBasics() {
   const store = (C.storeImages || []).map(imgUrl).filter(Boolean);
   if (store[0]) $('#heroImg').src = abs(store[0]);
 
+  // gold dust drifting in the hero, the reviews and the footer (the brand's own motif)
+  if (!rm) $$('.sparks').forEach(el => { el.innerHTML = Array.from({ length: el.id === 'sparks' ? 18 : 10 }, () => `<i style="left:${(Math.random() * 100).toFixed(1)}%;top:${(Math.random() * 92).toFixed(1)}%;animation-delay:${(-Math.random() * 5).toFixed(2)}s;animation-duration:${(3.5 + Math.random() * 4).toFixed(1)}s"></i>`).join(''); });
+
   // announcement bar (Studio → Settings)
   const a = C.announcement || {};
   if (a.enabled && a.text) { const el = $('#anno'); el.hidden = false; el.innerHTML = a.link ? `<a href="${esc(a.link)}">${esc(a.text)}</a>` : esc(a.text); }
@@ -151,7 +154,7 @@ function renderSale() {
 
 /* ---- pinned showcase ---- */
 // barely-there warm tints, one per collection — the page colour shifts, it never changes mood
-const TINTS = ['#171412', '#1B1613', '#191512', '#1D1814', '#18140F', '#1A1613', '#1C1713', '#161310'];
+const TINTS = ['#0A0807', '#0E0A07', '#0C0806', '#100B08', '#0B0907', '#0F0A07', '#0D0906', '#090706'];
 let SH = null;
 function renderShowcase() {
   const items = links.filter(l => l.images.length).slice(0, 8);
@@ -301,6 +304,8 @@ function scrubCine(vh) {
     el.style.setProperty('--tx', ((mv.x || 0) * lp * d.sx).toFixed(1) + 'px');
     el.style.setProperty('--ty', ((mv.y || 0) * lp * d.sy).toFixed(1) + 'px');
   });
+  let lk = 0; for (let k = 1; k < CN.n; k++) lk = Math.max(lk, clamp(1 - Math.abs(t - k) / .2));
+  CN.frame.style.setProperty('--lk', (lk * .75).toFixed(3));   // a warm gold light-leak at every cut
   CN.title.style.setProperty('--to', clamp(1 - (P - .12) / .26).toFixed(3));
   CN.frame.style.setProperty('--pp', P.toFixed(3));
   const k = Math.min(CN.n - 1, Math.floor(t));
@@ -419,6 +424,8 @@ function frame() {
   const phone = $('#phone');
   if (phone) { const r = $('#reel').getBoundingClientRect(); if (r.bottom > 0 && r.top < vh) phone.style.setProperty('--rp', clamp((vh - r.top) / (vh + r.height)).toFixed(3)); }
   scrubCine(vh);
+  const ft = $('.foot').getBoundingClientRect();
+  if (ft.top < vh) $('#mark').style.setProperty('--fp', clamp((vh - ft.top) / (vh + ft.height * .6)).toFixed(3));
 }
 const tick = () => { if (!ticking) { ticking = true; requestAnimationFrame(frame); } };
 addEventListener('scroll', tick, { passive: true });
@@ -459,7 +466,15 @@ function initLenis() {
   document.head.appendChild(s);
 }
 
-/* ---------- intro: the mark, then the page ---------- */
+/* ---------- the opening: a jewellery box ---------- */
+// CSS draws the seam and ignites the mark from the first paint; here we throw the gold dust,
+// then (at ~2.1s) part the lids and let the page arrive.
+function dust(sh) {
+  sh.insertAdjacentHTML('beforeend', Array.from({ length: 26 }, () => {
+    const a = Math.random() * Math.PI * 2, r = 120 + Math.random() * 260;
+    return `<b style="--x:${(Math.cos(a) * r).toFixed(0)}px;--y:${(Math.sin(a) * r * .8 - 40).toFixed(0)}px;--d:${(Math.random() * .7).toFixed(2)}"></b>`;
+  }).join(''));
+}
 function lit() {
   $$('.hero [data-r]').forEach(el => el.classList.add('in'));
   $('#hTitle').classList.add('in');
@@ -471,13 +486,26 @@ function intro() {
   if (rm || seen) { lit(); done(); return; }
   try { sessionStorage.setItem('kn_intro', '1'); } catch (e) {}
   sh.classList.add('up');
-  setTimeout(lit, 350);
-  setTimeout(done, 1500);
+  setTimeout(lit, 650);
+  setTimeout(done, 1700);
+}
+
+/* ---------- gold cursor ring (desktop pointers) ---------- */
+function initCursor() {
+  if (touch || rm || calm) return;
+  const c = document.createElement('div'); c.className = 'cursor'; c.innerHTML = '<i></i>'; document.body.appendChild(c);
+  let x = 0, y = 0, cx = 0, cy = 0, raf = 0;
+  const step = () => { cx += (x - cx) * .2; cy += (y - cy) * .2; c.style.transform = `translate(${cx.toFixed(1)}px,${cy.toFixed(1)}px)`; raf = (Math.abs(x - cx) > .3 || Math.abs(y - cy) > .3) ? requestAnimationFrame(step) : 0; };
+  addEventListener('pointermove', e => { x = e.clientX; y = e.clientY; c.classList.add('on'); if (!raf) raf = requestAnimationFrame(step); }, { passive: true });
+  document.addEventListener('pointerleave', () => c.classList.remove('on'));
+  document.addEventListener('pointerover', e => c.classList.toggle('grow', !!e.target.closest('a,button,[data-go],input,select,textarea')));
 }
 
 /* ---------- boot ---------- */
 (async function boot() {
-  const t0 = performance.now();
+  let seen0 = null; try { seen0 = sessionStorage.getItem('kn_intro'); } catch (e) {}
+  const quick = !!seen0 || rm;   // returning this session (or reduced motion): no opening
+  const sh0 = $('#shutter'); if (sh0 && !quick) dust(sh0);
   C = await load();
   links = ((C.linkTree && C.linkTree.links) || []).filter(l => l && l.label).map(l => ({ ...l, images: (l.images || []).filter(Boolean) }));
   annoH = (C.announcement && C.announcement.enabled && C.announcement.text) ? 38 : 0;
@@ -486,9 +514,9 @@ function intro() {
   calm = ml === 'calm';
   const safe = f => { try { f(); } catch (e) { console.warn('section failed', f.name, e); } };
   [renderBasics, renderSale, renderShowcase, renderCatalogue, renderReel, renderCine, renderReviews, wireDialogs].forEach(safe);
-  watch(); initLenis(); tick();
-  await Promise.race([document.fonts ? document.fonts.ready : Promise.resolve(), sleep(2000)]);
-  await sleep(Math.max(0, 900 - (performance.now() - t0)));
+  watch(); initLenis(); initCursor(); tick();
+  await Promise.race([document.fonts ? document.fonts.ready : Promise.resolve(), sleep(2500)]);
+  if (!quick) await sleep(Math.max(0, 2150 - performance.now()));   // let the seam, the mark and the dust play out
   intro();
 })();
 })();

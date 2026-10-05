@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240" role="img" aria-label="Kamal Jewellers">
+  <defs>
+    <linearGradient id="kjGold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f7e4a0"/>
+      <stop offset=".48" stop-color="#e7c46e"/>
+      <stop offset="1" stop-color="#9a7426"/>
+    </linearGradient>
+    <linearGradient id="kjGoldBright" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff2c8"/>
+      <stop offset=".5" stop-color="#f4d784"/>
+      <stop offset="1" stop-color="#c79a3f"/>
+    </linearGradient>
+    <linearGradient id="kjGoldDeep" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#d8b25e"/>
+      <stop offset="1" stop-color="#7a5a1e"/>
+    </linearGradient>
+    <!-- breaks a solid band into scattered gold dust -->
+    <filter id="kjDustFine" x="-25%" y="-25%" width="150%" height="150%">
+      <feTurbulence type="fractalNoise" baseFrequency="1.25" numOctaves="2" seed="9" result="n"/>
+      <feColorMatrix in="n" type="matrix"
+        values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 9 -4.0" result="m"/>
+      <feComposite in="SourceGraphic" in2="m" operator="in"/>
+    </filter>
+    <filter id="kjDustSpray" x="-25%" y="-25%" width="150%" height="150%">
+      <feTurbulence type="fractalNoise" baseFrequency="1.05" numOctaves="2" seed="23" result="n"/>
+      <feColorMatrix in="n" type="matrix"
+        values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 13 -7.4" result="m"/>
+      <feComposite in="SourceGraphic" in2="m" operator="in"/>
+    </filter>
+  </defs>
+
+  <!-- Gold-dust ring: a fine dense ring with a sparse spray feathering outward -->
+  <circle cx="120" cy="120" r="98" fill="none" stroke="url(#kjGold)" stroke-width="9" filter="url(#kjDustFine)"/>
+  <circle cx="120" cy="120" r="106" fill="none" stroke="url(#kjGold)" stroke-width="30" filter="url(#kjDustSpray)" opacity=".85"/>
+
+  <!-- Lotus: petals fan from base point (120,138) -->
+  <g stroke="#7a5a1e" stroke-width="1" stroke-linejoin="round">
+    <!-- outer sweeping leaves (calyx) -->
+    <path d="M0,0 C-15,-22 -17,-46 -7,-68 C-3,-76 3,-76 7,-68 C17,-46 15,-22 0,0 Z" fill="url(#kjGoldDeep)" transform="translate(120 138) rotate(-120) scale(.62)"/>
+    <path d="M0,0 C-15,-22 -17,-46 -7,-68 C-3,-76 3,-76 7,-68 C17,-46 15,-22 0,0 Z" fill="url(#kjGoldDeep)" transform="translate(120 138) rotate(120) scale(.62)"/>
+    <!-- outer cup petals -->
+    <path d="M0,0 C-15,-22 -17,-48 -7,-72 C-3,-80 3,-80 7,-72 C17,-48 15,-22 0,0 Z" fill="url(#kjGoldDeep)" transform="translate(120 138) rotate(-52) scale(.84)"/>
+    <path d="M0,0 C-15,-22 -17,-48 -7,-72 C-3,-80 3,-80 7,-72 C17,-48 15,-22 0,0 Z" fill="url(#kjGoldDeep)" transform="translate(120 138) rotate(52) scale(.84)"/>
+    <!-- inner side petals -->
+    <path d="M0,0 C-15,-22 -17,-48 -7,-72 C-3,-80 3,-80 7,-72 C17,-48 15,-22 0,0 Z" fill="url(#kjGold)" transform="translate(120 138) rotate(-26) scale(.93)"/>
+    <path d="M0,0 C-15,-22 -17,-48 -7,-72 C-3,-80 3,-80 7,-72 C17,-48 15,-22 0,0 Z" fill="url(#kjGold)" transform="translate(120 138) rotate(26) scale(.93)"/>
+    <!-- base petal -->
+    <path d="M0,0 C-13,-20 -14,-42 0,-62 C14,-42 13,-20 0,0 Z" fill="url(#kjGoldDeep)" transform="translate(120 138) rotate(180) scale(.32)"/>
+    <!-- central petal (pointed crown) -->
+    <path d="M0,0 C-12,-26 -13,-54 0,-86 C13,-54 12,-26 0,0 Z" fill="url(#kjGoldBright)" transform="translate(120 138)"/>
+  </g>
+
+  <!-- KJ monogram -->
+  <text x="121" y="190" text-anchor="middle" font-family="Georgia, 'Cormorant Garamond', serif" font-style="italic" font-weight="500" font-size="44" fill="url(#kjGoldBright)" letter-spacing="2">KJ</text>
+</svg>
