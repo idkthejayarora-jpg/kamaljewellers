@@ -185,7 +185,8 @@ async function sendKaramkaro(env, event) {
     if (!cfg || !cfg.enabled) return { ok: false, reason: 'disabled' };
     if (!cfg.url || !cfg.apiKey) return { ok: false, reason: 'not configured' };
     const res = await fetch(cfg.url, {
-      method: 'POST', redirect: 'error', signal: AbortSignal.timeout(10000),
+      // 'manual', not 'error': Workers throw on 'error'. A redirect then fails res.ok below, which is what we want.
+      method: 'POST', redirect: 'manual', signal: AbortSignal.timeout(10000),
       headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + cfg.apiKey },
       body: JSON.stringify({ source: 'kamal-jewellers', ...event }),
     });
