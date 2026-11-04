@@ -151,51 +151,55 @@ async function handleSaveContent(request, env) {
   return json({ ok: true, store: savedToD1 ? 'd1' : 'kv' });
 }
 
-// ── Lead notifications (WhatsApp via CallMeBot) ───────────────────────────────
+// ── Lead notifications (Karamkaro) ───────────────────────────────
 // Kept in its own KV key, NOT in site_content — that blob is served publicly
 // from GET /api/content, so an API key stored there would be world-readable.
 async function handleGetNotify(env) {
   const cfg = await env.KV.get('notify_config', 'json');
-  return json({ data: cfg || { enabled: false, phone: '', apiKey: '' } });
+  return json({ data: cfg || { enabled: false, url: '', apiKey: '' } });
 }
 
 async function handleSaveNotify(request, env) {
   let body;
   try { body = await request.json(); } catch { return fail('Invalid JSON'); }
-  const { enabled, phone, apiKey } = body.data || {};
+  const { enabled, url, apiKey } = body.data || {};
+  if (enabled) {
+    try {
+      const target = new URL(url);
+      if (target.protocol !== 'https:' || target.username || target.password) return fail('Use an HTTPS receiving URL without embedded credentials');
+    } catch { return fail('A valid Karamkaro receiving URL is required'); }
+    if (!String(apiKey || '').trim()) return fail('A connection token is required');
+  }
   await env.KV.put('notify_config', JSON.stringify({
     enabled: !!enabled,
-    phone: String(phone || '').trim(),
+    url: String(url || '').trim(),
     apiKey: String(apiKey || '').trim(),
   }));
   return json({ ok: true });
 }
 
-// Fire-and-forget WhatsApp ping. Never throws — a notification problem must
-// never cost us the lead itself, which is already safely in the database.
-async function sendWhatsApp(env, text) {
+// The lead is stored before delivery; connection failures never discard it.
+async function sendKaramkaro(env, event) {
   try {
     const cfg = await env.KV.get('notify_config', 'json');
     if (!cfg || !cfg.enabled) return { ok: false, reason: 'disabled' };
-    const digits = String(cfg.phone || '').replace(/[^\d]/g, '');
-    if (!digits || !cfg.apiKey) return { ok: false, reason: 'not configured' };
-    const url = 'https://api.callmebot.com/whatsapp.php'
-      + '?phone=' + encodeURIComponent(digits)
-      + '&apikey=' + encodeURIComponent(cfg.apiKey)
-      + '&text=' + encodeURIComponent(text);
-    const res = await fetch(url, { method: 'GET' });
-    const detail = (await res.text().catch(() => '')).slice(0, 200);
-    return { ok: res.ok, status: res.status, detail };
-  } catch (err) {
-    console.error('whatsapp notify failed', err);
-    return { ok: false, reason: err.message };
+    if (!cfg.url || !cfg.apiKey) return { ok: false, reason: 'not configured' };
+    const res = await fetch(cfg.url, {
+      method: 'POST', redirect: 'error', signal: AbortSignal.timeout(10000),
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + cfg.apiKey },
+      body: JSON.stringify({ source: 'kamal-jewellers', ...event }),
+    });
+    if (!res.ok) console.error('Karamkaro delivery failed', res.status);
+    return { ok: res.ok, status: res.status };
+  } catch {
+    console.error('Karamkaro delivery failed');
+    return { ok: false, reason: 'connection failed' };
   }
 }
 
 async function handleTestNotify(env) {
-  const r = await sendWhatsApp(env, 'Kamal Jewellers — test alert. Lead notifications are working.');
-  if (r.ok) return json({ ok: true });
-  return fail('Could not send: ' + (r.reason || r.detail || ('HTTP ' + r.status)), 400);
+  const r = await sendKaramkaro(env, { type: 'connection.test' });
+  return r.ok ? json({ ok: true }) : fail('Could not send: ' + (r.reason || ('HTTP ' + r.status)), 400);
 }
 
 // ── Analytics ─────────────────────────────────────────────────────────────────
@@ -287,13 +291,9 @@ async function handleSubmitEnquiry(request, env, ctx) {
 
   // Alert after the row is safely stored, and outside the response path so the
   // visitor's form never waits on (or fails because of) the notification.
-  const text = 'New lead — Kamal Jewellers\n'
-    + 'Name: ' + name + '\n'
-    + 'Contact: ' + phone + '\n'
-    + (interest ? 'Looking for: ' + interest + '\n' : '')
-    + 'Open Studio → Leads to reply.';
-  if (ctx && ctx.waitUntil) ctx.waitUntil(sendWhatsApp(env, text));
-  else await sendWhatsApp(env, text);
+  const event = { type: 'lead.created', lead: { id, created_at: now, name, phone, email: email || null, interest: interest || null, message, status: 'new' } };
+  if (ctx && ctx.waitUntil) ctx.waitUntil(sendKaramkaro(env, event));
+  else await sendKaramkaro(env, event);
 
   return json({ ok: true, id });
 }

@@ -19,8 +19,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Jost:wght@300;400;500;600&family=Tiro+Devanagari+Hindi&display=swap" rel="stylesheet" />
-<script>try{if(sessionStorage.getItem('kn_intro'))document.documentElement.classList.add('nointro')}catch(e){}</script>
-<link rel="stylesheet" href="../home.css?v=e33d99b8e1" />
+<script>try{if(sessionStorage.getItem('kn_intro'))document.documentElement.classList.add('nointro')}catch(e){}
+try{var n=navigator,c=n.connection,q=location.search.match(/[?&]lite=([01])/),l=q?q[1]==='1':((n.deviceMemory&&n.deviceMemory<=4)||(n.hardwareConcurrency&&n.hardwareConcurrency<=4)||(c&&c.saveData));if(l)document.documentElement.classList.add('lite')}catch(e){}</script>
+<link rel="stylesheet" href="../home.css?v=4e5f80ebd1" />
 <style>
 /* Catalogue = the link-in-bio page. Same quiet system as the homepage; phone-first
    (people arrive from Instagram), two tiles across at 360px. */
@@ -142,9 +143,11 @@ function render() {
   $$('[data-r]', grid).forEach(el => io.observe(el));
   // slow staggered dissolve between a tile's photos, top to bottom
   if (!rm) {
-    const cur = new WeakMap();
-    setInterval(() => $$('.cc', grid).forEach((tile, i) => {
-      const ims = $$('img', tile); if (ims.length < 2) return;
+    const cur = new WeakMap(), seen = new WeakSet();   // only tiles on screen dissolve; a hidden tab or off-screen tile does nothing
+    const vio = new IntersectionObserver(es => es.forEach(e => e.isIntersecting ? seen.add(e.target) : seen.delete(e.target)), { rootMargin: '120px 0px' });
+    $$('.cc', grid).forEach(t => vio.observe(t));
+    setInterval(() => document.hidden || $$('.cc', grid).forEach((tile, i) => {
+      const ims = $$('img', tile); if (ims.length < 2 || !seen.has(tile)) return;
       setTimeout(() => { const k = cur.get(tile) || 0, n = (k + 1) % ims.length; ims[k].classList.remove('on'); ims[n].classList.add('on'); cur.set(tile, n); }, i * 300);
     }), 4500);
   }
@@ -195,7 +198,7 @@ function maybeLead() {
 document.addEventListener('click', e => { const t = e.target.closest('[data-track]'); if (t && window.kjTrack) window.kjTrack('tap', t.dataset.track); }, true);
 /* ---- the opening: a jewellery box (same as the homepage; once per visit) ---- */
 function dust(sh) {
-  sh.insertAdjacentHTML('beforeend', Array.from({ length: 26 }, () => {
+  sh.insertAdjacentHTML('beforeend', Array.from({ length: document.documentElement.classList.contains('lite') ? 12 : 26 }, () => {
     const a = Math.random() * Math.PI * 2, r = 120 + Math.random() * 260;
     return `<b style="--x:${(Math.cos(a) * r).toFixed(0)}px;--y:${(Math.sin(a) * r * .8 - 40).toFixed(0)}px;--d:${(Math.random() * .7).toFixed(2)}"></b>`;
   }).join(''));

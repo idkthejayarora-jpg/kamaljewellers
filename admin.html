@@ -586,7 +586,7 @@ $('#cropUpload').addEventListener('click',async ()=>{
     const canvas=cropper.getCroppedCanvas({ maxWidth:1600, maxHeight:2000, imageSmoothingQuality:'high' });
     if(!canvas){ toast('Image still loading — give it a second and try again.'); return; }
     toast('Uploading…');
-    const blob=await new Promise((res,rej)=>canvas.toBlob(b=> b?res(b):rej(new Error('Could not process this image')),'image/jpeg',0.9));
+    const blob=await new Promise((res,rej)=>canvas.toBlob(b=> b?res(b):rej(new Error('Could not process this image')),'image/jpeg',0.82));
     const c=C.collections[cropTargetColl];
     const form=new FormData();
     form.append('file', blob, 'photo.jpg');

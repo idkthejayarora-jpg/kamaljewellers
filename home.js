@@ -15,6 +15,7 @@ const API = ((window.KAMAL_CONFIG || {}).API_BASE) || '/api';
 let rm = matchMedia('(prefers-reduced-motion:reduce)').matches;   // also set when Studio → Motion is Off
 let calm = false;                                                  // Studio → Motion: Calm = no smooth-scroll library
 const touch = matchMedia('(hover:none)').matches;
+const lite = document.documentElement.classList.contains('lite');  // weak phone / Save-Data: set in <head>, ?lite=0|1 overrides
 const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
 const digits = s => String(s || '').replace(/[^0-9]/g, '');
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -41,10 +42,10 @@ function merge(base, over) {
 }
 async function load() {
   try {
-    const ctrl = new AbortController(), t = setTimeout(() => ctrl.abort(), 3500);
-    const r = await fetch(API + '/content?_=' + Date.now(), { signal: ctrl.signal });
-    clearTimeout(t);
-    if (r.ok) { const { data } = await r.json(); if (data) return merge(FALLBACK, data); }
+    // index.html starts this request from <head>, before the stylesheet and scripts have run
+    const early = API === '/api' && window.__kc;
+    const j = await Promise.race([early || fetch(API + '/content?_=' + Date.now()).then(r => (r.ok ? r.json() : null)), sleep(3500).then(() => null)]);
+    if (j && j.data) return merge(FALLBACK, j.data);
   } catch (e) { console.warn('content fetch failed — using built-in copy', e); }
   return FALLBACK;
 }
@@ -92,7 +93,7 @@ function paintLive() {
 
 /* ---------- renderers ---------- */
 function renderBasics() {
-  const h = C.hero, c = C.contact;
+  const h = { eyebrow: 'Wholesale only · Sadar Bazar, Delhi', title: 'Jewellery for', titleEm: 'your business.', sub: 'Artificial jewellery for retailers, resellers and boutiques. Share your business details and bulk requirements to enquire about wholesale pricing. No retail enquiries.' }, c = C.contact;
   const seo = C.seo || {};
   if (seo.title) { document.title = seo.title; $('#ogTitle').content = seo.title; }
   if (seo.description) { $('#metaDesc').content = seo.description; $('#ogDesc').content = seo.description; }
@@ -129,7 +130,7 @@ function renderBasics() {
   if (store[0]) $('#heroImg').src = abs(store[0]);
 
   // gold dust drifting in the hero, the reviews and the footer (the brand's own motif)
-  if (!rm) $$('.sparks').forEach(el => { el.innerHTML = Array.from({ length: el.id === 'sparks' ? 18 : 10 }, () => `<i style="left:${(Math.random() * 100).toFixed(1)}%;top:${(Math.random() * 92).toFixed(1)}%;animation-delay:${(-Math.random() * 5).toFixed(2)}s;animation-duration:${(3.5 + Math.random() * 4).toFixed(1)}s"></i>`).join(''); });
+  if (!rm) $$('.sparks').forEach(el => { el.innerHTML = Array.from({ length: (el.id === 'sparks' ? 18 : 10) >> (lite ? 1 : 0) }, () => `<i style="left:${(Math.random() * 100).toFixed(1)}%;top:${(Math.random() * 92).toFixed(1)}%;animation-delay:${(-Math.random() * 5).toFixed(2)}s;animation-duration:${(3.5 + Math.random() * 4).toFixed(1)}s"></i>`).join(''); });
 
   // announcement bar (Studio → Settings)
   const a = C.announcement || {};
@@ -184,7 +185,10 @@ function renderShowcase() {
 }
 function loadScene(i) {
   if (!SH || i < 0 || i >= SH.n) return;
-  $$('img[data-src]', SH.sc[i]).forEach(im => { im.src = im.dataset.src; im.removeAttribute('data-src'); });
+  $$('img[data-src]', SH.sc[i]).forEach(im => {
+    im.decoding = 'async'; im.src = im.dataset.src; im.removeAttribute('data-src');
+    im.decode().catch(() => {});   // decode off the main thread now, so the scene change never pays for it
+  });
 }
 function setScene(i) {
   if (!SH || i === SH.i) return;
@@ -225,7 +229,8 @@ function renderReel() {
   const sec = $('#reel');
   if (v.enabled === false || (!yid && !hasReel)) { $('#navReel').hidden = true; return; }
   sec.hidden = false;
-  const screen = v.reelClip ? `<video src="${esc(v.reelClip)}" muted loop playsinline preload="none" disablepictureinpicture></video>`
+  const saveData = !!(navigator.connection && navigator.connection.saveData);   // a 7 MB clip is not worth it on Save-Data
+  const screen = (v.reelClip && !saveData) ? `<video src="${esc(v.reelClip)}" muted loop playsinline preload="none" disablepictureinpicture></video>`
     : v.reelThumb ? `<img src="${esc(v.reelThumb)}" alt="" loading="lazy" />`
     : `<div class="ph-ph"><img src="/logo.png" alt="" />Instagram reel</div>`;
   sec.innerHTML = `<div class="wrap reel-in">
@@ -269,7 +274,7 @@ function renderCine() {
   $('#cineShots').innerHTML = list.map((im, i) => `<div class="shot"><img src="${esc(abs(imgUrl(im)))}" alt="${i ? '' : 'The Kamal Jewellers shopfront on Main Road, Sadar Bazar'}" decoding="async" ${i ? 'loading="lazy"' : 'fetchpriority="high"'} /></div>`).join('');
   $('#cineSubs').innerHTML = list.map((im, i) => `<span>${esc(im.caption || (i ? pool[(i - 1) % pool.length] : ''))}</span>`).join('');
   if (rm) return;
-  CN = { sec, film, n: list.length, shots: $$('.shot', film), subs: $$('#cineSubs span'), frame: $('#cineFrame'), title: $('#cineTitle'), count: $('#cineCount'), k: -1, dim: [] };
+  CN = { sec, film, n: list.length, shots: $$('.shot', film), subs: $$('#cineSubs span'), frame: $('#cineFrame'), title: $('#cineTitle'), count: $('#cineCount'), leak: $('#cineLeak'), prog: $('.cine-prog', film), k: -1, dim: [], o: list.map((_, i) => i ? 0 : 1) };
   CN.shots.forEach((el, i) => {
     const im = $('img', el);
     el.style.setProperty('--o', i ? 0 : 1);
@@ -281,22 +286,25 @@ function renderCine() {
 // size each photo to cover the frame with overscan, remember how far the camera may travel
 function layoutShot(i) {
   const im = $('img', CN.shots[i]); if (!im.naturalWidth) return;
-  const fw = CN.frame.clientWidth, fh = CN.frame.clientHeight;
+  const fw = CN.frame.clientWidth, fh = CN.frame.clientHeight, was = CN.dim[i];
+  if (was && was.fw === fw && was.fh === fh) return;   // phone URL bars fire resize mid-scroll; nothing changed, so don't re-lay-out
   const sc = Math.max(fw / im.naturalWidth, fh / im.naturalHeight) * 1.14, w = im.naturalWidth * sc, h = im.naturalHeight * sc;
   im.style.width = w + 'px'; im.style.height = h + 'px';
-  CN.dim[i] = { sx: (w - fw) / 2, sy: (h - fh) / 2 };
+  CN.dim[i] = { sx: (w - fw) / 2, sy: (h - fh) / 2, fw, fh };
   CN.sec.classList.add('cam');
   tick();   // photos load lazily — re-run the scrub so camera and subtitles never wait for the next scroll
 }
-function scrubCine(vh) {
-  if (!CN) return;
-  const r = CN.film.getBoundingClientRect();
-  if (r.bottom < -vh || r.top > vh * 2) return;
-  const total = CN.film.offsetHeight - vh, P = clamp(-r.top / total), t = P * CN.n, OV = .2;
+function scrubCine(vh, y) {
+  const s = spans.cine; if (!CN || !s) return;
+  const top = s.y - y;
+  if (top + s.h < -vh || top > vh * 2) return;
+  const total = s.h - vh, P = clamp(-top / total), t = P * CN.n, OV = .2;
   CN.shots.forEach((el, i) => {
     const a = Math.abs(t - (i + .5));
     let o = clamp((.5 + OV - a) / (2 * OV));
     if (i === 0 && t < .5) o = 1; if (i === CN.n - 1 && t > CN.n - .5) o = 1;   // hold the first and last frame
+    if (!o && !CN.o[i]) return;   // dark and was already dark: nothing to write (most shots, most frames)
+    CN.o[i] = o;
     el.style.setProperty('--o', o.toFixed(3));
     CN.subs[i].style.opacity = clamp((.42 - a) / .12).toFixed(2);
     const d = CN.dim[i], mv = CAM[i % CAM.length]; if (!d) return;
@@ -305,9 +313,9 @@ function scrubCine(vh) {
     el.style.setProperty('--ty', ((mv.y || 0) * lp * d.sy).toFixed(1) + 'px');
   });
   let lk = 0; for (let k = 1; k < CN.n; k++) lk = Math.max(lk, clamp(1 - Math.abs(t - k) / .2));
-  CN.frame.style.setProperty('--lk', (lk * .75).toFixed(3));   // a warm gold light-leak at every cut
+  CN.leak.style.setProperty('--lk', (lk * .75).toFixed(3));   // a warm gold light-leak at every cut
   CN.title.style.setProperty('--to', clamp(1 - (P - .12) / .26).toFixed(3));
-  CN.frame.style.setProperty('--pp', P.toFixed(3));
+  CN.prog.style.setProperty('--pp', P.toFixed(3));
   const k = Math.min(CN.n - 1, Math.floor(t));
   if (k !== CN.k) { CN.k = k; CN.count.textContent = 'Shot ' + String(k + 1).padStart(2, '0') + ' / ' + String(CN.n).padStart(2, '0'); }
 }
@@ -396,40 +404,57 @@ function maybeLead() {
   }, Math.max(0, (cfg.delaySec != null ? cfg.delaySec : 1) * 1000) + 600);
 }
 
-/* ---------- scroll engine: one rAF loop ---------- */
-let lastY = 0, ticking = false, annoH = 0;
+/* ---------- scroll engine: one rAF loop, no layout reads ---------- */
+// Section positions are measured once (again only when the layout really changes), so a scroll
+// frame reads scrollY and writes custom properties — nothing that forces a style recalc or layout.
+let lastY = 0, ticking = false, annoH = 0, lastTop = -1, dirty = true, E = null;
+const spans = {};
 const nav = $('#nav'), prog = $('#prog'), dock = $('#dock');
+function measure() {
+  const at = el => { if (!el) return null; const r = el.getBoundingClientRect(); return { y: r.top + scrollY, h: r.height }; };
+  M.doc = document.documentElement.scrollHeight;
+  spans.show = SH && at(SH.sec); spans.reel = at(E.reel); spans.foot = at(E.foot); spans.cine = CN && at(CN.film);
+}
+const M = { doc: 0 };
 function frame() {
   ticking = false;
-  const y = scrollY, vh = innerHeight, max = document.documentElement.scrollHeight - vh;
+  if (!E) return;
+  if (dirty) { dirty = false; measure(); }
+  const y = scrollY, vh = innerHeight, max = M.doc - vh;
   prog.style.transform = `scaleX(${max > 0 ? clamp(y / max).toFixed(4) : 0})`;
   nav.classList.toggle('solid', y > 40);
   nav.classList.toggle('hide', y > lastY + 4 && y > 240 && !document.body.classList.contains('menu-open'));
   if (y < lastY - 4) nav.classList.remove('hide');
-  nav.style.top = Math.max(0, annoH - y) + 'px';
+  const tp = Math.max(0, annoH - y); if (tp !== lastTop) { lastTop = tp; nav.style.top = tp + 'px'; }
   lastY = y;
   dock.classList.toggle('on', y > vh * .6);
 
-  if (y < vh * 1.3) $('#heroArt').style.setProperty('--sy', (y / vh).toFixed(3));
+  if (y < vh * 1.3) E.hero.style.setProperty('--sy', (y / vh).toFixed(3));
 
-  if (SH) {
-    const r = SH.sec.getBoundingClientRect();
-    if (r.bottom > -vh && r.top < vh * 2) {
-      const total = SH.sec.offsetHeight - vh, p = clamp(-r.top / total), f = p * SH.n;
+  const sh = spans.show;
+  if (SH && sh) {
+    const top = sh.y - y;
+    if (top + sh.h > -vh && top < vh * 2) {
+      const total = sh.h - vh, p = clamp(-top / total), f = p * SH.n;
       const i = Math.min(SH.n - 1, Math.floor(f));
-      SH.pin.style.setProperty('--lp', (f - i).toFixed(3));
+      SH.sc[i].style.setProperty('--lp', (f - i).toFixed(3));   // on the scene that reads it, not the whole pinned stage
       setScene(i);
     }
   }
-  const phone = $('#phone');
-  if (phone) { const r = $('#reel').getBoundingClientRect(); if (r.bottom > 0 && r.top < vh) phone.style.setProperty('--rp', clamp((vh - r.top) / (vh + r.height)).toFixed(3)); }
-  scrubCine(vh);
-  const ft = $('.foot').getBoundingClientRect();
-  if (ft.top < vh) $('#mark').style.setProperty('--fp', clamp((vh - ft.top) / (vh + ft.height * .6)).toFixed(3));
+  const rl = spans.reel;
+  if (E.phone && rl) { const top = rl.y - y; if (top + rl.h > 0 && top < vh) E.phone.style.setProperty('--rp', clamp((vh - top) / (vh + rl.h)).toFixed(3)); }
+  scrubCine(vh, y);
+  const ft = spans.foot, ftop = ft.y - y;
+  if (ftop < vh) E.mark.style.setProperty('--fp', clamp((vh - ftop) / (vh + ft.h * .6)).toFixed(3));
 }
 const tick = () => { if (!ticking) { ticking = true; requestAnimationFrame(frame); } };
+const remeasure = () => { dirty = true; tick(); };
 addEventListener('scroll', tick, { passive: true });
-addEventListener('resize', tick, { passive: true });
+addEventListener('resize', remeasure, { passive: true });
+if (window.ResizeObserver) new ResizeObserver(remeasure).observe(document.body);   // content, fonts and lazy images settle after first paint
+
+// sections that are off screen pause their endless animations (a paused animation costs nothing)
+const offIO = new IntersectionObserver(es => es.forEach(e => e.target.classList.toggle('off', !e.isIntersecting)), { rootMargin: '160px 0px' });
 
 /* ---------- reveals, anchors, menu, tracking ---------- */
 const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold: .15 });
@@ -470,7 +495,7 @@ function initLenis() {
 // CSS draws the seam and ignites the mark from the first paint; here we throw the gold dust,
 // then (at ~2.1s) part the lids and let the page arrive.
 function dust(sh) {
-  sh.insertAdjacentHTML('beforeend', Array.from({ length: 26 }, () => {
+  sh.insertAdjacentHTML('beforeend', Array.from({ length: lite ? 12 : 26 }, () => {
     const a = Math.random() * Math.PI * 2, r = 120 + Math.random() * 260;
     return `<b style="--x:${(Math.cos(a) * r).toFixed(0)}px;--y:${(Math.sin(a) * r * .8 - 40).toFixed(0)}px;--d:${(Math.random() * .7).toFixed(2)}"></b>`;
   }).join(''));
@@ -514,7 +539,9 @@ function initCursor() {
   calm = ml === 'calm';
   const safe = f => { try { f(); } catch (e) { console.warn('section failed', f.name, e); } };
   [renderBasics, renderSale, renderShowcase, renderCatalogue, renderReel, renderCine, renderReviews, wireDialogs].forEach(safe);
-  watch(); initLenis(); initCursor(); tick();
+  E = { hero: $('#heroImg'), phone: $('#phone'), reel: $('#reel'), foot: $('.foot'), mark: $('#mark') };
+  $$('main > section, .foot').forEach(el => offIO.observe(el));
+  watch(); initLenis(); initCursor(); remeasure();
   await Promise.race([document.fonts ? document.fonts.ready : Promise.resolve(), sleep(2500)]);
   if (!quick) await sleep(Math.max(0, 2150 - performance.now()));   // let the seam, the mark and the dust play out
   intro();

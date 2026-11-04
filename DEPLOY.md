@@ -105,3 +105,17 @@ shared design system.
 works). To go back, swap the two filenames and push. `site.css`, `theme.js`,
 `tile-style.js` and `motion.js`'s `apply()` exist only for that rollback and for
 Studio's preview — delete them together with `index-old.html` once you're sure.
+
+## Performance (devices and smoothness)
+
+- **Two tiers.** A `<head>` script adds `html.lite` on weak phones (`deviceMemory <= 4`, `hardwareConcurrency <= 4`)
+  or Save-Data. Lite keeps the gold look but drops the endless shimmer, film grain, nav blur and half the sparks.
+  Test or force it with `?lite=1` (or `?lite=0` to force the full tier). Studio → Motion still controls Calm/Off.
+- **Scroll loop reads no layout.** `home.js` measures section positions once (`measure()`, re-run by a
+  ResizeObserver) and each frame only reads `scrollY` and writes custom properties. Keep it that way: a
+  `getBoundingClientRect()` / `offsetHeight` inside `frame()` costs a forced style recalc per frame.
+- **Write a scroll variable on the element that reads it** (`--lp` on the scene, `--lk` on `#cineLeak`, `--sy` on the
+  hero img), not on a big ancestor — a custom-property write restyles the whole subtree.
+- **Off-screen sections get `.off`** (IntersectionObserver), which pauses their infinite animations.
+- **Photos are the heaviest thing** (350–700 KB each; the reel is 7 MB). Studio now saves JPEGs at quality 0.82
+  instead of 0.9 (~35% smaller); existing photos are unchanged. Cloudflare image resizing is not enabled on the zone.
