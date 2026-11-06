@@ -7,6 +7,9 @@
   "main": "worker.js",
   "compatibility_date": "2024-09-23",
 
+  // Sends again any lead that couldn't reach Karamkaro.
+  "triggers": { "crons": ["*/10 * * * *"] },
+
   // Both routes are declared on purpose. The worker serves the API *and* the
   // R2 photos, and omitting a route it currently answers risks dropping it on
   // deploy — which would take down images or the whole backend.

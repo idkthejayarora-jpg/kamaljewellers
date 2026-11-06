@@ -198,6 +198,31 @@ async function sendKaramkaro(env, event) {
   }
 }
 
+// A lead that doesn't reach Karamkaro waits in KV and is sent again every 10 minutes for a week.
+// Same lead ID, so the receiver never makes a second card. It survives a restart on either side.
+const UNSENT = 'karamkaro_unsent:';
+const UNSENT_TTL = 7 * 86400;
+const WONT_ACCEPT = new Set([400, 409, 413]);   // sending the same thing again can't help
+
+async function deliverLead(env, event) {
+  const r = await sendKaramkaro(env, event);
+  if (r.ok || r.reason === 'disabled' || r.reason === 'not configured' || WONT_ACCEPT.has(r.status)) return r;
+  // The lead is already safe in the database; a failed queue write must not fail the visitor's form.
+  try { await env.KV.put(UNSENT + event.lead.id, JSON.stringify(event), { expirationTtl: UNSENT_TTL }); }
+  catch { console.error('Karamkaro retry could not be queued'); }
+  return r;
+}
+
+async function retryUnsent(env) {
+  const { keys } = await env.KV.list({ prefix: UNSENT, limit: 50 });
+  for (const { name } of keys) {
+    const event = await env.KV.get(name, 'json');
+    if (!event) continue;
+    const r = await sendKaramkaro(env, event);
+    if (r.ok || WONT_ACCEPT.has(r.status)) await env.KV.delete(name);
+  }
+}
+
 async function handleTestNotify(env) {
   const r = await sendKaramkaro(env, { type: 'connection.test' });
   return r.ok ? json({ ok: true }) : fail('Could not send: ' + (r.reason || ('HTTP ' + r.status)), 400);
@@ -293,8 +318,8 @@ async function handleSubmitEnquiry(request, env, ctx) {
   // Alert after the row is safely stored, and outside the response path so the
   // visitor's form never waits on (or fails because of) the notification.
   const event = { type: 'lead.created', lead: { id, created_at: now, name, phone, email: email || null, interest: interest || null, message, status: 'new' } };
-  if (ctx && ctx.waitUntil) ctx.waitUntil(sendKaramkaro(env, event));
-  else await sendKaramkaro(env, event);
+  if (ctx && ctx.waitUntil) ctx.waitUntil(deliverLead(env, event));
+  else await deliverLead(env, event);
 
   return json({ ok: true, id });
 }
@@ -354,6 +379,8 @@ async function handleServePhoto(key, env) {
 
 // ── Router ────────────────────────────────────────────────────────────────────
 export default {
+  scheduled(_event, env, ctx) { ctx.waitUntil(retryUnsent(env)); },
+
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     const path = url.pathname;
