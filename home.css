@@ -453,14 +453,3 @@ h1,h2,h3,blockquote,.display,.cc-lab span,.sc .nm,.pi-name,.pi-sale,.cc.all .t,.
 .festival-seal{position:absolute;z-index:5;right:-12px;bottom:48px;max-width:80%;padding:12px 20px;background:var(--festival-accent);color:#221608;text-align:center;border:3px double #221608;box-shadow:0 6px 20px #0005}
 .festival-seal span{display:block;font:600 22px/1.1 var(--display)}
 .festival-seal time{font:600 11px var(--ui);letter-spacing:.12em;text-transform:uppercase}
-.festival-calendar{scroll-margin-top:80px;padding:clamp(64px,9vw,120px) 0;background:#172824;color:#f3ebda}
-.festival-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(24px,6vw,100px);align-items:start}
-.festival-layout h2{margin:12px 0 16px}
-.festival-layout p:last-child{max-width:38ch;color:#cbd7ce}
-.festival-layout summary{padding:12px 0;cursor:pointer;color:#f2dba4}
-.festival-layout ol{list-style:none;margin:0;padding:0;max-height:24rem;overflow:auto}
-.festival-layout li{display:grid;grid-template-columns:8rem 1fr;gap:12px;padding:12px 8px;border-top:1px solid #ffffff28}
-.festival-layout li.current{background:#ffffff12}
-.festival-layout small{display:block;color:#f2dba4}
-.festival-layout time{font-variant-numeric:tabular-nums;color:#cbd7ce}
-@media(max-width:700px){.festival-layout{grid-template-columns:1fr}.festival-layout li{grid-template-columns:7rem 1fr}}

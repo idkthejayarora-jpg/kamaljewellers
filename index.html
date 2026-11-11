@@ -24,7 +24,7 @@
 <script>try{if(sessionStorage.getItem('kn_intro'))document.documentElement.classList.add('nointro')}catch(e){}
 try{window.__kc=fetch('/api/content?_='+Date.now()).then(function(r){return r.ok?r.json():null}).catch(function(){return null});}catch(e){}
 try{var n=navigator,c=n.connection,q=location.search.match(/[?&]lite=([01])/),l=q?q[1]==='1':((n.deviceMemory&&n.deviceMemory<=4)||(n.hardwareConcurrency&&n.hardwareConcurrency<=4)||(c&&c.saveData));if(l)document.documentElement.classList.add('lite')}catch(e){}</script>
-<link rel="stylesheet" href="home.css?v=5b25b4e4a1" />
+<link rel="stylesheet" href="home.css?v=6aacd659d2" />
 <noscript><style>[data-r],.split .w>i{opacity:1!important;transform:none!important}.shutter{display:none}.is-loading{overflow:auto}</style></noscript>
 </head>
 <body class="is-loading">
@@ -46,7 +46,6 @@ try{var n=navigator,c=n.connection,q=location.search.match(/[?&]lite=([01])/),l=
   </a>
   <nav class="links" aria-label="Sections">
     <a href="#catalogue">Collections</a>
-    <a href="#festivals">Festival calendar</a>
     <a href="#reel" id="navReel">On screen</a>
     <a href="#visit">The shop</a>
     <a href="#reviews" id="navRev">Reviews</a>
@@ -59,7 +58,6 @@ try{var n=navigator,c=n.connection,q=location.search.match(/[?&]lite=([01])/),l=
 
 <div class="menu" id="menu">
   <a href="#catalogue">Collections</a>
-  <a href="#festivals">Festival calendar</a>
   <a href="#visit">The shop</a>
   <a href="#reviews">Reviews</a>
   <a href="#" id="menuWa" target="_blank" rel="noopener" data-track="whatsapp">WhatsApp</a>
@@ -72,12 +70,12 @@ try{var n=navigator,c=n.connection,q=location.search.match(/[?&]lite=([01])/),l=
   <div class="sparks" id="sparks" aria-hidden="true"></div>
   <div class="hero-in">
     <div class="hero-copy">
-      <p class="eyebrow" data-r id="hEyebrow">Wholesale only · Sadar Bazar, Delhi</p>
-      <h1 id="hTitle"><span id="hT1">Jewellery for</span> <em id="hT2">your business.</em></h1>
-      <p class="lede" id="hSub" data-r style="--d:220ms">Artificial jewellery for retailers, resellers and boutiques.</p>
+      <p class="eyebrow" data-r id="hEyebrow">Sadar Bazar, Delhi</p>
+      <h1 id="hTitle"><span id="hT1">Jewellery for</span> <em id="hT2">every occasion.</em></h1>
+      <p class="lede" id="hSub" data-r style="--d:220ms">Discover handcrafted artificial jewellery for celebrations and everyday wear.</p>
       <div class="cta" data-r style="--d:300ms">
-        <button class="btn solid" type="button" data-enq data-track="enquire">Request wholesale pricing</button>
-        <a class="btn" href="#catalogue">Browse collections</a>
+        <a class="btn solid" href="#catalogue">Browse jewellery</a>
+        <button class="btn" type="button" data-enq data-track="enquire">Send an enquiry</button>
       </div>
       <p class="live" id="hLive" data-r style="--d:380ms" hidden><i></i><span></span></p>
     </div>
@@ -100,20 +98,6 @@ try{var n=navigator,c=n.connection,q=location.search.match(/[?&]lite=([01])/),l=
       <a class="btn" id="catAll" href="/catalogue" data-r data-track="catalogue-pill">Open the full catalogue</a>
     </div>
     <div class="cat-grid" id="catGrid"></div>
-  </div>
-</section>
-
-<section class="festival-calendar" id="festivals" hidden aria-labelledby="festivalHeading">
-  <div class="wrap festival-layout">
-    <div>
-      <p class="eyebrow">The wholesale calendar</p>
-      <h2 class="display" id="festivalHeading">Plan your <em>festive stock.</em></h2>
-      <p>Key Indian festivals for your buying calendar. Dates follow India time and can vary by region or moon sighting.</p>
-    </div>
-    <details open>
-      <summary>Upcoming festivals</summary>
-      <ol id="festivalDates"></ol>
-    </details>
   </div>
 </section>
 
@@ -234,7 +218,7 @@ try{var n=navigator,c=n.connection,q=location.search.match(/[?&]lite=([01])/),l=
 <script src="config.js"></script>
 <script src="track.js" defer></script>
 <script src="motion.js?v=ea343d47ac"></script>
-<script src="festivals.js?v=66b9311eeb"></script>
-<script src="home.js?v=3efadab9b4"></script>
+<script src="festivals.js?v=8d0eed5385"></script>
+<script src="home.js?v=bd514293af"></script>
 </body>
 </html>

@@ -93,7 +93,7 @@ function paintLive() {
 
 /* ---------- renderers ---------- */
 function renderBasics() {
-  const h = { eyebrow: 'Wholesale only · Sadar Bazar, Delhi', title: 'Jewellery for', titleEm: 'your business.', sub: 'Artificial jewellery for retailers, resellers and boutiques. Share your business details and bulk requirements to enquire about wholesale pricing. No retail enquiries.' }, c = C.contact;
+  const h = { eyebrow: 'Sadar Bazar, Delhi', title: 'Jewellery for', titleEm: 'every occasion.', sub: 'Discover handcrafted artificial jewellery for celebrations and everyday wear.' }, c = C.contact;
   const seo = C.seo || {};
   if (seo.title) { document.title = seo.title; $('#ogTitle').content = seo.title; }
   if (seo.description) { $('#metaDesc').content = seo.description; $('#ogDesc').content = seo.description; }
@@ -104,24 +104,18 @@ function renderBasics() {
   if ((c.hours || '').trim()) ld.openingHours = c.hours.trim();
   $('#ldJson').textContent = JSON.stringify(ld);
 
-  const { active, upcoming } = festivalSchedule();
+  const active = nextFestival();
   const formatDate = date => new Intl.DateTimeFormat('en-IN', { dateStyle: 'medium', timeZone: 'UTC' }).format(new Date(date));
   if (active) {
-    const [date, name, theme, title, titleEm, picks] = active;
+    const [date, name, theme, picks] = active;
     $('#top').dataset.festival = theme;
-    Object.assign(h, { eyebrow: name + ' edit · Wholesale only', title, titleEm,
-      sub: picks + ' for retailers, resellers and boutiques. Enquire for bulk pricing and availability.' });
+    Object.assign(h, { eyebrow: 'Festival jewellery', titleEm: name + '.',
+      sub: 'Discover ' + picks.toLowerCase() + ' for the celebration.' });
     $('#festivalSealName').textContent = name;
     $('#festivalSealDate').dateTime = date;
     $('#festivalSealDate').textContent = formatDate(date);
     $('#festivalSeal').hidden = false;
   }
-  $('#festivals').hidden = !upcoming.length;
-  $('#festivalDates').innerHTML = upcoming.map(event => {
-    const [date, name] = event;
-    return `<li${event === active ? ' class="current"' : ''}><time datetime="${date}">${formatDate(date)}</time><span>${esc(name)}${event === active ? ' <small>Featured</small>' : ''}</span></li>`;
-  }).join('');
-
   $('#hEyebrow').textContent = h.eyebrow || '';
   $('#hT1').textContent = h.title || '';
   $('#hT2').textContent = h.titleEm || '';
