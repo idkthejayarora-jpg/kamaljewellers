@@ -234,8 +234,7 @@
       <p class="intro2">Tell us what caught your eye — a bridal set, a viral look, a custom piece — and we'll get back to you personally.</p>
       <form id="enqForm">
         <div class="field"><label>Your name</label><input name="name" required maxlength="80" autocomplete="name" /></div>
-        <div class="field"><label>Phone / WhatsApp</label><input name="phone" required maxlength="30" autocomplete="tel" inputmode="tel" /></div>
-        <div class="field"><label>Email <span style="opacity:.5">(optional)</span></label><input name="email" type="email" maxlength="120" autocomplete="email" /></div>
+        <div class="field"><label>Phone / WhatsApp</label><input name="phone" type="tel" autocomplete="tel" inputmode="tel" maxlength="40" pattern="\+?(?=(?:[^0-9]*[0-9]){7,15}[^0-9]*$)[0-9 .\(\)\-]+" title="Enter a phone number with 7 to 15 digits, including the country code if needed." required /></div>
         <div class="field"><label>Interested in</label><select name="interest" id="enqInterest"><option value="General enquiry">General enquiry</option></select></div>
         <div class="field"><label>Message</label><textarea name="message" required maxlength="1000" placeholder="I'd love to know more about…"></textarea></div>
         <button class="enq-submit mag" type="submit" id="enqSubmit">Send enquiry</button>
@@ -260,7 +259,7 @@
       <p class="lead-intro" id="leadIntroTxt">Leave your details and we'll send you new arrivals, viral pieces and sale alerts first. Takes 10 seconds.</p>
       <form id="leadForm">
         <div class="field"><label>Your name</label><input name="name" required maxlength="80" autocomplete="name" placeholder="e.g. Aarti Sharma" /></div>
-        <div class="field"><label>Email or phone</label><input name="contact" required maxlength="120" autocomplete="email" placeholder="you@email.com or +91…" /></div>
+        <div class="field"><label>Phone number</label><input name="contact" type="tel" autocomplete="tel" inputmode="tel" maxlength="40" pattern="\+?(?=(?:[^0-9]*[0-9]){7,15}[^0-9]*$)[0-9 .\(\)\-]+" title="Enter a phone number with 7 to 15 digits, including the country code if needed." required /></div>
         <div class="field"><label>What are you looking for?</label>
           <select name="interest" id="leadInterest"><option value="Just browsing">Just browsing</option></select>
         </div>
@@ -715,7 +714,7 @@ document.getElementById('enqForm').addEventListener('submit',async e=>{
   const f=e.target, btn=document.getElementById('enqSubmit'), note=document.getElementById('enqNote');
   const payload={
     name:f.name.value.trim(), phone:f.phone.value.trim(),
-    email:f.email.value.trim()||null, interest:f.interest.value,
+    interest:f.interest.value,
     message:f.message.value.trim()
   };
   if(!payload.name||!payload.phone||!payload.message){ note.textContent='Please add your name, phone and a message.'; return; }
@@ -802,12 +801,10 @@ document.getElementById('leadForm').addEventListener('submit', async e=>{
   e.preventDefault();
   const f=e.target, btn=document.getElementById('leadSubmit'), note=document.getElementById('leadNote');
   const name=f.name.value.trim(), contact=f.contact.value.trim(), interest=f.interest.value;
-  if(!name||!contact){ note.textContent='Please add your name and an email or phone.'; return; }
-  const isEmail=/@/.test(contact);
+  if(!name||!contact){ note.textContent='Please add your name and a phone number.'; return; }
   const payload={
     name,
-    phone:contact,                 // endpoint requires a phone field — store the contact here
-    email:isEmail?contact:null,
+    phone:contact,
     interest:'Welcome popup · '+interest,
     message:`New lead from the welcome popup. Looking for: ${interest}. Reach them at: ${contact}.`
   };

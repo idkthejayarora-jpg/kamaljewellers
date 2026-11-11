@@ -438,3 +438,29 @@ h1,h2,h3,blockquote,.display,.cc-lab span,.sc .nm,.pi-name,.pi-sale,.cc.all .t,.
 .cursor.on{opacity:.85}
 .cursor.grow{width:58px;height:58px;margin:-29px 0 0 -29px;background:rgba(231,200,115,.12)}
 .cursor i{position:absolute;left:50%;top:50%;width:4px;height:4px;margin:-2px 0 0 -2px;border-radius:50%;background:var(--gold3)}
+
+/* Festival campaigns borrow the arch and date stamp of a shop invitation. */
+.hero[data-festival="lamp"]{--festival-bg:#392009;--festival-accent:#ffd48a}
+.hero[data-festival="rose"]{--festival-bg:#41172f;--festival-accent:#ffc1d6}
+.hero[data-festival="harvest"]{--festival-bg:#3b2811;--festival-accent:#ffce76}
+.hero[data-festival="evergreen"]{--festival-bg:#0d362c;--festival-accent:#bcebd0}
+.hero[data-festival]{background:var(--festival-bg);--gold2:var(--festival-accent)}
+.hero[data-festival] .hero-bg{background:radial-gradient(ellipse at 74% 35%,#ffffff16,transparent 65%),linear-gradient(160deg,transparent,#0a0807 110%)}
+.hero[data-festival] .hero-img,.hero[data-festival] .hero-art::before{border-radius:48% 48% 0 0 / 32% 32% 0 0}
+.hero[data-festival] .hero-art::before{inset:-9px 9px 28px -9px}
+.hero[data-festival] h1{font-size:clamp(44px,6.7vw,105px)}
+.hero[data-festival] h1 em{color:var(--festival-accent);background:none;-webkit-text-fill-color:currentColor}
+.festival-seal{position:absolute;z-index:5;right:-12px;bottom:48px;max-width:80%;padding:12px 20px;background:var(--festival-accent);color:#221608;text-align:center;border:3px double #221608;box-shadow:0 6px 20px #0005}
+.festival-seal span{display:block;font:600 22px/1.1 var(--display)}
+.festival-seal time{font:600 11px var(--ui);letter-spacing:.12em;text-transform:uppercase}
+.festival-calendar{scroll-margin-top:80px;padding:clamp(64px,9vw,120px) 0;background:#172824;color:#f3ebda}
+.festival-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(24px,6vw,100px);align-items:start}
+.festival-layout h2{margin:12px 0 16px}
+.festival-layout p:last-child{max-width:38ch;color:#cbd7ce}
+.festival-layout summary{padding:12px 0;cursor:pointer;color:#f2dba4}
+.festival-layout ol{list-style:none;margin:0;padding:0;max-height:24rem;overflow:auto}
+.festival-layout li{display:grid;grid-template-columns:8rem 1fr;gap:12px;padding:12px 8px;border-top:1px solid #ffffff28}
+.festival-layout li.current{background:#ffffff12}
+.festival-layout small{display:block;color:#f2dba4}
+.festival-layout time{font-variant-numeric:tabular-nums;color:#cbd7ce}
+@media(max-width:700px){.festival-layout{grid-template-columns:1fr}.festival-layout li{grid-template-columns:7rem 1fr}}

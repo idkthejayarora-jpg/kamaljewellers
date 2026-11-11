@@ -307,17 +307,21 @@ async function handleStats(request, env) {
 async function handleSubmitEnquiry(request, env, ctx) {
   let body;
   try { body = await request.json(); } catch { return fail('Invalid JSON'); }
-  const { name, phone, email, interest, message } = body;
+  const { name, interest, message } = body || {};
+  const phone = typeof body?.phone === 'string' ? body.phone.trim() : '';
   if (!name || !phone || !message) return fail('Name, phone and message are required');
+  if (phone.length > 40 || !/^\+?[0-9 ().-]+$/.test(phone) || !/^\d{7,15}$/.test(phone.replace(/\D/g, ''))) {
+    return fail('Enter a valid phone number with 7 to 15 digits');
+  }
   const id = crypto.randomUUID();
   const now = new Date().toISOString();
   await env.DB.prepare(
     'INSERT INTO enquiries (id,created_at,name,phone,email,interest,message) VALUES (?,?,?,?,?,?,?)'
-  ).bind(id, now, name, phone, email || null, interest || null, message).run();
+  ).bind(id, now, name, phone, null, interest || null, message).run();
 
   // Alert after the row is safely stored, and outside the response path so the
   // visitor's form never waits on (or fails because of) the notification.
-  const event = { type: 'lead.created', lead: { id, created_at: now, name, phone, email: email || null, interest: interest || null, message, status: 'new' } };
+  const event = { type: 'lead.created', lead: { id, created_at: now, name, phone, email: null, interest: interest || null, message, status: 'new' } };
   if (ctx && ctx.waitUntil) ctx.waitUntil(deliverLead(env, event));
   else await deliverLead(env, event);
 

@@ -104,6 +104,24 @@ function renderBasics() {
   if ((c.hours || '').trim()) ld.openingHours = c.hours.trim();
   $('#ldJson').textContent = JSON.stringify(ld);
 
+  const { active, upcoming } = festivalSchedule();
+  const formatDate = date => new Intl.DateTimeFormat('en-IN', { dateStyle: 'medium', timeZone: 'UTC' }).format(new Date(date));
+  if (active) {
+    const [date, name, theme, title, titleEm, picks] = active;
+    $('#top').dataset.festival = theme;
+    Object.assign(h, { eyebrow: name + ' edit · Wholesale only', title, titleEm,
+      sub: picks + ' for retailers, resellers and boutiques. Enquire for bulk pricing and availability.' });
+    $('#festivalSealName').textContent = name;
+    $('#festivalSealDate').dateTime = date;
+    $('#festivalSealDate').textContent = formatDate(date);
+    $('#festivalSeal').hidden = false;
+  }
+  $('#festivals').hidden = !upcoming.length;
+  $('#festivalDates').innerHTML = upcoming.map(event => {
+    const [date, name] = event;
+    return `<li${event === active ? ' class="current"' : ''}><time datetime="${date}">${formatDate(date)}</time><span>${esc(name)}${event === active ? ' <small>Featured</small>' : ''}</span></li>`;
+  }).join('');
+
   $('#hEyebrow').textContent = h.eyebrow || '';
   $('#hT1').textContent = h.title || '';
   $('#hT2').textContent = h.titleEm || '';
@@ -111,7 +129,7 @@ function renderBasics() {
   split($('#hTitle'));
 
   const wa = waHref();
-  ['navWa', 'menuWa', 'heroWa', 'dkWa'].forEach(id => { const a = $('#' + id); if (a) a.href = wa; });
+  ['navWa', 'menuWa', 'dkWa'].forEach(id => { const a = $('#' + id); if (a) a.href = wa; });
   $('#dkCall').href = 'tel:' + (c.phone1 || '').replace(/[^0-9+]/g, '');
   $('#dkMap').href = mapHref();
 
@@ -364,7 +382,7 @@ function wireDialogs() {
   $('#enqF').addEventListener('submit', async e => {
     e.preventDefault();
     const f = e.target, note = $('#enqNote'), btn = $('#enqGo');
-    const p = { name: f.name.value.trim(), phone: f.phone.value.trim(), email: null, interest: f.interest.value, message: f.message.value.trim() };
+    const p = { name: f.name.value.trim(), phone: f.phone.value.trim(), interest: f.interest.value, message: f.message.value.trim() };
     if (!p.name || !p.phone || !p.message) { note.textContent = 'Please add your name, phone and a message.'; return; }
     btn.disabled = true; note.textContent = 'Sending…';
     try { await post(p); $('#enqForm').hidden = true; $('#enqDone').hidden = false; }
@@ -374,10 +392,10 @@ function wireDialogs() {
     e.preventDefault();
     const f = e.target, note = $('#leadNote'), btn = $('#leadGo');
     const name = f.name.value.trim(), contact = f.contact.value.trim(), interest = f.interest.value;
-    if (!name || !contact) { note.textContent = 'Please add your name and an email or phone.'; return; }
+    if (!name || !contact) { note.textContent = 'Please add your name and a phone number.'; return; }
     btn.disabled = true; note.textContent = 'Saving…';
     try {
-      await post({ name, phone: contact, email: /@/.test(contact) ? contact : null, interest: 'Welcome popup · ' + interest,
+      await post({ name, phone: contact, interest: 'Welcome popup · ' + interest,
                    message: `New lead from the welcome popup. Looking for: ${interest}. Reach them at: ${contact}.` });
       try { localStorage.setItem('kj_lead_done', '1'); } catch (x) {}
       $('#leadForm').hidden = true; $('#leadDone').hidden = false; setTimeout(() => closeDlg(lead), 2200);

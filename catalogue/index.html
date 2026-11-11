@@ -21,7 +21,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Jost:wght@300;400;500;600&family=Tiro+Devanagari+Hindi&display=swap" rel="stylesheet" />
 <script>try{if(sessionStorage.getItem('kn_intro'))document.documentElement.classList.add('nointro')}catch(e){}
 try{var n=navigator,c=n.connection,q=location.search.match(/[?&]lite=([01])/),l=q?q[1]==='1':((n.deviceMemory&&n.deviceMemory<=4)||(n.hardwareConcurrency&&n.hardwareConcurrency<=4)||(c&&c.saveData));if(l)document.documentElement.classList.add('lite')}catch(e){}</script>
-<link rel="stylesheet" href="../home.css?v=4e5f80ebd1" />
+<link rel="stylesheet" href="../home.css?v=5b25b4e4a1" />
 <style>
 /* Catalogue = the link-in-bio page. Same quiet system as the homepage; phone-first
    (people arrive from Instagram), two tiles across at 360px. */
@@ -79,9 +79,9 @@ try{var n=navigator,c=n.connection,q=location.search.match(/[?&]lite=([01])/),l=
     <p class="eyebrow" id="leadEy">Welcome to Kamal Jewellers</p>
     <h3 id="leadH" class="display">Get our latest looks &amp; offers</h3>
     <p class="lede" id="leadIntro">Leave your details and we'll send you new arrivals and offers first.</p>
-    <form method="dialog" id="leadF" novalidate>
+    <form method="dialog" id="leadF">
       <label>Your name<input name="name" autocomplete="name" required /></label>
-      <label>Email or phone<input name="contact" autocomplete="email" required /></label>
+      <label>Phone number<input name="contact" type="tel" autocomplete="tel" inputmode="tel" maxlength="40" pattern="\+?(?=(?:[^0-9]*[0-9]){7,15}[^0-9]*$)[0-9 .\(\)\-]+" title="Enter a phone number with 7 to 15 digits, including the country code if needed." required /></label>
       <label>What are you looking for?<select name="interest" id="leadInt"><option>Just browsing</option></select></label>
       <button class="btn solid" type="submit" id="leadGo">Keep me posted</button>
       <p class="note" id="leadNote" role="status"></p>
@@ -164,11 +164,11 @@ function wireLead() {
     e.preventDefault();
     const f = e.target, note = $('#leadNote'), btn = $('#leadGo');
     const name = f.name.value.trim(), contact = f.contact.value.trim(), interest = f.interest.value;
-    if (!name || !contact) { note.textContent = 'Please add your name and an email or phone.'; return; }
+    if (!name || !contact) { note.textContent = 'Please add your name and a phone number.'; return; }
     btn.disabled = true; note.textContent = 'Saving…';
     try {
       const r = await fetch(API + '/enquiries', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, phone: contact, email: /@/.test(contact) ? contact : null, interest: 'Welcome popup · ' + interest,
+        body: JSON.stringify({ name, phone: contact, interest: 'Welcome popup · ' + interest,
           message: `New lead from the welcome popup. Looking for: ${interest}. Reach them at: ${contact}.` }) });
       if (!r.ok) throw new Error(r.statusText);
       try { localStorage.setItem('kj_lead_done', '1'); } catch (x) {}

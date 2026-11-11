@@ -14,11 +14,17 @@ const env = {
   KV: { get: async () => ({ enabled: true, url: 'https://example.com/leads', apiKey: 'test-token' }) },
   DB: { prepare: () => ({ bind: () => ({ run: async () => { saved = true; } }) }) },
 };
+const emailOnly = await worker.fetch(new Request('https://example.com/api/enquiries', {
+  method: 'POST', body: JSON.stringify({ name: 'Buyer', phone: 'buyer@example.com', message: 'Bulk enquiry' }),
+}), env);
+assert.equal(emailOnly.status, 400);
+assert.equal(saved, false);
 const response = await worker.fetch(new Request('https://example.com/api/enquiries', {
-  method: 'POST', body: JSON.stringify({ name: 'Buyer', phone: '1234567890', message: 'Bulk enquiry' }),
+  method: 'POST', body: JSON.stringify({ name: 'Buyer', phone: '+91 98765-43210', email: 'buyer@example.com', message: 'Bulk enquiry' }),
 }), env);
 assert.equal(response.status, 200);
 assert.equal(delivered.type, 'lead.created');
+assert.equal(delivered.lead.email, null);
 assert.equal(delivered.lead.message, 'Bulk enquiry');
 globalThis.fetch = async () => { throw new Error('offline'); };
 assert.equal((await worker.fetch(new Request('https://example.com/api/enquiries', {
