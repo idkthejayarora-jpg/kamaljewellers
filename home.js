@@ -2,8 +2,6 @@
    KAMAL JEWELLERS — homepage
    Reads the same Studio content as always (/api/content), so every edit
    made in Studio shows up here. Sections with no content hide themselves.
-   Motion is scroll-driven (one rAF loop) and deliberately quiet; all of it
-   stands down for prefers-reduced-motion and Studio → Motion = Off.
    ============================================================ */
 (function () {
 'use strict';
@@ -12,18 +10,12 @@ const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
 const esc = s => (s == null ? '' : String(s)).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const API = ((window.KAMAL_CONFIG || {}).API_BASE) || '/api';
-let rm = matchMedia('(prefers-reduced-motion:reduce)').matches;   // also set when Studio → Motion is Off
-let calm = false;                                                  // Studio → Motion: Calm = no smooth-scroll library
-const touch = matchMedia('(hover:none)').matches;
-const lite = document.documentElement.classList.contains('lite');  // weak phone / Save-Data: set in <head>, ?lite=0|1 overrides
-const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
 const digits = s => String(s || '').replace(/[^0-9]/g, '');
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 // storefront.jpg-style relative paths in saved content are relative to the site root
 const abs = u => (/^(https?:|\/)/.test(u) ? u : '/' + u);
 const imgUrl = x => (x == null ? null : (typeof x === 'string' ? x : x.url || null));
 const norm = u => (/^https?:\/\//.test(u || '') ? u : u ? 'https://' + u : '#');
-if (rm) document.documentElement.classList.add('rm');
 
 /* ---------- content ---------- */
 const FALLBACK = {
@@ -50,27 +42,7 @@ async function load() {
   return FALLBACK;
 }
 
-let C = FALLBACK, links = [], lenis = null;
-
-/* ---------- split words ---------- */
-function split(el) {
-  if (!el || el.dataset.sp) return;
-  el.dataset.sp = '1';
-  const ts = [], walk = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
-  for (let n; (n = walk.nextNode());) if (n.nodeValue.trim()) ts.push(n);
-  ts.forEach(n => {
-    const f = document.createDocumentFragment();
-    n.nodeValue.split(/(\s+)/).forEach(p => {
-      if (!p) return;
-      if (/^\s+$/.test(p)) { f.append(p); return; }
-      const w = document.createElement('span'), i = document.createElement('i');
-      w.className = 'w'; i.textContent = p; w.append(i); f.append(w);
-    });
-    n.replaceWith(f);
-  });
-  let k = 0; $$('.w>i', el).forEach(i => i.style.setProperty('--i', k++));
-  el.classList.add('split');
-}
+let C = FALLBACK, links = [];
 
 /* ---------- small helpers ---------- */
 const waHref = msg => 'https://wa.me/' + (digits(C.contact.whatsapp) || digits(C.contact.phone1)) + '?text=' + encodeURIComponent(msg || 'Hi Kamal Jewellers, I have an enquiry.');
@@ -84,11 +56,9 @@ function shopStatus() {
 }
 function paintLive() {
   const s = shopStatus();
-  [['#hLive', ' · Sadar Bazar'], ['#sLive', '']].forEach(([sel, tail]) => {
-    const el = $(sel); if (!el) return;
-    el.hidden = !s;
-    if (s) { el.classList.toggle('closed', !s.open); el.lastElementChild.textContent = s.label + tail; }
-  });
+  const el = $('#sLive');
+  el.hidden = !s;
+  if (s) el.lastElementChild.textContent = s.label;
 }
 
 /* ---------- renderers ---------- */
@@ -105,22 +75,17 @@ function renderBasics() {
   $('#ldJson').textContent = JSON.stringify(ld);
 
   const active = nextFestival();
-  const formatDate = date => new Intl.DateTimeFormat('en-IN', { dateStyle: 'medium', timeZone: 'UTC' }).format(new Date(date));
   if (active) {
     const [date, name, theme, picks] = active;
     $('#top').dataset.festival = theme;
-    Object.assign(h, { eyebrow: 'Festival jewellery', titleEm: name + '.',
+    const label = new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'long', timeZone: 'UTC' }).format(new Date(date));
+    Object.assign(h, { eyebrow: 'Festival jewellery · ' + label, titleEm: name + '.',
       sub: 'Discover ' + picks.toLowerCase() + ' for the celebration.' });
-    $('#festivalSealName').textContent = name;
-    $('#festivalSealDate').dateTime = date;
-    $('#festivalSealDate').textContent = formatDate(date);
-    $('#festivalSeal').hidden = false;
   }
   $('#hEyebrow').textContent = h.eyebrow || '';
   $('#hT1').textContent = h.title || '';
   $('#hT2').textContent = h.titleEm || '';
   $('#hSub').textContent = h.sub || '';
-  split($('#hTitle'));
 
   const wa = waHref();
   ['navWa', 'menuWa', 'dkWa'].forEach(id => { const a = $('#' + id); if (a) a.href = wa; });
@@ -140,9 +105,6 @@ function renderBasics() {
 
   const store = (C.storeImages || []).map(imgUrl).filter(Boolean);
   if (store[0]) $('#heroImg').src = abs(store[0]);
-
-  // gold dust drifting in the hero, the reviews and the footer (the brand's own motif)
-  if (!rm) $$('.sparks').forEach(el => { el.innerHTML = Array.from({ length: (el.id === 'sparks' ? 18 : 10) >> (lite ? 1 : 0) }, () => `<i style="left:${(Math.random() * 100).toFixed(1)}%;top:${(Math.random() * 92).toFixed(1)}%;animation-delay:${(-Math.random() * 5).toFixed(2)}s;animation-duration:${(3.5 + Math.random() * 4).toFixed(1)}s"></i>`).join(''); });
 
   // announcement bar (Studio → Settings)
   const a = C.announcement || {};
@@ -165,58 +127,6 @@ function renderSale() {
     }).join('')}</div>`;
 }
 
-/* ---- pinned showcase ---- */
-// barely-there warm tints, one per collection — the page colour shifts, it never changes mood
-const TINTS = ['#0A0807', '#0E0A07', '#0C0806', '#100B08', '#0B0907', '#0F0A07', '#0D0906', '#090706'];
-let SH = null;
-function renderShowcase() {
-  const items = links.filter(l => l.images.length).slice(0, 8);
-  const sec = $('#showcase');
-  if (rm || items.length < 2) { sec.hidden = true; return; }
-  sec.hidden = false; sec.style.setProperty('--n', items.length);
-  const pad = i => String(i + 1).padStart(2, '0'), total = pad(items.length - 1);
-  sec.innerHTML = `<div class="show-pin" id="pin"><div class="show-bg" id="showBg"></div>
-    <div class="show-grid">
-      <div class="show-txt">
-        <p class="eyebrow">The collections</p>
-        <div class="tx-wrap">${items.map((l, i) => `<div class="tx${i ? '' : ' on'}" data-i="${i}">
-          <div class="idx">${pad(i)} / ${total}</div><h3>${esc(l.label)}</h3>
-          <p class="meta">${l.images.length} ${l.images.length === 1 ? 'look' : 'looks'} · see them on Instagram</p>
-          <a class="btn solid" href="${esc(norm(l.url))}" target="_blank" rel="noopener" data-track="catalogue:${esc(l.label)}">Browse this collection</a></div>`).join('')}</div>
-      </div>
-      <div class="stage" aria-hidden="true">${items.map((l, i) => {
-        const im = l.images;
-        return `<div class="scene${i ? '' : ' on'}" data-i="${i}"><div class="pic"><img data-src="${esc(im[0])}" alt="" /></div>${im[1] ? `<div class="alt"><img data-src="${esc(im[1])}" alt="" /></div>` : ''}</div>`;
-      }).join('')}</div>
-      <ol class="show-dots">${items.map((l, i) => `<li><button type="button" data-go="${i}" class="${i ? '' : 'on'}" aria-label="Go to ${esc(l.label)}"></button></li>`).join('')}</ol>
-    </div></div>`;
-  $$('.tx h3', sec).forEach(split);
-  SH = { sec, n: items.length, i: -1, pin: $('#pin'), bg: $('#showBg'), tx: $$('.tx', sec), sc: $$('.scene', sec), dots: $$('.show-dots button', sec) };
-  $('.show-dots', sec).addEventListener('click', e => { const b = e.target.closest('[data-go]'); if (b) goScene(+b.dataset.go); });
-  loadScene(0); loadScene(1); setScene(0);
-}
-function loadScene(i) {
-  if (!SH || i < 0 || i >= SH.n) return;
-  $$('img[data-src]', SH.sc[i]).forEach(im => {
-    im.decoding = 'async'; im.src = im.dataset.src; im.removeAttribute('data-src');
-    im.decode().catch(() => {});   // decode off the main thread now, so the scene change never pays for it
-  });
-}
-function setScene(i) {
-  if (!SH || i === SH.i) return;
-  SH.i = i;
-  SH.tx.forEach((t, k) => t.classList.toggle('on', k === i));
-  SH.sc.forEach((s, k) => s.classList.toggle('on', k === i));
-  SH.dots.forEach((d, k) => d.classList.toggle('on', k === i));
-  SH.bg.style.setProperty('--tint', TINTS[i % TINTS.length]);
-  SH.pin.style.setProperty('--tint', TINTS[i % TINTS.length]);   // the secondary photo's matte follows the page colour
-  loadScene(i); loadScene(i + 1);
-}
-function goScene(i) {
-  const r = SH.sec.getBoundingClientRect(), top = r.top + scrollY + ((i + .5) / SH.n) * (SH.sec.offsetHeight - innerHeight);
-  lenis ? lenis.scrollTo(top, { duration: 1.4 }) : window.scrollTo({ top, behavior: 'smooth' });
-}
-
 /* ---- catalogue grid ---- */
 function renderCatalogue() {
   const grid = $('#catGrid');
@@ -224,48 +134,49 @@ function renderCatalogue() {
   if (eb.eyebrow) $('#catEyebrow').textContent = eb.eyebrow;
   if (eb.cta) $('#catAll').textContent = eb.cta;
   if (eb.url) $('#catAll').href = eb.url;
-  const pad = i => String(i + 1).padStart(2, '0');
-  grid.innerHTML = links.map((l, i) => {
+  grid.innerHTML = links.map(l => {
     const a = l.images[0], b = l.images[1];
-    return `<a class="cc" href="${esc(norm(l.url))}" target="_blank" rel="noopener" data-r style="--d:${(i % 4) * 80}ms" data-track="catalogue:${esc(l.label)}">
+    return `<a class="cc" href="${esc(norm(l.url))}" target="_blank" rel="noopener" data-track="catalogue:${esc(l.label)}">
       <div class="cc-in">${a ? `<img src="${esc(a)}" alt="${esc(l.label)}" loading="lazy" decoding="async" />` : ''}${b ? `<img src="${esc(b)}" alt="" loading="lazy" decoding="async" />` : ''}</div>
-      <div class="cc-lab"><small>${pad(i)}</small><span>${esc(l.label)}</span><b aria-hidden="true">↗</b></div></a>`;
-  }).join('') + `<a class="cc all" href="${esc($('#catAll').getAttribute('href'))}" data-r data-track="catalogue-pill"><div class="cc-in"><span class="t">See the full catalogue</span><span class="btn">Open</span></div></a>`;
-  split($('#catTitle'));
+      <div class="cc-lab"><span>${esc(l.label)}</span><b aria-hidden="true">↗</b></div></a>`;
+  }).join('');
 }
 
 /* ---- reel ---- */
 function renderReel() {
   const v = C.videoSection || {}, yid = ytId(v.youtubeUrl);
-  const hasReel = !!(v.reelClip || v.reelThumb || v.reelUrl);
+  const reelUrl = /^https?:\/\//i.test(v.reelUrl || '') ? v.reelUrl : '';
+  const hasFilm = !!(yid || v.youtubeClip);
+  const hasReel = !!(v.reelClip || reelUrl);
+  if (v.enabled === false || (!hasFilm && !hasReel)) return;
+
   const sec = $('#reel');
-  if (v.enabled === false || (!yid && !hasReel)) { $('#navReel').hidden = true; return; }
+  const youtube = yid ? 'https://www.youtube.com/watch?v=' + yid : '';
+  const thumbnail = yid ? 'https://i.ytimg.com/vi/' + yid + '/hqdefault.jpg' : '';
+  const link = (url, label, channel) => url ? `<a class="video-link" href="${esc(url)}" target="_blank" rel="noopener" data-track="video:${channel}">${label} ↗</a>` : '';
+  const player = (src, poster, title) => `<video src="${esc(src)}" ${poster ? `poster="${esc(poster)}"` : ''} aria-label="${esc(title)}" controls playsinline preload="metadata"></video>`;
+  const filmTitle = v.youtubeCaption || 'Collection video';
+  const reelTitle = v.reelCaption || 'Instagram reel';
+  const film = hasFilm ? `<figure class="video-card">
+    ${v.youtubeClip ? player(v.youtubeClip, thumbnail, filmTitle) :
+      `<a class="yt" href="${youtube}" target="_blank" rel="noopener" data-track="video:youtube" aria-label="Watch the collection video on YouTube"><img src="${thumbnail}" alt="" loading="lazy" /><span class="pl" aria-hidden="true">▶</span></a>`}
+    <figcaption><span>${esc(filmTitle)}</span>${link(youtube, 'YouTube', 'youtube')}</figcaption>
+  </figure>` : '';
+  const reel = hasReel ? `<figure class="video-card video-portrait">
+    ${v.reelClip ? player(v.reelClip, v.reelThumb, reelTitle) :
+      v.reelThumb ? `<a class="reel-thumb" href="${esc(reelUrl)}" target="_blank" rel="noopener" data-track="video:reel"><img src="${esc(v.reelThumb)}" alt="Watch the reel on Instagram" loading="lazy" /><span class="pl" aria-hidden="true">▶</span></a>` : ''}
+    <figcaption><span>${esc(reelTitle)}</span>${link(reelUrl, 'Instagram', 'reel')}</figcaption>
+  </figure>` : '';
+  sec.innerHTML = `<div class="wrap"><h2 class="display" id="reelH">Videos</h2>
+    <div class="video-grid${hasFilm && hasReel ? ' pair' : ''}">${film}${reel}</div></div>`;
   sec.hidden = false;
-  const saveData = !!(navigator.connection && navigator.connection.saveData);   // a 7 MB clip is not worth it on Save-Data
-  const screen = (v.reelClip && !saveData) ? `<video src="${esc(v.reelClip)}" muted loop playsinline preload="none" disablepictureinpicture></video>`
-    : v.reelThumb ? `<img src="${esc(v.reelThumb)}" alt="" loading="lazy" />`
-    : `<div class="ph-ph"><img src="/logo.png" alt="" />Instagram reel</div>`;
-  sec.innerHTML = `<div class="wrap reel-in">
-    <div class="reel-txt">
-      <p class="eyebrow" data-r>${esc(v.eyebrow || 'On screen')}</p>
-      <h2 class="display" id="reelH">${esc(v.title || 'Latest from the studio')}</h2>
-      ${v.reelCaption ? `<p class="cap" data-r>${esc(v.reelCaption)}</p>` : ''}
-      ${v.reelUrl ? `<a class="btn solid" data-r href="${esc(v.reelUrl)}" target="_blank" rel="noopener" data-track="video:reel">Watch the reel</a>` : ''}
-      ${yid ? `<a class="yt" data-r href="https://www.youtube.com/watch?v=${esc(yid)}" target="_blank" rel="noopener" data-track="video:youtube"><img src="https://i.ytimg.com/vi/${esc(yid)}/hqdefault.jpg" alt="" loading="lazy" /><span class="pl"></span><span class="t">${esc(v.youtubeCaption || 'Watch the film')}</span></a>` : ''}
-    </div>
-    ${hasReel ? `<div class="stagephone"><div class="phone" id="phone"><div class="scr">${screen}</div></div></div>` : ''}</div>`;
-  split($('#reelH'));
-  const vid = $('video', sec);
-  if (vid) new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { vid.play().catch(() => {}); } else vid.pause(); }), { threshold: .3 }).observe(vid);
+  $$('a[href="#reel"]').forEach(a => { a.hidden = false; });
+  $$('video', sec).forEach(video => {
+    video.addEventListener('play', () => window.kjTrack?.('tap', 'video:play'));
+  });
 }
 
-/* ---- the shop, as a film ---- */
-// A pinned widescreen frame: the camera tilts up the facade, then pans through the
-// interiors, with dissolves, subtitles drawn from the real address/hours/phone, grain
-// and a vignette. Scroll scrubs it; reduced-motion gets one still frame.
-let CN = null;
-const CAM = [{ y: 1 }, { x: 1, y: .25 }, { x: -1, y: -.2 }, { x: 1, y: .3 }, { x: -1 }];   // per shot: which way the camera drifts
-function renderCine() {
+function renderVisit() {
   const c = C.contact, rows = [];
   rows.push(['Address', c.addressHtml || '']);
   if ((c.hours || '').trim()) rows.push(['Hours', esc(c.hours.trim())]);
@@ -275,97 +186,36 @@ function renderCine() {
   if (c.instaLabel) rows.push(['Instagram', `<a href="${esc(norm(C.instagram) === '#' ? mapHref() : norm(C.instagram))}" target="_blank" rel="noopener">${esc(c.instaLabel)}</a>`]);
   $('#rows').innerHTML = rows.map(([k, v]) => `<div class="row"><div class="k">${k}</div><div class="v">${v}</div></div>`).join('');
   $('#mapCard').href = mapHref();
-  split($('#cineTitle h2'));
-
-  const imgs = (C.storeImages || []).filter(i => imgUrl(i)).slice(0, 5);
-  const list = imgs.length ? imgs : [{ url: '/storefront.jpg', focal: { x: 50, y: 20 } }];
-  const film = $('#cineFilm'), sec = $('#visit');
-  film.style.setProperty('--n', list.length);
-  const addr = (c.addressHtml || '').split(/<br\s*\/?>/i)[0].replace(/<[^>]+>/g, '').replace(/[,\s]+$/, '');
-  const pool = [addr, (c.hours || '').trim() && 'Open ' + c.hours.trim(), c.phone1 && 'Call ' + c.phone1, 'Come in'].filter(Boolean);
-  $('#cineShots').innerHTML = list.map((im, i) => `<div class="shot"><img src="${esc(abs(imgUrl(im)))}" alt="${i ? '' : 'The Kamal Jewellers shopfront on Main Road, Sadar Bazar'}" decoding="async" ${i ? 'loading="lazy"' : 'fetchpriority="high"'} /></div>`).join('');
-  $('#cineSubs').innerHTML = list.map((im, i) => `<span>${esc(im.caption || (i ? pool[(i - 1) % pool.length] : ''))}</span>`).join('');
-  if (rm) return;
-  CN = { sec, film, n: list.length, shots: $$('.shot', film), subs: $$('#cineSubs span'), frame: $('#cineFrame'), title: $('#cineTitle'), count: $('#cineCount'), leak: $('#cineLeak'), prog: $('.cine-prog', film), k: -1, dim: [], o: list.map((_, i) => i ? 0 : 1) };
-  CN.shots.forEach((el, i) => {
-    const im = $('img', el);
-    el.style.setProperty('--o', i ? 0 : 1);
-    const go = () => layoutShot(i);
-    im.complete && im.naturalWidth ? go() : im.addEventListener('load', go, { once: true });
-  });
-  addEventListener('resize', () => CN && CN.shots.forEach((_, i) => layoutShot(i)), { passive: true });
-}
-// size each photo to cover the frame with overscan, remember how far the camera may travel
-function layoutShot(i) {
-  const im = $('img', CN.shots[i]); if (!im.naturalWidth) return;
-  const fw = CN.frame.clientWidth, fh = CN.frame.clientHeight, was = CN.dim[i];
-  if (was && was.fw === fw && was.fh === fh) return;   // phone URL bars fire resize mid-scroll; nothing changed, so don't re-lay-out
-  const sc = Math.max(fw / im.naturalWidth, fh / im.naturalHeight) * 1.14, w = im.naturalWidth * sc, h = im.naturalHeight * sc;
-  im.style.width = w + 'px'; im.style.height = h + 'px';
-  CN.dim[i] = { sx: (w - fw) / 2, sy: (h - fh) / 2, fw, fh };
-  CN.sec.classList.add('cam');
-  tick();   // photos load lazily — re-run the scrub so camera and subtitles never wait for the next scroll
-}
-function scrubCine(vh, y) {
-  const s = spans.cine; if (!CN || !s) return;
-  const top = s.y - y;
-  if (top + s.h < -vh || top > vh * 2) return;
-  const total = s.h - vh, P = clamp(-top / total), t = P * CN.n, OV = .2;
-  CN.shots.forEach((el, i) => {
-    const a = Math.abs(t - (i + .5));
-    let o = clamp((.5 + OV - a) / (2 * OV));
-    if (i === 0 && t < .5) o = 1; if (i === CN.n - 1 && t > CN.n - .5) o = 1;   // hold the first and last frame
-    if (!o && !CN.o[i]) return;   // dark and was already dark: nothing to write (most shots, most frames)
-    CN.o[i] = o;
-    el.style.setProperty('--o', o.toFixed(3));
-    CN.subs[i].style.opacity = clamp((.42 - a) / .12).toFixed(2);
-    const d = CN.dim[i], mv = CAM[i % CAM.length]; if (!d) return;
-    const lp = clamp((t - (i - OV)) / (1 + 2 * OV)) * 2 - 1;      // -1 → 1 across the shot
-    el.style.setProperty('--tx', ((mv.x || 0) * lp * d.sx).toFixed(1) + 'px');
-    el.style.setProperty('--ty', ((mv.y || 0) * lp * d.sy).toFixed(1) + 'px');
-  });
-  let lk = 0; for (let k = 1; k < CN.n; k++) lk = Math.max(lk, clamp(1 - Math.abs(t - k) / .2));
-  CN.leak.style.setProperty('--lk', (lk * .75).toFixed(3));   // a warm gold light-leak at every cut
-  CN.title.style.setProperty('--to', clamp(1 - (P - .12) / .26).toFixed(3));
-  CN.prog.style.setProperty('--pp', P.toFixed(3));
-  const k = Math.min(CN.n - 1, Math.floor(t));
-  if (k !== CN.k) { CN.k = k; CN.count.textContent = 'Shot ' + String(k + 1).padStart(2, '0') + ' / ' + String(CN.n).padStart(2, '0'); }
 }
 
 /* ---- reviews ---- */
-let ri = 0, rn = 0, rt = 0, rView = false;
 function renderReviews() {
   const list = (C.reviews || []).filter(r => r && r.t);
-  if (!list.length) { $('#navRev').hidden = true; return; }
-  rn = list.length; $('#reviews').hidden = false;
-  $('#quotes').innerHTML = list.map((r, i) => `<figure class="rq${i ? '' : ' on'}"><blockquote>${esc(r.t)}</blockquote><figcaption>${esc(r.w || '')}</figcaption></figure>`).join('');
-  $$('.rq blockquote').forEach(split);
-  if (rn < 2) $('.rev-ctl').hidden = true;
-  $('#rPrev').onclick = () => setReview(ri - 1);
-  $('#rNext').onclick = () => setReview(ri + 1);
-  const q = $('#quotes');
-  q.addEventListener('pointerenter', () => { clearTimeout(rt); $('#rBar').classList.remove('run'); });
-  q.addEventListener('pointerleave', () => setReview(ri));
-  new IntersectionObserver(es => es.forEach(e => { rView = e.isIntersecting; rView ? setReview(ri) : clearTimeout(rt); }), { threshold: .4 }).observe($('#reviews'));
-}
-function setReview(i) {
-  if (!rn) return;
-  ri = (i + rn) % rn;
-  $$('.rq').forEach((q, k) => q.classList.toggle('on', k === ri));
-  const bar = $('#rBar'); bar.classList.remove('run'); void bar.offsetWidth;
-  clearTimeout(rt);
-  if (!rm && rn > 1 && rView) { bar.classList.add('run'); rt = setTimeout(() => setReview(ri + 1), 7000); }
+  if (!list.length) return;
+  $('#reviews').hidden = false;
+  $$('a[href="#reviews"]').forEach(a => { a.hidden = false; });
+  let index = 0;
+  function show(offset) {
+    index = (index + offset + list.length) % list.length;
+    const review = list[index];
+    $('#quotes blockquote').textContent = review.t;
+    $('#quotes figcaption').textContent = review.w || '';
+  }
+  $('.rev-ctl').hidden = list.length < 2;
+  $('#rPrev').onclick = () => show(-1);
+  $('#rNext').onclick = () => show(1);
+  show(0);
 }
 
 /* ---------- enquiry + welcome popup ---------- */
-function openDlg(d) { if (d.showModal) d.showModal(); else d.setAttribute('open', ''); document.body.style.overflow = 'hidden'; if (lenis) lenis.stop(); }
+function openDlg(d) { if (d.showModal) d.showModal(); else d.setAttribute('open', ''); document.body.style.overflow = 'hidden'; }
 function closeDlg(d) { if (d.close) d.close(); else d.removeAttribute('open'); }
 function wireDialogs() {
   const enq = $('#enq'), lead = $('#lead');
   $('#enqInt').innerHTML = '<option>General enquiry</option>' + links.map(l => `<option>${esc(l.label)}</option>`).join('') + '<option>Custom / bespoke piece</option>';
   $('#leadInt').innerHTML = '<option>Just browsing</option>' + links.map(l => `<option>${esc(l.label)}</option>`).join('') + '<option>Custom / bespoke piece</option>';
   [enq, lead].forEach(d => {
-    d.addEventListener('close', () => { if (!$$('dialog[open]').length) { document.body.style.overflow = ''; if (lenis) lenis.start(); } });
+    d.addEventListener('close', () => { if (!$$('dialog[open]').length) { document.body.style.overflow = ''; } });
     d.addEventListener('click', e => { if (e.target === d || e.target.closest('[data-close]')) closeDlg(d); });
   });
   document.addEventListener('click', e => { if (e.target.closest('[data-enq]')) { document.body.classList.remove('menu-open'); openDlg(enq); } });
@@ -416,146 +266,29 @@ function maybeLead() {
   }, Math.max(0, (cfg.delaySec != null ? cfg.delaySec : 1) * 1000) + 600);
 }
 
-/* ---------- scroll engine: one rAF loop, no layout reads ---------- */
-// Section positions are measured once (again only when the layout really changes), so a scroll
-// frame reads scrollY and writes custom properties — nothing that forces a style recalc or layout.
-let lastY = 0, ticking = false, annoH = 0, lastTop = -1, dirty = true, E = null;
-const spans = {};
-const nav = $('#nav'), prog = $('#prog'), dock = $('#dock');
-function measure() {
-  const at = el => { if (!el) return null; const r = el.getBoundingClientRect(); return { y: r.top + scrollY, h: r.height }; };
-  M.doc = document.documentElement.scrollHeight;
-  spans.show = SH && at(SH.sec); spans.reel = at(E.reel); spans.foot = at(E.foot); spans.cine = CN && at(CN.film);
-}
-const M = { doc: 0 };
-function frame() {
-  ticking = false;
-  if (!E) return;
-  if (dirty) { dirty = false; measure(); }
-  const y = scrollY, vh = innerHeight, max = M.doc - vh;
-  prog.style.transform = `scaleX(${max > 0 ? clamp(y / max).toFixed(4) : 0})`;
-  nav.classList.toggle('solid', y > 40);
-  nav.classList.toggle('hide', y > lastY + 4 && y > 240 && !document.body.classList.contains('menu-open'));
-  if (y < lastY - 4) nav.classList.remove('hide');
-  const tp = Math.max(0, annoH - y); if (tp !== lastTop) { lastTop = tp; nav.style.top = tp + 'px'; }
-  lastY = y;
-  dock.classList.toggle('on', y > vh * .6);
-
-  if (y < vh * 1.3) E.hero.style.setProperty('--sy', (y / vh).toFixed(3));
-
-  const sh = spans.show;
-  if (SH && sh) {
-    const top = sh.y - y;
-    if (top + sh.h > -vh && top < vh * 2) {
-      const total = sh.h - vh, p = clamp(-top / total), f = p * SH.n;
-      const i = Math.min(SH.n - 1, Math.floor(f));
-      SH.sc[i].style.setProperty('--lp', (f - i).toFixed(3));   // on the scene that reads it, not the whole pinned stage
-      setScene(i);
-    }
-  }
-  const rl = spans.reel;
-  if (E.phone && rl) { const top = rl.y - y; if (top + rl.h > 0 && top < vh) E.phone.style.setProperty('--rp', clamp((vh - top) / (vh + rl.h)).toFixed(3)); }
-  scrubCine(vh, y);
-  const ft = spans.foot, ftop = ft.y - y;
-  if (ftop < vh) E.mark.style.setProperty('--fp', clamp((vh - ftop) / (vh + ft.h * .6)).toFixed(3));
-}
-const tick = () => { if (!ticking) { ticking = true; requestAnimationFrame(frame); } };
-const remeasure = () => { dirty = true; tick(); };
-addEventListener('scroll', tick, { passive: true });
-addEventListener('resize', remeasure, { passive: true });
-if (window.ResizeObserver) new ResizeObserver(remeasure).observe(document.body);   // content, fonts and lazy images settle after first paint
-
-// sections that are off screen pause their endless animations (a paused animation costs nothing)
-const offIO = new IntersectionObserver(es => es.forEach(e => e.target.classList.toggle('off', !e.isIntersecting)), { rootMargin: '160px 0px' });
-
-/* ---------- reveals, anchors, menu, tracking ---------- */
-const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold: .15 });
-function watch() {
-  $$('[data-r],.split').forEach(el => {
-    if (el.dataset.w || el.closest('.hero') || el.closest('.tx') || el.closest('.rq')) return;
-    el.dataset.w = '1'; io.observe(el);
-  });
-}
 document.addEventListener('click', e => {
   const t = e.target.closest('[data-track]'); if (t && window.kjTrack) window.kjTrack('tap', t.dataset.track);
   const a = e.target.closest('a[href^="#"]');
   if (a && a.getAttribute('href').length > 1) {
     const el = $(a.getAttribute('href')); if (!el) return;
-    e.preventDefault(); document.body.classList.remove('menu-open'); $('#burger').setAttribute('aria-expanded', 'false');
-    lenis ? lenis.scrollTo(el, { offset: -56, duration: 1.4 }) : el.scrollIntoView({ behavior: rm ? 'auto' : 'smooth' });
+    document.body.classList.remove('menu-open'); $('#burger').setAttribute('aria-expanded', 'false');
   }
 }, true);
 $('#burger').addEventListener('click', () => {
   const o = !document.body.classList.contains('menu-open');
   document.body.classList.toggle('menu-open', o); $('#burger').setAttribute('aria-expanded', String(o));
-  nav.classList.remove('hide');
 });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && document.body.classList.contains('menu-open')) { document.body.classList.remove('menu-open'); $('#burger').setAttribute('aria-expanded', 'false'); } });
 
-function initLenis() {
-  if (touch || rm || calm) return;
-  const s = document.createElement('script');
-  s.src = 'https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js';
-  s.onload = () => {
-    lenis = new Lenis({ duration: 1.35, easing: t => Math.min(1, 1.001 - Math.pow(2, -10 * t)), smoothWheel: true });
-    const raf = t => { lenis.raf(t); requestAnimationFrame(raf); }; requestAnimationFrame(raf);
-  };
-  document.head.appendChild(s);
-}
-
-/* ---------- the opening: a jewellery box ---------- */
-// CSS draws the seam and ignites the mark from the first paint; here we throw the gold dust,
-// then (at ~2.1s) part the lids and let the page arrive.
-function dust(sh) {
-  sh.insertAdjacentHTML('beforeend', Array.from({ length: lite ? 12 : 26 }, () => {
-    const a = Math.random() * Math.PI * 2, r = 120 + Math.random() * 260;
-    return `<b style="--x:${(Math.cos(a) * r).toFixed(0)}px;--y:${(Math.sin(a) * r * .8 - 40).toFixed(0)}px;--d:${(Math.random() * .7).toFixed(2)}"></b>`;
-  }).join(''));
-}
-function lit() {
-  $$('.hero [data-r]').forEach(el => el.classList.add('in'));
-  $('#hTitle').classList.add('in');
-}
-function intro() {
-  const sh = $('#shutter');
-  let seen = null; try { seen = sessionStorage.getItem('kn_intro'); } catch (e) {}
-  const done = () => { sh.remove(); document.body.classList.remove('is-loading'); maybeLead(); tick(); };
-  if (rm || seen) { lit(); done(); return; }
-  try { sessionStorage.setItem('kn_intro', '1'); } catch (e) {}
-  sh.classList.add('up');
-  setTimeout(lit, 650);
-  setTimeout(done, 1700);
-}
-
-/* ---------- gold cursor ring (desktop pointers) ---------- */
-function initCursor() {
-  if (touch || rm || calm) return;
-  const c = document.createElement('div'); c.className = 'cursor'; c.innerHTML = '<i></i>'; document.body.appendChild(c);
-  let x = 0, y = 0, cx = 0, cy = 0, raf = 0;
-  const step = () => { cx += (x - cx) * .2; cy += (y - cy) * .2; c.style.transform = `translate(${cx.toFixed(1)}px,${cy.toFixed(1)}px)`; raf = (Math.abs(x - cx) > .3 || Math.abs(y - cy) > .3) ? requestAnimationFrame(step) : 0; };
-  addEventListener('pointermove', e => { x = e.clientX; y = e.clientY; c.classList.add('on'); if (!raf) raf = requestAnimationFrame(step); }, { passive: true });
-  document.addEventListener('pointerleave', () => c.classList.remove('on'));
-  document.addEventListener('pointerover', e => c.classList.toggle('grow', !!e.target.closest('a,button,[data-go],input,select,textarea')));
-}
-
 /* ---------- boot ---------- */
 (async function boot() {
-  let seen0 = null; try { seen0 = sessionStorage.getItem('kn_intro'); } catch (e) {}
-  const quick = !!seen0 || rm;   // returning this session (or reduced motion): no opening
-  const sh0 = $('#shutter'); if (sh0 && !quick) dust(sh0);
   C = await load();
   links = ((C.linkTree && C.linkTree.links) || []).filter(l => l && l.label).map(l => ({ ...l, images: (l.images || []).filter(Boolean) }));
-  annoH = (C.announcement && C.announcement.enabled && C.announcement.text) ? 38 : 0;
-  const ml = (C.motion && C.motion.level) || 'full';
-  if (ml === 'off' && !rm) { rm = true; document.documentElement.classList.add('rm'); }
-  calm = ml === 'calm';
   const safe = f => { try { f(); } catch (e) { console.warn('section failed', f.name, e); } };
-  [renderBasics, renderSale, renderShowcase, renderCatalogue, renderReel, renderCine, renderReviews, wireDialogs].forEach(safe);
-  E = { hero: $('#heroImg'), phone: $('#phone'), reel: $('#reel'), foot: $('.foot'), mark: $('#mark') };
-  $$('main > section, .foot').forEach(el => offIO.observe(el));
-  watch(); initLenis(); initCursor(); remeasure();
-  await Promise.race([document.fonts ? document.fonts.ready : Promise.resolve(), sleep(2500)]);
-  if (!quick) await sleep(Math.max(0, 2150 - performance.now()));   // let the seam, the mark and the dust play out
-  intro();
+  [renderBasics, renderReel, renderCatalogue, renderSale, renderVisit, renderReviews, wireDialogs].forEach(safe);
+  new IntersectionObserver(([entry]) => {
+    $('#dock').classList.toggle('on', !entry.isIntersecting);
+  }).observe($('#top'));
+  maybeLead();
 })();
 })();

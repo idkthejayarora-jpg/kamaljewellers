@@ -370,15 +370,33 @@ async function handleDeletePhoto(key, env) {
   return json({ ok: true });
 }
 
-async function handleServePhoto(key, env) {
+async function handleServePhoto(key, request, env) {
   if (!env.PHOTOS) return new Response('Photo storage not yet enabled', { status: 503 });
-  const obj = await env.PHOTOS.get(decodeURIComponent(key));
+  key = decodeURIComponent(key);
+  const head = request.method === 'HEAD';
+  // R2 handles the byte read. Resolve a single HTTP range against the object size
+  // first so we can return the correct Content-Range and reject an invalid offset.
+  const match = !head && !request.headers.has('If-Range')
+    && /^bytes=(\d*)-(\d*)$/i.exec(request.headers.get('Range') || '');
+  let range;
+  if (match && (match[1] || match[2])) {
+    const meta = await env.PHOTOS.head(key);
+    if (!meta) return new Response('Not found', { status: 404 });
+    const start = match[1] ? Number(match[1]) : Math.max(0, meta.size - Number(match[2]));
+    const end = match[1] && match[2] ? Math.min(Number(match[2]), meta.size - 1) : meta.size - 1;
+    if (start > end) return new Response(null, { status: 416, headers: { 'Content-Range': 'bytes */' + meta.size } });
+    range = { offset: start, length: end - start + 1 };
+  }
+  const obj = head ? await env.PHOTOS.head(key) : await env.PHOTOS.get(key, range ? { range } : undefined);
   if (!obj) return new Response('Not found', { status: 404 });
   const headers = new Headers();
   obj.writeHttpMetadata(headers);
   headers.set('Cache-Control', 'public, max-age=31536000, immutable');
   headers.set('Access-Control-Allow-Origin', '*');
-  return new Response(obj.body, { headers });
+  headers.set('Accept-Ranges', 'bytes');
+  headers.set('Content-Length', String(range?.length ?? obj.size));
+  if (range) headers.set('Content-Range', 'bytes ' + range.offset + '-' + (range.offset + range.length - 1) + '/' + obj.size);
+  return new Response(head ? null : obj.body, { headers, status: range ? 206 : 200 });
 }
 
 // ── Router ────────────────────────────────────────────────────────────────────
@@ -394,7 +412,7 @@ export default {
 
     // Photo serving (public, bypasses auth)
     if (path.startsWith('/photos/')) {
-      return handleServePhoto(path.slice('/photos/'.length), env);
+      return handleServePhoto(path.slice('/photos/'.length), request, env);
     }
 
     try {

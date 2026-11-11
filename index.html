@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
 <title>Kamal Jewellers — Sadar Bazar, Delhi</title>
 <meta name="description" id="metaDesc" content="Kamal Jewellers, Sadar Bazar, Delhi. One of India's widest collections of handcrafted artificial jewellery." />
-<meta name="theme-color" content="#0A0807" />
+<meta name="theme-color" content="#24160E" />
 <link rel="canonical" href="https://kamaljewellers.shop/" />
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="Kamal Jewellers" />
@@ -21,21 +21,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Jost:wght@300;400;500;600&family=Tiro+Devanagari+Hindi&display=swap" rel="stylesheet" />
-<script>try{if(sessionStorage.getItem('kn_intro'))document.documentElement.classList.add('nointro')}catch(e){}
-try{window.__kc=fetch('/api/content?_='+Date.now()).then(function(r){return r.ok?r.json():null}).catch(function(){return null});}catch(e){}
-try{var n=navigator,c=n.connection,q=location.search.match(/[?&]lite=([01])/),l=q?q[1]==='1':((n.deviceMemory&&n.deviceMemory<=4)||(n.hardwareConcurrency&&n.hardwareConcurrency<=4)||(c&&c.saveData));if(l)document.documentElement.classList.add('lite')}catch(e){}</script>
-<link rel="stylesheet" href="home.css?v=6aacd659d2" />
-<noscript><style>[data-r],.split .w>i{opacity:1!important;transform:none!important}.shutter{display:none}.is-loading{overflow:auto}</style></noscript>
+<script>window.__kc=fetch('/api/content?_='+Date.now()).then(r=>r.ok?r.json():null).catch(()=>null);</script>
+<link rel="stylesheet" href="home.css?v=515184bbf6" />
 </head>
-<body class="is-loading">
-
-<div class="kn-progress" id="prog" aria-hidden="true"></div>
-
-<!-- The opening: a jewellery box. Plays once per visit. -->
-<div class="shutter" id="shutter" aria-hidden="true">
-  <i class="lid lid-t"></i><i class="lid lid-b"></i><i class="seam"></i>
-  <div class="sh-in"><img src="logo.png?v=6c46df24f6" alt="" width="96" height="96" /><span class="gt">KAMAL JEWELLERS</span></div>
-</div>
+<body class="home">
 
 <div class="anno" id="anno" hidden></div>
 
@@ -46,9 +35,9 @@ try{var n=navigator,c=n.connection,q=location.search.match(/[?&]lite=([01])/),l=
   </a>
   <nav class="links" aria-label="Sections">
     <a href="#catalogue">Collections</a>
-    <a href="#reel" id="navReel">On screen</a>
+    <a href="#reel" hidden>Videos</a>
     <a href="#visit">The shop</a>
-    <a href="#reviews" id="navRev">Reviews</a>
+    <a href="#reviews" hidden>Reviews</a>
   </nav>
   <div class="nav-r">
     <a class="pill" id="navWa" href="#" target="_blank" rel="noopener" data-track="whatsapp">WhatsApp</a>
@@ -58,35 +47,32 @@ try{var n=navigator,c=n.connection,q=location.search.match(/[?&]lite=([01])/),l=
 
 <div class="menu" id="menu">
   <a href="#catalogue">Collections</a>
+  <a href="#reel" hidden>Videos</a>
   <a href="#visit">The shop</a>
-  <a href="#reviews">Reviews</a>
+  <a href="#reviews" hidden>Reviews</a>
   <a href="#" id="menuWa" target="_blank" rel="noopener" data-track="whatsapp">WhatsApp</a>
 </div>
 
 <main>
 
 <section class="hero" id="top">
-  <div class="hero-bg" aria-hidden="true"></div>
-  <div class="sparks" id="sparks" aria-hidden="true"></div>
   <div class="hero-in">
     <div class="hero-copy">
-      <p class="eyebrow" data-r id="hEyebrow">Sadar Bazar, Delhi</p>
+      <p class="eyebrow" id="hEyebrow">Sadar Bazar, Delhi</p>
       <h1 id="hTitle"><span id="hT1">Jewellery for</span> <em id="hT2">every occasion.</em></h1>
-      <p class="lede" id="hSub" data-r style="--d:220ms">Discover handcrafted artificial jewellery for celebrations and everyday wear.</p>
-      <div class="cta" data-r style="--d:300ms">
+      <p class="lede" id="hSub">Discover handcrafted artificial jewellery for celebrations and everyday wear.</p>
+      <div class="cta">
         <a class="btn solid" href="#catalogue">Browse jewellery</a>
-        <button class="btn" type="button" data-enq data-track="enquire">Send an enquiry</button>
+        <a class="btn" href="#reel" hidden>Watch videos</a>
       </div>
-      <p class="live" id="hLive" data-r style="--d:380ms" hidden><i></i><span></span></p>
     </div>
-    <figure class="hero-art" id="heroArt" data-r style="--d:160ms">
+    <figure class="hero-art">
       <div class="hero-img"><img id="heroImg" src="storefront.jpg" alt="The Kamal Jewellers shopfront on Main Road, Sadar Bazar" fetchpriority="high" /></div>
-      <div class="festival-seal" id="festivalSeal" hidden><span id="festivalSealName"></span><time id="festivalSealDate"></time></div>
-      <figcaption>The shop · Main Road, Sadar Bazar</figcaption>
     </figure>
   </div>
-  <a class="scroll-cue" href="#catalogue" aria-label="Scroll to the collections"><i></i></a>
 </section>
+
+<section class="reel" id="reel" hidden aria-labelledby="reelH"></section>
 
 <section class="cat" id="catalogue">
   <div class="wrap">
@@ -103,48 +89,23 @@ try{var n=navigator,c=n.connection,q=location.search.match(/[?&]lite=([01])/),l=
 
 <section class="sale" id="sale" hidden></section>
 
-<section class="show" id="showcase" aria-label="Collections" hidden></section>
-
-<section class="reel" id="reel" hidden></section>
-
-<section class="cine" id="visit" aria-label="The shop">
-  <div class="cine-film" id="cineFilm">
-    <div class="cine-pin">
-      <div class="cine-frame" id="cineFrame">
-        <div class="cine-shots" id="cineShots"></div>
-        <div class="cine-grade"></div>
-        <div class="cine-vig"></div>
-        <div class="cine-leak" id="cineLeak"></div>
-        <div class="grain" aria-hidden="true"></div>
-        <div class="cine-hud">
-          <div class="hud-top"><span id="cineCount">Shot 01</span><p class="live live-on" id="sLive" hidden><i></i><span></span></p></div>
-          <div class="cine-title" id="cineTitle">
-            <p class="eyebrow">The shop</p>
-            <h2 class="display">Come and see <em>them in the light.</em></h2>
-          </div>
-          <div class="cine-subs" id="cineSubs" aria-hidden="true"></div>
-        </div>
-        <i class="cine-prog" aria-hidden="true"></i>
-      </div>
+<section class="visit" id="visit" aria-labelledby="visitH">
+  <div class="wrap visit-in">
+    <div>
+      <h2 class="display" id="visitH">Visit the shop</h2>
+      <p class="live" id="sLive" hidden><i></i><span></span></p>
+      <a class="btn map" id="mapCard" href="#" target="_blank" rel="noopener" data-track="directions">Get directions</a>
     </div>
-  </div>
-  <div class="cine-end">
-    <div class="wrap">
-      <p class="eyebrow" data-r>Visit</p>
-      <div class="rows" id="rows" data-r></div>
-      <a class="btn light map" id="mapCard" href="#" target="_blank" rel="noopener" data-track="directions" data-r>Get directions</a>
-    </div>
+    <div id="rows"></div>
   </div>
 </section>
 
 <section class="rev" id="reviews" hidden>
-  <div class="sparks" aria-hidden="true"></div>
   <div class="wrap">
     <p class="eyebrow" data-r>In their words</p>
-    <div class="quotes" id="quotes" aria-live="polite"></div>
+    <div class="quotes" id="quotes" aria-live="polite"><figure class="rq on"><blockquote></blockquote><figcaption></figcaption></figure></div>
     <div class="rev-ctl">
       <button type="button" id="rPrev" aria-label="Previous review">←</button>
-      <span class="rprog"><i id="rBar"></i></span>
       <button type="button" id="rNext" aria-label="Next review">→</button>
     </div>
   </div>
@@ -153,9 +114,7 @@ try{var n=navigator,c=n.connection,q=location.search.match(/[?&]lite=([01])/),l=
 </main>
 
 <footer class="foot">
-  <div class="sparks" aria-hidden="true"></div>
   <div class="wrap">
-    <div class="mark" id="mark" aria-hidden="true">Kamal</div>
     <div class="foot-grid">
       <div class="foot-brand">
         <div class="brand"><img src="logo.png?v=6c46df24f6" alt="" width="40" height="40" /><span><b>KAMAL JEWELLERS</b><em lang="hi">कमल ज्वैलर्स</em></span></div>
@@ -219,6 +178,6 @@ try{var n=navigator,c=n.connection,q=location.search.match(/[?&]lite=([01])/),l=
 <script src="track.js" defer></script>
 <script src="motion.js?v=ea343d47ac"></script>
 <script src="festivals.js?v=8d0eed5385"></script>
-<script src="home.js?v=bd514293af"></script>
+<script src="home.js?v=c5e69cd95f"></script>
 </body>
 </html>
